@@ -11,3 +11,9 @@ const DEFAULT_OPTIONS: Required<CompressOptions> = {
   fileType: "image/webp",
   maxSizeMB: 0.5,
 };
+
+export async function compressImage(file: File, options?: CompressOptions): Promise<File> {
+  const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+
+  return await imageCompression(file, mergedOptions);
+}
