@@ -25,18 +25,18 @@ function isHeic(file: File): boolean {
 }
 
 /**
- * Compresses an image in the browser before it's uploaded to save space on listing photos and profile
- *  pictures.
+ * Compresses an image in the browser before it's uploaded to save space on
+ * listing photos and profile pictures.
  *
  * If called with no options, shrinks image so longest side is at most 1600px, converts it to WebP,
- *  and tries to compress to 500KB.
+ * and tries to compress to 500KB.
  *
  * @param file The image to compress (usually JPEG, PNG, or WebP)
  * @param options Overrides for the defaults. Only pass what you want to change,
  *  e.g. `{ maxSizeMB: 0.2 }` for smaller profile pictures.
  * @returns compressed image. WebP by default.
- * @throws If the file is HEIC because conversion is not supported yet, and browsers other than Safari can't
- *  decode it.
+ * @throws If the file is HEIC because conversion is not supported yet, and browsers other than
+ *  Safari can't decode it.
  * @throws If file is not an image type.
  * @throws If the library fails to process the image.
  */
