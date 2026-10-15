@@ -24,6 +24,15 @@ function isHeic(file: File): boolean {
     name.endsWith(".heif");
 }
 
+// Changes the file extension on the file name after compression since the library call doesn't change it.
+function fileExtensionChanger(file: File): File {
+  const dotIndex = file.name.lastIndexOf(".");
+  const baseName = dotIndex === -1 ? file.name : file.name.substring(0, dotIndex);
+  const extension = file.type.split("/")[1];
+
+  return new File([file], `${baseName}.${extension}`, { type: file.type });
+}
+
 /**
  * Compresses an image in the browser before it's uploaded to save space on
  * listing photos and profile pictures.
@@ -51,9 +60,12 @@ export async function compressImage(file: File, options?: CompressOptions): Prom
 
   const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
 
+  let compressed: File;
   try {
-    return await imageCompression(file, mergedOptions);
+    compressed = await imageCompression(file, mergedOptions);
   } catch (error) {
     throw new Error("This image couldn't be processed. Please choose a different JPEG, PNG, or WebP image.", { cause: error });
   }
+
+  return fileExtensionChanger(compressed);
 }
