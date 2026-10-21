@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#C8102E">
+  <title>Browse | Husky Marketplace</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="demo-ribbon">
+    <strong>PHOTO-LED INTERACTIVE PROTOTYPE</strong>
+    · stock photography, fictional listings, no real transactions
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="Husky Marketplace home">
+        husky<span>✳</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="nav-link active" href="browse.html" aria-current="page">Shop</a>
+        <a class="nav-link" href="sell.html">Sell</a>
+        <a class="nav-link" href="moving.html">Moving help</a>
+      </nav>
+
+      <label class="header-search">
+        <span aria-hidden="true">⌕</span>
+        <input
+          id="search-input"
+          type="search"
+          placeholder="Search anything on campus..."
+          aria-label="Search listings"
+        >
+      </label>
+
+      <div class="header-actions">
+        <button
+          class="icon-btn"
+          id="theme-toggle"
+          type="button"
+          aria-label="Toggle dark mode"
+        >☾</button>
+
+        <a class="icon-btn" href="saved.html" aria-label="Saved items">♡</a>
+        <a class="icon-btn" href="messages.html" aria-label="Messages">♧</a>
+        <a class="btn btn-red header-post" href="sell.html">＋ Post an item</a>
+        <a class="avatar" href="account.html" aria-label="My account">♙</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="content-head">
+      <p class="eyebrow">DISCOVER</p>
+      <h1>Find your next thing.</h1>
+      <p>Search by price, category, condition, and where to pick up.</p>
+    </div>
+
+    <div class="browse-layout">
+      <aside class="sidebar panel" aria-label="Listing filters">
+        <h2 class="side-title">
+          <span aria-hidden="true">☰</span> Filters
+        </h2>
+
+        <fieldset class="filter-group" id="category-options">
+          <legend>Category</legend>
+
+          <label><input type="radio" name="category" value="All" checked> All</label>
+          <label><input type="radio" name="category" value="Clothing"> Clothing</label>
+          <label><input type="radio" name="category" value="Furniture"> Furniture</label>
+          <label><input type="radio" name="category" value="Electronics"> Electronics</label>
+          <label><input type="radio" name="category" value="Books"> Books</label>
+          <label><input type="radio" name="category" value="Free"> Free</label>
+        </fieldset>
+
+        <div class="filter-group">
+          <div class="filter-heading">
+            <label for="price-range">Max price</label>
+            <output for="price-range" id="price-output">$150</output>
+          </div>
+
+          <input
+            id="price-range"
+            type="range"
+            min="0"
+            max="200"
+            step="5"
+            value="150"
+          >
+
+          <p class="form-hint">Free items are included.</p>
+        </div>
+
+        <div class="filter-group">
+          <h3>Student community</h3>
+          <p class="form-hint">
+            All active trading accounts must have verified university emails.
+          </p>
+        </div>
+
+        <button class="btn btn-outline btn-wide" id="clear-filters" type="button">
+          Clear filters
+        </button>
+      </aside>
+
+      <section class="browse-results" aria-label="Student listings">
+        <div class="toolbar">
+          <div class="category-chips" role="group" aria-label="Quick category filters">
+            <button class="chip active" data-category="All" aria-pressed="true" type="button">All</button>
+            <button class="chip" data-category="Clothing" aria-pressed="false" type="button">Clothing</button>
+            <button class="chip" data-category="Furniture" aria-pressed="false" type="button">Furniture</button>
+            <button class="chip" data-category="Electronics" aria-pressed="false" type="button">Electronics</button>
+            <button class="chip" data-category="Books" aria-pressed="false" type="button">Books</button>
+            <button class="chip" data-category="Free" aria-pressed="false" type="button">Free</button>
+          </div>
+
+          <label class="sort-control">
+            <span class="visually-hidden">Sort listings</span>
+            <select id="sort-listings">
+              <option value="new">Newest</option>
+              <option value="priceAsc">Price: low to high</option>
+              <option value="priceDesc">Price: high to low</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="toolbar result-summary">
+          <span id="result-count" role="status" aria-live="polite">
+            12 campus listings
+          </span>
+          <span>Student verified community</span>
+        </div>
+
+        <div id="product-grid" class="product-grid"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <a class="logo" href="index.html">husky<span>✳</span></a>
+        <p class="foot-note">
+          The campus marketplace for secondhand finds, selling your stuff,
+          and getting moving help. Not affiliated with or endorsed by
+          Northeastern University.
+        </p>
+      </div>
+
+      <nav aria-label="Footer navigation">
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="safety.html">Safety</a>
+        <a href="account.html">Email &amp; theme</a>
+        <a href="moving.html">Moving help</a>
+        <a href="credits.html">Photo credits</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
