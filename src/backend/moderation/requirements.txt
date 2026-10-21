@@ -1,3 +1,6 @@
 transformers
 torch 
 pillow
+fastapi
+uvicorn
+python-multipart
