@@ -12,6 +12,22 @@
       area: "Fenway",
       bio: "Second-year student clearing out dorm stuff. Usually around Fenway, happy to bundle items!",
       listingIds: [2, 11, 5, 8]
+    },
+    {
+      id: 2,
+      name: "Jamie L.",
+      initials: "JL",
+      area: "LightView",
+      bio: "Northeastern student selling electronics and campus essentials.",
+      listingIds: [3]
+    },
+    {
+      id: 3,
+      name: "Sam K.",
+      initials: "SK",
+      area: "Ruggles",
+      bio: "Student selling photography gear and secondhand finds.",
+      listingIds: [6]
     }
   ];
 
