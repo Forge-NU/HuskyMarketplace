@@ -17,16 +17,16 @@ const photos = {
 
 const listings = [
   { id: 1, title: "Vintage denim jacket", price: 38, category: "Clothing", condition: "Good", area: "East Village", photo: "jacket", tag: "VINTAGE" },
-  { id: 2, title: "White desk chair", price: 45, category: "Furniture", condition: "Good", area: "West Village", photo: "chair" },
+  { id: 2, title: "White desk chair", price: 45, category: "Furniture", condition: "Good", area: "Fenway", photo: "chair" },
   { id: 3, title: "Wireless headphones", price: 65, category: "Electronics", condition: "Like new", area: "LightView", photo: "headphones", tag: "HOT FIND" },
   { id: 4, title: "Study desk", price: 30, category: "Furniture", condition: "Good", area: "Fenway", photo: "desk" },
-  { id: 5, title: "Reading lamp", price: 15, category: "Furniture", condition: "Excellent", area: "West Village", photo: "lamp" },
+  { id: 5, title: "Reading lamp", price: 15, category: "Furniture", condition: "Excellent", area: "Fenway", photo: "lamp" },
   { id: 6, title: "Vintage film camera", price: 95, category: "Electronics", condition: "Good", area: "Ruggles", photo: "camera", tag: "VINTAGE" },
   { id: 7, title: "White sneakers", price: 29, category: "Clothing", condition: "Good", area: "Fenway", photo: "sneakers" },
-  { id: 8, title: "Textbook bundle", price: 12, category: "Books", condition: "Fair", area: "East Village", photo: "books" },
+  { id: 8, title: "Textbook bundle", price: 12, category: "Books", condition: "Fair", area: "Fenway", photo: "books" },
   { id: 9, title: "Small plant + pot", price: 0, category: "Free", condition: "Good", area: "LightView", photo: "plant", tag: "FREE" },
   { id: 10, title: "Cozy crewneck", price: 20, category: "Clothing", condition: "Excellent", area: "West Village", photo: "sweater" },
-  { id: 11, title: "Portable speaker", price: 24, category: "Electronics", condition: "Good", area: "East Village", photo: "speaker" },
+  { id: 11, title: "Portable speaker", price: 24, category: "Electronics", condition: "Good", area: "Fenway", photo: "speaker" },  
   { id: 12, title: "Art print for dorm", price: 10, category: "Free", condition: "Like new", area: "Fenway", photo: "poster" }
 ];
 
