@@ -74,7 +74,7 @@
       const isSaved = saved.has(id);
 
       button.setAttribute("aria-pressed", String(isSaved));
-      button.textContent = isSaved ? "♥ Saved" : "♡ Save";
+      button.replaceChildren(window.HuskyIcons.create("heart", isSaved), document.createTextNode(isSaved ? " Saved" : " Save"));
     }
 
     button.addEventListener("click", () => {

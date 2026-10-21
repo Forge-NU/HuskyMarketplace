@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#C8102E">
+  <meta
+    name="description"
+    content="Your saved finds on Husky Marketplace."
+  >
+  <title>Saved Items | Husky Marketplace</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="icons.js" defer></script>
+  <script src="listings-data.js" defer></script>
+  <script src="saved.js" defer></script>
+</head>
+
+<body>
+  <div class="demo-ribbon">
+    <strong>PHOTO-LED INTERACTIVE PROTOTYPE</strong>
+    · stock photography, fictional listings, no real transactions
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="Husky Marketplace home">
+        husky<span>✳</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="nav-link" href="browse.html">Shop</a>
+        <a class="nav-link" href="sell.html">Sell</a>
+        <a class="nav-link" href="moving.html">Moving help</a>
+      </nav>
+
+      <form class="header-search" action="browse.html" method="get" role="search">
+        <span aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          name="q"
+          placeholder="Search anything on campus..."
+          aria-label="Search listings"
+        >
+      </form>
+
+      <div class="header-actions">
+        <a
+          class="icon-btn"
+          href="saved.html"
+          aria-current="page"
+          aria-label="Saved items"
+        ></a>
+
+        <a class="icon-btn" href="messages.html" aria-label="Messages"></a>
+        <a class="btn btn-red header-post" href="sell.html">
+          ＋ Post an item
+        </a>
+
+        <a class="avatar" href="account.html" aria-label="My account">♙</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell saved-page">
+    <header class="content-head">
+      <p class="eyebrow">YOUR COLLECTION</p>
+      <h1>Saved items.</h1>
+      <p>All the campus finds you've bookmarked, in one place.</p>
+    </header>
+
+    <section class="saved-content" aria-labelledby="saved-heading">
+      <div class="section-heading">
+        <div>
+          <h2 id="saved-heading">Your favorites</h2>
+          <p id="saved-count" role="status" aria-live="polite">
+            Loading saved items...
+          </p>
+        </div>
+
+        <a href="browse.html">Explore listings →</a>
+      </div>
+
+      <div class="product-grid" id="saved-grid"></div>
+
+      <div class="saved-empty panel" id="saved-empty" hidden>
+        <span class="empty-heart" aria-hidden="true"></span>
+        <h2>Nothing saved yet.</h2>
+        <p>
+          Found something you like? Tap the heart on any listing
+          to keep it here for later.
+        </p>
+
+        <a class="btn btn-red" href="browse.html">
+          Explore listings →
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <a class="logo" href="index.html">
+          husky<span>✳</span>
+        </a>
+
+        <p class="foot-note">
+          The campus marketplace for secondhand finds, selling your stuff,
+          and getting moving help. Not affiliated with or endorsed by
+          Northeastern University.
+        </p>
+      </div>
+
+      <nav aria-label="Footer navigation">
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="safety.html">Safety</a>
+        <a href="moving.html">Moving help</a>
+        <a href="credits.html">Photo credits</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

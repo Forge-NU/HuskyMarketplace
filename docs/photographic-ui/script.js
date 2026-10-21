@@ -71,7 +71,7 @@ function makeCard(item) {
     const isSaved = saved.has(String(item.id));
     heart.classList.toggle("saved", isSaved);
     heart.setAttribute("aria-pressed", String(isSaved));
-    heart.textContent = isSaved ? "♥" : "♡";
+    heart.replaceChildren(window.HuskyIcons.create("heart", isSaved));
   }
 
   heart.addEventListener("click", () => {
