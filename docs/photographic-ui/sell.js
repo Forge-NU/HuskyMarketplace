@@ -351,7 +351,7 @@
 
       const meta = document.createElement("span");
       meta.className = "sell-published-meta";
-      meta.textContent = "Demo ? Not live";
+      meta.textContent = "Local demo ? In Browse";
 
       info.append(title, meta);
 

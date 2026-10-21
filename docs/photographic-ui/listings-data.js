@@ -31,3 +31,46 @@ const listings = [
 ];
 
 window.HuskyDemo = { photos, listings };
+
+
+// Merge locally published demo items into the marketplace.
+try {
+  const published = JSON.parse(
+    localStorage.getItem("husky_demo_my_listings") || "[]"
+  );
+
+  if (Array.isArray(published)) {
+    const known = new Set(listings.map(item => String(item.id)));
+
+    for (const item of [...published].reverse()) {
+      if (
+        !item ||
+        !Number.isSafeInteger(item.id) ||
+        !item.title ||
+        !Array.isArray(item.photos) ||
+        !item.photos[0] ||
+        item.status !== "demo" ||
+        known.has(String(item.id))
+      ) {
+        continue;
+      }
+
+      listings.unshift({
+        ...item,
+        source: "local-demo",
+        tag: "YOUR LISTING"
+      });
+
+      known.add(String(item.id));
+    }
+  }
+} catch {
+  // Built-in sample listings remain available.
+}
+
+// Uploaded photos use data URLs; sample listings use Unsplash.
+window.HuskyDemo.imageUrl = (item, width = 860) =>
+  item.photos?.[0] ||
+  "https://images.unsplash.com/" +
+  photos[item.photo] +
+  "?auto=format&fit=crop&w=" + width + "&q=80";

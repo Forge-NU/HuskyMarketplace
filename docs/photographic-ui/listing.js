@@ -17,8 +17,7 @@
     return;
   }
 
-  const photoUrl = item =>
-    `https://images.unsplash.com/${photos[item.photo]}?auto=format&fit=crop&w=1100&q=85`;
+  const photoUrl = item => window.HuskyDemo.imageUrl(item, 1100);
 
   const savedKey = "husky_demo_saved";
 
@@ -45,6 +44,7 @@
       `${listing.condition} condition · Recently listed`;
 
     document.querySelector(".detail-description").textContent =
+      listing.description?.trim() ||
       `${listing.title} in ${listing.condition.toLowerCase()} condition. ` +
       `Available for pickup near ${listing.area}.`;
 
@@ -59,11 +59,94 @@
     mainPhoto.src = photoUrl(listing);
     mainPhoto.alt = listing.title;
 
-    const thumbnail = document.querySelector(".thumbnail img");
-    thumbnail.src = photoUrl(listing);
+    const photosToShow = listing.photos?.length
+      ? listing.photos
+      : [photoUrl(listing)];
+
+    const thumbs = document.querySelector(".detail-thumbnails");
+
+    const buttons = photosToShow.map((src, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = index === 0
+        ? "thumbnail active"
+        : "thumbnail";
+
+      button.setAttribute("aria-label", `View photo ${index + 1}`);
+
+      const image = document.createElement("img");
+      image.src = src;
+      image.alt = "";
+
+      button.append(image);
+
+      button.addEventListener("click", () => {
+        mainPhoto.src = src;
+
+        buttons.forEach(other => {
+          other.classList.toggle("active", other === button);
+        });
+      });
+
+      return button;
+    });
+
+    thumbs.replaceChildren(...buttons);
 
     const messageLink = document.querySelector(".detail-actions a");
     messageLink.href = `messages.html?item=${listing.id}`;
+
+    if (listing.source === "local-demo") {
+      document.querySelector(".verified").textContent =
+        "Your local demo listing";
+
+      document.querySelector(".seller-avatar").textContent = "YOU";
+      document.querySelector(".seller-info strong").textContent = "You";
+      document.querySelector(".seller-info p").textContent =
+        "Saved on this device";
+
+      document.querySelector(".seller-profile-link").hidden = true;
+
+      messageLink.removeAttribute("href");
+      messageLink.textContent = "Your listing";
+      messageLink.setAttribute("aria-disabled", "true");
+      messageLink.classList.remove("btn-red");
+      messageLink.classList.add("btn-outline");
+    } else {
+      const knownSellers = {
+        2: [1, "Alex M.", "AM"],
+        5: [1, "Alex M.", "AM"],
+        8: [1, "Alex M.", "AM"],
+        11: [1, "Alex M.", "AM"],
+        3: [2, "Jamie L.", "JL"],
+        6: [3, "Sam K.", "SK"]
+      };
+
+      const seller = knownSellers[listing.id];
+
+      if (seller) {
+        document.querySelector(".seller-info strong").textContent =
+          seller[1];
+
+        document.querySelector(".seller-avatar").textContent =
+          seller[2];
+
+        document.querySelector(".seller-profile-link").href =
+          `seller.html?id=${seller[0]}`;
+      } else {
+        document.querySelector(".verified").textContent =
+          "Fictional demo listing";
+
+        document.querySelector(".seller-info strong").textContent =
+          "Campus seller";
+
+        document.querySelector(".seller-info p").textContent =
+          "Sample account";
+
+        document.querySelector(".seller-avatar").textContent = "NU";
+        document.querySelector(".seller-profile-link").hidden = true;
+      }
+    }
   }
 
   function setupSaveButton() {

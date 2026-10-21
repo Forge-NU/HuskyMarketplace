@@ -31,7 +31,7 @@ function makeCard(item) {
 
   const image = document.createElement("img");
   image.className = "product-photo";
-  image.src = `https://images.unsplash.com/${photos[item.photo]}?auto=format&fit=crop&w=860&h=820&q=78`;
+  image.src = window.HuskyDemo.imageUrl(item, 860);
   image.alt = item.title;
   image.loading = "lazy";
   link.append(image);
@@ -169,7 +169,7 @@ sort.addEventListener("change", renderListings);
 
 document.querySelector("#clear-filters").addEventListener("click", () => {
   search.value = "";
-  priceRange.value = "150";
+  priceRange.value = priceRange.dataset.defaultMax || "150";
   sort.value = "new";
   updateCategory("All");
 });
@@ -187,4 +187,25 @@ document.querySelector("#theme-toggle").addEventListener("click", () => {
 search.value =
   new URLSearchParams(window.location.search).get("q") || "";
 
+// Include locally posted items above the original $150 default.
+const highestOwnPrice = Math.max(
+  0,
+  ...listings
+    .filter(item => item.source === "local-demo")
+    .map(item => Number(item.price) || 0)
+);
+
+const initialMax = highestOwnPrice > 150
+  ? Math.ceil(highestOwnPrice / 50) * 50
+  : 150;
+
+priceRange.max = String(Math.max(200, initialMax));
+priceRange.value = String(initialMax);
+priceRange.dataset.defaultMax = String(initialMax);
+
 renderListings();
+// husky-category-deeplink: support category links from the homepage.
+const requestedCategory = new URLSearchParams(location.search).get("category");
+if (requestedCategory && [...categoryRadios].some(radio => radio.value === requestedCategory)) {
+  updateCategory(requestedCategory);
+}

@@ -45,9 +45,7 @@
 
     const image = document.createElement("img");
     image.className = "product-photo";
-    image.src =
-      `https://images.unsplash.com/${photos[item.photo]}` +
-      "?auto=format&fit=crop&w=860&h=820&q=78";
+    image.src = window.HuskyDemo.imageUrl(item, 860);
     image.alt = item.title;
     image.loading = "lazy";
 
