@@ -143,17 +143,17 @@ For component-level guidance, see the [frontend README](src/frontend/README.md).
 
 ### Figma
 
-- [Current marketplace redesign](https://www.figma.com/design/ogZRLNukGpoXWCSgCjt8pD) — updated Husky Marketplace UI explorations
-- [Redesigned screen / prototype starting point](https://www.figma.com/design/ogZRLNukGpoXWCSgCjt8pD?node-id=17-3) — direct link into the redesign file
-- [Earlier marketplace concepts](https://www.figma.com/design/maLPrdzL4LrQCWIlZpBbME) — previous desktop, mobile, and dark-mode explorations
-- [UI/UX design review issue (#12)](https://github.com/Forge-NU/software-team-3/issues/12) — redesign goals and tracked acceptance criteria
+- [Current marketplace redesign](https://www.figma.com/design/ogZRLNukGpoXWCSgCjt8pD): updated Husky Marketplace UI explorations
+- [Redesigned screen / prototype starting point](https://www.figma.com/design/ogZRLNukGpoXWCSgCjt8pD?node-id=17-3): direct link into the redesign file
+- [Earlier marketplace concepts](https://www.figma.com/design/maLPrdzL4LrQCWIlZpBbME): previous desktop, mobile, and dark-mode explorations
+- [UI/UX design review issue (#12)](https://github.com/Forge-NU/software-team-3/issues/12): redesign goals and tracked acceptance criteria
 
 ### Technical documentation
 
-- [Interactive HTML prototype](docs/prototype/index.html) — early product flows and visual reference
-- [Frontend implementation notes](src/frontend/README.md) — app structure, authentication, and remaining work
-- [Database and auth setup](supabase/README.md) — Supabase migration instructions
-- [Project documentation](docs/README.md) — design and architecture documentation directory
+- [Interactive HTML prototype](docs/prototype/index.html): early product flows and visual reference
+- [Frontend implementation notes](src/frontend/README.md): app structure, authentication, and remaining work
+- [Database and auth setup](supabase/README.md): Supabase migration instructions
+- [Project documentation](docs/README.md): design and architecture documentation directory
 
 Design files and the HTML prototype may be ahead of the implemented Next.js application. Check the code and open issues before treating a screen as a completed feature.
 
