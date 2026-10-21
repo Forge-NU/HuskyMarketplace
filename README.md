@@ -1,15 +1,15 @@
 
 # Husky Marketplace
 
-**A campus marketplace for Northeastern students to buy, sell, and connect over goods and services.**
+A campus marketplace for Northeastern students to buy, sell, and connect over goods and services.
 
-Built by the Forge software team at Northeastern University | Fall 2026 | **In active development**
+Built by the Forge software team at Northeastern University for Fall 2026 
 
 **[Current Figma redesign](https://www.figma.com/design/ogZRLNukGpoXWCSgCjt8pD)** · **[GitHub repository](https://github.com/Forge-NU/software-team-3)**
 
 ## Overview
 
-Moving into a dorm, furnishing an apartment, or leaving campus often means buying things that other students already have, then figuring out what to do with them a few months later. Existing resale platforms are broad, fragmented, and not designed around the rhythms of campus life.
+Moving into a dorm, furnishing an apartment, or leaving campus often means buying things that other students already have, then figuring out what to do with them a few months later. Existing resale platforms are broad, fragmented, and not designed around the cycles of campus life.
 
 Husky Marketplace is being built to make secondhand exchange easier within the Northeastern community. The goal is to help students find affordable essentials, give items a second life, and connect with other students for local services such as moving help.
 
