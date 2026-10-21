@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Product Details | Husky Marketplace</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="experience.css">
+  <script src="icons.js" defer></script>
+    <script src="listings-data.js" defer></script>
+    <script src="listing.js" defer></script>
+  <script src="navigation.js" defer></script>
+  <script src="listing-offers.js" defer></script>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="home.html" aria-label="Husky Marketplace home">
+        husky<span>✳</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="nav-link" href="home.html">Home</a>
+        <a class="nav-link active" href="browse.html">Shop</a>
+        <a class="nav-link" href="sell.html">Sell</a>
+        <a class="nav-link" href="home.html#moving">Moving help</a>
+      </nav>
+
+      <form class="header-search" action="browse.html" method="get">
+        <span aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          name="q"
+          placeholder="Search anything on campus..."
+          aria-label="Search listings"
+        >
+      </form>
+
+      <div class="header-actions">
+        <a class="icon-btn" href="saved.html" aria-label="Saved items"></a>
+        <a class="icon-btn" href="messages.html" aria-label="Messages"></a>
+        <a class="btn btn-red" href="sell.html">＋ Post an item</a>
+        <a class="avatar" href="home.html#account" aria-label="My account">♙</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <nav class="detail-breadcrumb" aria-label="Breadcrumb">
+      <a href="browse.html">← Back to listings</a>
+      <span>/</span>
+      <span>Furniture</span>
+      <span>/</span>
+      <span>Desk chair</span>
+    </nav>
+
+    <div class="detail-layout">
+      <section class="detail-gallery" aria-label="Product photos">
+        <img
+          id="main-product-photo"
+          class="detail-photo"
+          src="https://images.unsplash.com/photo-1721743141584-73679ed9938c?auto=format&fit=crop&w=1000&q=85"
+          alt="White wooden chair"
+        >
+
+        <div class="detail-thumbnails" aria-label="Additional photos">
+          <button class="thumbnail active" type="button" aria-label="View first photo">
+            <img
+              src="https://images.unsplash.com/photo-1721743141584-73679ed9938c?auto=format&fit=crop&w=300&q=80"
+              alt=""
+            >
+          </button>
+        </div>
+      </section>
+
+      <section class="detail-side" aria-labelledby="item-title">
+        <span class="verified">✓ Verified student seller</span>
+
+        <h1 id="item-title">White desk chair</h1>
+        <p class="detail-price">$45</p>
+        <p class="detail-condition">Good condition · Recently listed</p>
+
+        <div class="detail-divider"></div>
+
+        <h2>About this item</h2>
+        <p class="detail-description">
+          Comfortable chair for studying or working at your desk.
+          In good condition with some normal wear.
+        </p>
+
+        <p class="detail-pickup">
+          <span aria-hidden="true">⌖</span>
+          Pickup near West Village
+        </p>
+
+        <div class="detail-divider"></div>
+
+        <div class="seller-line">
+          <div class="seller-avatar" aria-hidden="true">AM</div>
+
+          <div class="seller-info">
+            <strong>Alex M.</strong>
+            <p>Northeastern student · Email verified</p>
+          </div>
+
+          <a href="seller.html?id=1" class="seller-profile-link">
+            Profile →
+          </a>
+        </div>
+
+        <div class="detail-actions">
+          <a class="btn btn-red" href="messages.html?item=2">
+            Message seller
+          </a>
+
+          <button
+            class="btn btn-outline"
+            id="save-listing"
+            type="button"
+            aria-pressed="false"
+          >Save</button>
+        </div>
+
+        <div class="secure-note">
+          Coordinate pickup through messages. Husky does not process
+          payments. Meet in a safe public location and use a payment
+          method both parties agree on.
+        </div>
+
+        <button class="report-link" type="button" id="report-listing">
+          Report this listing
+        </button>
+      </section>
+    </div>
+
+    <section class="related-section" aria-labelledby="related-heading">
+      <div class="section-heading">
+        <h2 id="related-heading">More campus finds</h2>
+        <a href="browse.html">See all →</a>
+      </div>
+
+      <div id="related-listings" class="product-grid"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <a class="logo" href="home.html">husky<span>✳</span></a>
+        <p class="foot-note">
+          The campus marketplace for secondhand finds, selling your stuff,
+          and getting moving help. Not affiliated with or endorsed by
+          Northeastern University.
+        </p>
+      </div>
+
+      <nav aria-label="Footer navigation">
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="safety.html">Safety</a>
+        <a href="home.html#moving">Moving help</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

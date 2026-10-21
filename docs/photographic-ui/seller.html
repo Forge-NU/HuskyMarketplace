@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#C8102E">
+  <title>Seller Profile | Husky Marketplace</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="experience.css">
+  <script src="icons.js" defer></script>
+  <script src="listings-data.js" defer></script>
+  <script src="seller.js" defer></script>
+  <script src="navigation.js" defer></script>
+</head>
+
+<body>
+  <div class="demo-ribbon">
+    <strong>PHOTO-LED INTERACTIVE PROTOTYPE</strong>
+    · stock photography, fictional listings, no real transactions
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="home.html" aria-label="Husky Marketplace home">
+        husky<span>✳</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="nav-link" href="home.html">Home</a>
+        <a class="nav-link active" href="browse.html">Shop</a>
+        <a class="nav-link" href="sell.html">Sell</a>
+        <a class="nav-link" href="home.html#moving">Moving help</a>
+      </nav>
+
+      <form class="header-search" action="browse.html" method="get" role="search">
+        <span aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          name="q"
+          placeholder="Search anything on campus..."
+          aria-label="Search listings"
+        >
+      </form>
+
+      <div class="header-actions">
+        <a class="icon-btn" href="saved.html" aria-label="Saved items"></a>
+        <a class="icon-btn" href="messages.html" aria-label="Messages"></a>
+        <a class="btn btn-red header-post" href="sell.html">＋ Post an item</a>
+        <a class="avatar" href="home.html#account" aria-label="My account">♙</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell seller-page">
+    <header class="content-head">
+      <p class="eyebrow">CAMPUS SELLER</p>
+      <h1 id="seller-heading">Meet Alex M.</h1>
+      <p>Student verified · Around Northeastern</p>
+    </header>
+
+    <section class="profile-banner panel" aria-label="Seller information">
+      <div class="seller-avatar-large" aria-hidden="true">AM</div>
+
+      <div class="profile-details">
+        <h2 id="seller-name">Alex M.</h2>
+        <p id="seller-location">
+          Northeastern student · General pickup near Fenway
+        </p>
+
+        <div class="profile-badges">
+          <span class="verified">✓ Verified student</span>
+        </div>
+      </div>
+
+      <a
+        class="btn btn-red profile-message"
+        id="message-seller"
+        href="messages.html?seller=1"
+      >
+        Message seller
+      </a>
+    </section>
+
+    <section class="seller-bio panel" aria-labelledby="seller-bio-heading">
+      <h2 id="seller-bio-heading">About Alex</h2>
+
+      <p id="seller-bio-text">
+        Second-year student clearing out dorm stuff.
+        Usually around Fenway, happy to bundle items!
+      </p>
+    </section>
+
+    <section class="seller-listings" aria-labelledby="seller-listings-heading">
+      <div class="section-heading">
+        <h2 id="seller-listings-heading">Alex's listings</h2>
+
+        <a href="browse.html">
+          Explore all listings →
+        </a>
+      </div>
+
+      <div class="product-grid" id="seller-products">
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <a class="logo" href="home.html">
+          husky<span>✳</span>
+        </a>
+
+        <p class="foot-note">
+          The campus marketplace for secondhand finds, selling your stuff,
+          and getting moving help. Not affiliated with or endorsed by
+          Northeastern University.
+        </p>
+      </div>
+
+      <nav aria-label="Footer navigation">
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="safety.html">Safety</a>
+        <a href="home.html#moving">Moving help</a>
+        <a href="credits.html">Photo credits</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
