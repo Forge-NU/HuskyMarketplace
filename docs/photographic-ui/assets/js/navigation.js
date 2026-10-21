@@ -1,6 +1,12 @@
 "use strict";
 
 (() => {
+  // Husky local demo appearance preference
+  try {
+    const choice = localStorage.getItem("husky_demo_theme") || "light";
+    const dark = choice === "dark" || (choice === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.classList.toggle("theme-dark", dark);
+  } catch { /* Browsing remains functional without storage. */ }
   const header = document.querySelector(".site-header");
   const actions = header?.querySelector(".header-actions");
   if (!header || !actions) return;
@@ -28,7 +34,11 @@
     ["Messages", "messages.html"],
     ["Offers", "messages.html?tab=offers"],
     ["Saved items", "saved.html"],
-    ["Moving help", "home.html#moving"]
+    ["Moving help", "moving.html"],
+    ["Account", "account.html"],
+    ["Log in", "login.html"],
+    ["Terms", "terms.html"],
+    ["Privacy", "privacy.html"]
   ];
 
   for (const [name, url] of links) {

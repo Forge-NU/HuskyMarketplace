@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#C8102E">
   <meta name="description" content="Shop secondhand, sell your stuff, and find great campus deals on Husky Marketplace.">
   <title>Husky Marketplace | Campus finds, made simple</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="experience.css">
-  <script src="icons.js" defer></script>
-  <script src="listings-data.js" defer></script>
-  <script src="navigation.js" defer></script>
-  <script src="home.js" defer></script>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/experience.css">
+  <script src="assets/js/icons.js" defer></script>
+  <script src="assets/js/listings-data.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/home.js" defer></script>
 </head>
 <body>
   <div class="demo-ribbon"><strong>PHOTO-LED INTERACTIVE PROTOTYPE</strong> · sample listings and local demo data</div>
@@ -22,7 +22,7 @@
         <a class="nav-link active" href="home.html" aria-current="page">Home</a>
         <a class="nav-link" href="browse.html">Shop</a>
         <a class="nav-link" href="sell.html">Sell</a>
-        <a class="nav-link" href="home.html#moving">Moving help</a>
+        <a class="nav-link" href="moving.html">Moving help</a>
       </nav>
       <form class="header-search" action="browse.html" method="get" role="search">
         <span aria-hidden="true">⌕</span>
@@ -32,7 +32,7 @@
         <a class="icon-btn" href="saved.html" aria-label="Saved items"></a>
         <a class="icon-btn" href="messages.html" aria-label="Messages"></a>
         <a class="btn btn-red header-post" href="sell.html">＋ Post an item</a>
-        <a class="avatar" href="home.html#account" aria-label="About demo account">AM</a>
+        <a class="avatar" href="account.html" aria-label="About demo account">AM</a>
       </div>
     </div>
   </header>
@@ -101,11 +101,14 @@
       <div class="product-grid home-featured" id="home-featured"><p class="empty">Loading listings...</p></div>
     </section>
 
+    <!-- husky-moving-help-v1 -->
     <section class="shell home-section" id="moving">
-      <div class="home-moving">
-        <div><p class="eyebrow">MOVE-IN / MOVE-OUT</p><h2>Moving day, made easier.</h2><p>Buying a desk? Clearing your dorm? Keep pickup and handoff organized with student-to-student messages.</p><a class="btn btn-outline" href="messages.html">Open Messages →</a></div>
-        <span aria-hidden="true" class="home-moving-art">↗</span>
-      </div>
+      <div class="home-moving"><div>
+        <p class="eyebrow">MOVE-IN / MOVE-OUT</p>
+        <h2>Moving help, made for students.</h2>
+        <p>Find a student to help carry, pick up, or assemble items. Or offer your own time and skills to the community.</p>
+        <div class="home-actions"><a class="btn btn-red" href="moving.html">Explore moving help →</a><a class="btn btn-outline" href="moving.html?post=offer">Offer a service</a></div>
+      </div></div>
     </section>
     <section class="shell home-note" id="account"><p>Husky Marketplace is a student marketplace prototype. Demo items, chats, and offers are stored on your device, not shared with other people.</p></section>
   </main>
