@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { useFilters } from "@/lib/use-filters";
 import type { Mode } from "@/lib/types";
 import Icon from "./Icon";
@@ -38,7 +39,26 @@ function ModeTabs() {
   );
 }
 
-export default function Header() {
+function LogoutButton() {
+  const router = useRouter();
+  return (
+    <button
+      className={styles.iconBtn}
+      aria-label="Log out"
+      title="Log out"
+      onClick={async () => {
+        await createClient().auth.signOut();
+        router.replace("/login");
+        router.refresh();
+      }}
+    >
+      <Icon name="logout" />
+    </button>
+  );
+}
+
+/** `userEmail` is null when logged out (only possible on /login). */
+export default function Header({ userEmail }: { userEmail: string | null }) {
   const toast = useToast();
   const isBrowse = usePathname() === "/";
 
@@ -51,18 +71,26 @@ export default function Header() {
         <Suspense fallback={<div className={styles.modes} />}>
           <ModeTabs />
         </Suspense>
-        <div className={styles.right}>
-          <button className={styles.link} onClick={() => toast("Posting a listing comes in a later PR.")}>
-            Post a listing
-          </button>
-          <button className={styles.iconBtn} aria-label="Messages" onClick={() => toast("Messages come in a later PR.")}>
-            <Icon name="chat" />
-          </button>
-          <button className={styles.acct} aria-label="Sign in" onClick={() => toast("Sign in comes in a later PR.")}>
-            <Icon name="menu" />
-            <span className={styles.av}><Icon name="user" /></span>
-          </button>
-        </div>
+        {userEmail && (
+          <div className={styles.right}>
+            <button className={styles.link} onClick={() => toast("Posting a listing comes in a later PR.")}>
+              Post a listing
+            </button>
+            <button className={styles.iconBtn} aria-label="Messages" onClick={() => toast("Messages come in a later PR.")}>
+              <Icon name="chat" />
+            </button>
+            <LogoutButton />
+            <button
+              className={styles.acct}
+              aria-label={`Account: ${userEmail}`}
+              title={userEmail}
+              onClick={() => toast("Your profile comes in a later PR.")}
+            >
+              <Icon name="menu" />
+              <span className={styles.av}><Icon name="user" /></span>
+            </button>
+          </div>
+        )}
       </div>
 
       {isBrowse && (

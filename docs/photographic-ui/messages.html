@@ -1,0 +1,393 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#C8102E">
+  <meta
+    name="description"
+    content="Manage conversations with students on Husky Marketplace."
+  >
+
+  <title>Messages | Husky Marketplace</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="experience.css">
+
+  <script src="icons.js" defer></script>
+  <script src="listings-data.js" defer></script>
+  <script src="messages.js" defer></script>
+  <script src="navigation.js" defer></script>
+  <script src="offers.js" defer></script>
+</head>
+
+<body>
+  <div class="demo-ribbon">
+    <strong>PHOTO-LED INTERACTIVE PROTOTYPE</strong>
+    · fictional conversations, no real messages sent
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a
+        class="logo"
+        href="home.html"
+        aria-label="Husky Marketplace home"
+      >
+        husky<span>✳</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="nav-link" href="home.html">Home</a>
+        <a class="nav-link" href="browse.html">Shop</a>
+        <a class="nav-link" href="sell.html">Sell</a>
+        <a class="nav-link" href="home.html#moving">Moving help</a>
+      </nav>
+
+      <form
+        class="header-search"
+        action="browse.html"
+        method="get"
+        role="search"
+      >
+        <span aria-hidden="true">⌕</span>
+
+        <input
+          type="search"
+          name="q"
+          placeholder="Search anything on campus..."
+          aria-label="Search listings"
+        >
+      </form>
+
+      <div class="header-actions">
+        <a
+          class="icon-btn"
+          href="saved.html"
+          aria-label="Saved items"
+        ></a>
+
+        <a
+          class="icon-btn"
+          href="messages.html"
+          aria-label="Messages"
+          aria-current="page"
+        ></a>
+
+        <a
+          class="btn btn-red header-post"
+          href="sell.html"
+        >
+          + Post an item
+        </a>
+
+        <a
+          class="avatar"
+          href="home.html#account"
+          aria-label="My account"
+        >
+          AM
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell messages-page">
+    <header class="content-head">
+      <p class="eyebrow">MESSAGES</p>
+      <h1>Your inbox.</h1>
+      <p>
+        Keep conversations about campus finds and pickups
+        in one place.
+      </p>
+    </header>
+
+    <div class="inbox-layout" id="inbox-layout">
+
+      <aside
+        class="inbox-list"
+        aria-labelledby="conversations-heading"
+      >
+        <div class="inbox-list-header">
+          <h2 id="conversations-heading">Conversations</h2>
+          <span id="thread-count">3</span>
+        </div>
+
+        <div class="inbox-search">
+          <label
+            class="visually-hidden"
+            for="conversation-search"
+          >
+            Search conversations
+          </label>
+
+          <input
+            id="conversation-search"
+            type="search"
+            placeholder="Search messages"
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="thread-list" id="thread-list">
+
+          <button
+            class="inbox-item active"
+            type="button"
+            data-thread="chair"
+            aria-pressed="true"
+          >
+            <span class="thread-avatar">AM</span>
+
+            <span class="thread-details">
+              <span class="thread-topline">
+                <strong>Alex M.</strong>
+                <time>2:38 PM</time>
+              </span>
+
+              <span class="thread-product">
+                White desk chair · $45
+              </span>
+
+              <span class="thread-preview">
+                Sounds good, see you at Curry!
+              </span>
+            </span>
+          </button>
+
+          <button
+            class="inbox-item"
+            type="button"
+            data-thread="headphones"
+            aria-pressed="false"
+          >
+            <span class="thread-avatar">JL</span>
+
+            <span class="thread-details">
+              <span class="thread-topline">
+                <strong>Jamie L.</strong>
+                <time>Yesterday</time>
+              </span>
+
+              <span class="thread-product">
+                Wireless headphones · $65
+              </span>
+
+              <span class="thread-preview">
+                They're still available!
+              </span>
+            </span>
+          </button>
+
+          <button
+            class="inbox-item"
+            type="button"
+            data-thread="camera"
+            aria-pressed="false"
+          >
+            <span class="thread-avatar">SK</span>
+
+            <span class="thread-details">
+              <span class="thread-topline">
+                <strong>Sam K.</strong>
+                <time>Monday</time>
+              </span>
+
+              <span class="thread-product">
+                Vintage film camera · $95
+              </span>
+
+              <span class="thread-preview">
+                Would you take $85?
+              </span>
+            </span>
+          </button>
+
+        </div>
+
+        <p class="inbox-empty" id="inbox-empty" hidden>
+          No matching conversations.
+        </p>
+      </aside>
+
+      <section
+        class="conversation"
+        aria-labelledby="active-contact"
+      >
+
+        <header class="conv-title">
+          <button
+            class="back-to-inbox"
+            id="back-to-inbox"
+            type="button"
+            aria-label="Back to conversations"
+          >
+            ←
+          </button>
+
+          <a
+            class="thread-avatar conv-avatar-link"
+            id="active-avatar-link"
+            href="seller.html?id=1"
+            aria-label="View Alex's seller profile"
+          >
+            <span id="active-avatar">AM</span>
+          </a>
+
+          <div class="conv-contact">
+            <a
+              class="conv-profile-link"
+              id="active-profile-link"
+              href="seller.html?id=1"
+            >
+              <h2 id="active-contact">Alex M.</h2>
+            </a>
+
+            <p id="active-verification">
+              Verified student
+            </p>
+          </div>
+
+          <a
+            class="conv-listing-link"
+            id="active-listing-link"
+            href="listing.html?id=2"
+            aria-label="View listing details"
+          >
+            <span id="active-product">
+              White desk chair
+            </span>
+
+            <strong id="active-price">$45</strong>
+
+            <span
+              class="listing-hover-card"
+              aria-hidden="true"
+            >
+              <img
+                id="active-listing-image"
+                src="https://images.unsplash.com/photo-1721743141584-73679ed9938c?auto=format&amp;fit=crop&amp;w=400&amp;q=80"
+                alt=""
+              >
+
+              <span class="listing-peek-info">
+                <span
+                  class="listing-peek-title"
+                  id="active-preview-title"
+                >
+                  White desk chair
+                </span>
+
+                <span
+                  class="listing-peek-meta"
+                  id="active-preview-meta"
+                >
+                  Good · Fenway pickup
+                </span>
+
+                <strong id="active-preview-price">
+                  $45
+                </strong>
+
+                <span class="listing-peek-action">
+                  View listing →
+                </span>
+              </span>
+            </span>
+          </a>
+        </header>
+
+        <div
+          class="conv-messages"
+          id="conv-messages"
+          role="log"
+          aria-label="Conversation messages"
+          aria-live="polite"
+        >
+          <div class="message-day">Today</div>
+
+          <div class="bubble">
+            <p>
+              Hey! Is the desk chair still available?
+            </p>
+            <small>2:31 PM</small>
+          </div>
+
+          <div class="bubble me">
+            <p>Yep, still available!</p>
+            <small>2:33 PM</small>
+          </div>
+
+          <div class="bubble">
+            <p>
+              Could I pick it up tomorrow at 4?
+            </p>
+            <small>2:35 PM</small>
+          </div>
+
+          <div class="bubble me">
+            <p>
+              Sounds good, see you at Curry!
+            </p>
+            <small>2:38 PM</small>
+          </div>
+        </div>
+
+        <p class="conversation-safety">
+          Arrange pickup and payment directly.
+          Never share passwords or verification codes.
+        </p>
+
+        <form class="composer" id="message-form">
+          <label
+            class="visually-hidden"
+            for="message-input"
+          >
+            Type a message
+          </label>
+
+          <input
+            id="message-input"
+            name="message"
+            type="text"
+            placeholder="Type a message..."
+            autocomplete="off"
+            maxlength="2000"
+            required
+          >
+
+          <button class="btn btn-red" type="submit">
+            Send
+          </button>
+        </form>
+
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <a class="logo" href="home.html">
+          husky<span>✳</span>
+        </a>
+
+        <p class="foot-note">
+          The campus marketplace for secondhand finds,
+          selling your stuff, and getting moving help.
+          Not affiliated with or endorsed by
+          Northeastern University.
+        </p>
+      </div>
+
+      <nav aria-label="Footer navigation">
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="safety.html">Safety</a>
+        <a href="home.html#moving">Moving help</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

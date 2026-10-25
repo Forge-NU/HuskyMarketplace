@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#C8102E">
+  <meta name="description" content="Create a demo listing on Husky Marketplace.">
+  <title>Sell an item | Husky Marketplace</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="experience.css">
+  <script src="icons.js" defer></script>
+  <script src="sell.js" defer></script>
+  <script src="navigation.js" defer></script>
+</head>
+
+<body>
+  <div class="demo-ribbon">
+    <strong>PHOTO-LED INTERACTIVE PROTOTYPE</strong>
+    · listings are saved locally, not published online
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="home.html" aria-label="Husky Marketplace home">
+        husky<span>✳</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="nav-link" href="home.html">Home</a>
+        <a class="nav-link" href="browse.html">Shop</a>
+        <a class="nav-link active" href="sell.html" aria-current="page">Sell</a>
+        <a class="nav-link" href="home.html#moving">Moving help</a>
+      </nav>
+
+      <form class="header-search" action="browse.html" method="get" role="search">
+        <span aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          name="q"
+          placeholder="Search anything on campus..."
+          aria-label="Search listings"
+        >
+      </form>
+
+      <div class="header-actions">
+        <a class="icon-btn" href="saved.html" aria-label="Saved items"></a>
+        <a class="icon-btn" href="messages.html" aria-label="Messages"></a>
+        <a class="btn btn-red header-post" href="sell.html">＋ Post an item</a>
+        <a class="avatar" href="home.html#account" aria-label="My account">AM</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell sell-page">
+    <header class="content-head">
+      <p class="eyebrow">CREATE A LISTING</p>
+      <h1>Sell something.</h1>
+      <p>Three quick steps to give your item a new home on campus.</p>
+    </header>
+
+    <div class="sell-layout">
+      <form id="sell-form" class="sell-card" novalidate>
+        <div class="sell-progress-head">
+          <span class="eyebrow" id="sell-step-count">STEP 1 OF 3</span>
+          <span class="sell-draft-label">Draft saved on this device</span>
+        </div>
+
+        <div class="sell-progress" aria-hidden="true">
+          <span class="done"></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <!-- Step 1: Photos -->
+        <section class="sell-step" aria-labelledby="sell-photos-heading">
+          <h2 id="sell-photos-heading">Add item photos.</h2>
+          <p class="sell-subtitle">
+            Show what you're selling. Upload up to five clear photos.
+          </p>
+
+          <label id="sell-dropzone" class="sell-dropzone" for="sell-photos">
+            <span class="sell-camera" aria-hidden="true">▧</span>
+            <strong>Choose photos or drag them here</strong>
+            <span>JPG, PNG or WebP · up to 5 MB per photo</span>
+            <span class="sell-pick-btn">Choose photos</span>
+          </label>
+
+          <input
+            class="visually-hidden"
+            id="sell-photos"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            multiple
+          >
+
+          <div class="sell-photo-head">
+            <strong>Your photos</strong>
+            <span id="sell-photo-count">0 of 5 photos</span>
+          </div>
+
+          <div id="sell-photo-grid" class="sell-photo-grid"></div>
+
+          <p class="sell-note">
+            Use photos of your actual item. Avoid personal information
+            in the background.
+          </p>
+        </section>
+
+        <!-- Step 2: Item details -->
+        <section
+          class="sell-step"
+          aria-labelledby="sell-details-heading"
+          hidden
+        >
+          <h2 id="sell-details-heading">Tell us about your item.</h2>
+          <p class="sell-subtitle">
+            A clear title and honest description help buyers decide.
+          </p>
+
+          <div class="sell-field">
+            <label for="sell-title">Listing title *</label>
+            <input
+              id="sell-title"
+              maxlength="80"
+              required
+              placeholder="e.g. White desk chair"
+            >
+          </div>
+
+          <div class="sell-two-fields">
+            <div class="sell-field">
+              <label for="sell-price">Price ($) *</label>
+              <input
+                id="sell-price"
+                type="number"
+                min="0"
+                max="100000"
+                step="0.01"
+                required
+                placeholder="45"
+              >
+            </div>
+
+            <div class="sell-field">
+              <label for="sell-category">Category *</label>
+              <select id="sell-category" required>
+                <option value="" disabled>Select a category</option>
+                <option>Furniture</option>
+                <option>Electronics</option>
+                <option>Clothing</option>
+                <option>Books</option>
+                <option>Free</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="sell-field">
+            <label for="sell-condition">Condition *</label>
+            <select id="sell-condition" required>
+              <option value="" disabled>Select a condition</option>
+              <option>Good</option>
+              <option>Like new</option>
+              <option>Excellent</option>
+              <option>Fair</option>
+            </select>
+          </div>
+
+          <div class="sell-field">
+            <label for="sell-description">Description</label>
+            <textarea
+              id="sell-description"
+              rows="5"
+              maxlength="1200"
+              placeholder="How old is it? Any marks or defects? What's included?"
+            ></textarea>
+          </div>
+        </section>
+
+        <!-- Step 3: Pickup and review -->
+        <section
+          class="sell-step"
+          aria-labelledby="sell-pickup-heading"
+          hidden
+        >
+          <h2 id="sell-pickup-heading">Pickup details.</h2>
+          <p class="sell-subtitle">
+            Share only a general area. Arrange the exact meetup privately.
+          </p>
+
+          <div class="sell-field">
+            <label for="sell-area">General pickup area *</label>
+            <select id="sell-area" required>
+              <option value="" disabled>Select a pickup area</option>
+              <option>Fenway</option>
+              <option>West Village</option>
+              <option>East Village</option>
+              <option>LightView</option>
+              <option>Ruggles</option>
+              <option>Other near campus</option>
+            </select>
+          </div>
+
+          <div class="sell-field">
+            <label for="sell-availability">Availability</label>
+            <input
+              id="sell-availability"
+              maxlength="120"
+              placeholder="e.g. Weekdays after 4 PM"
+            >
+          </div>
+
+          <div class="sell-safety">
+            Share exact addresses and payment details only in private chat.
+            Husky does not process payments.
+          </div>
+
+          <div class="sell-review">
+            <img
+              id="sell-review-image"
+              src=""
+              alt="Listing photo preview"
+              hidden
+            >
+
+            <div>
+              <span class="eyebrow">REVIEW YOUR LISTING</span>
+              <h3 id="sell-review-title"></h3>
+              <p id="sell-review-meta"></p>
+              <strong id="sell-review-price"></strong>
+            </div>
+          </div>
+        </section>
+
+        <p
+          id="sell-status"
+          class="sell-status"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+        <div class="sell-actions">
+          <button
+            type="button"
+            class="btn btn-ghost"
+            id="sell-back"
+            hidden
+          >
+            ← Back
+          </button>
+
+          <button
+            type="submit"
+            class="btn btn-red"
+            id="sell-next"
+          >
+            Next step →
+          </button>
+        </div>
+      </form>
+
+      <!-- Selling tips -->
+
+<aside class="sell-tips" id="sell-tips">
+
+  <section class="sell-aside-card sell-quick-guide">
+    <div class="sell-aside-heading">
+      <span class="sell-aside-label">A LITTLE ADVICE</span>
+      <span class="sell-aside-sparkle" aria-hidden="true">?</span>
+    </div>
+
+    <h2>Make a great first impression.</h2>
+
+    <ul class="sell-checklist">
+      <li>
+        <span class="sell-check" aria-hidden="true">?</span>
+        <span>Use clear, well-lit photos</span>
+      </li>
+      <li>
+        <span class="sell-check" aria-hidden="true">?</span>
+        <span>Be honest about the condition</span>
+      </li>
+      <li>
+        <span class="sell-check" aria-hidden="true">?</span>
+        <span>Set a fair asking price</span>
+      </li>
+    </ul>
+
+    <p class="sell-aside-note">
+      Meet in a public place and arrange pickup details
+      through Messages.
+    </p>
+  </section>
+
+  <section class="sell-aside-card sell-my-listings">
+    <div class="sell-my-listings-heading">
+      <div>
+        <span class="sell-aside-label">YOUR ACTIVITY</span>
+        <h3>My listings</h3>
+      </div>
+
+      <span class="sell-listing-count" id="sell-listing-count">0</span>
+    </div>
+
+    <div id="sell-published" class="sell-published-list"></div>
+
+    <p class="sell-aside-note">
+      Demo listings are stored on this device only.
+    </p>
+  </section>
+
+</aside>
+
+      <!-- Publish confirmation -->
+      <section
+        class="sell-card sell-success"
+        id="sell-success"
+        hidden
+        aria-live="polite"
+      >
+        <span class="sell-success-check">✓</span>
+        <p class="eyebrow">DEMO LISTING SAVED</p>
+        <h2>Your listing is ready.</h2>
+
+        <p>
+          This sample listing is saved in this browser.
+          You can find it in Browse and Saved Items on this device.
+          It is not visible to other students.
+        </p>
+
+        <div class="sell-review">
+          <img id="sell-success-image" src="" alt="Your listing photo">
+
+          <div>
+            <h3 id="sell-success-title"></h3>
+            <strong id="sell-success-price"></strong>
+          </div>
+        </div>
+
+        <div class="sell-actions">
+          <button class="btn btn-red" type="button" id="sell-again">
+            ＋ Post another item
+          </button>
+          <a class="btn btn-ghost" href="browse.html">Browse items</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <a class="logo" href="home.html">husky<span>✳</span></a>
+        <p class="foot-note">
+          The campus marketplace for secondhand finds, selling your stuff,
+          and getting moving help. Not affiliated with or endorsed by
+          Northeastern University.
+        </p>
+      </div>
+
+      <nav aria-label="Footer navigation">
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="safety.html">Safety</a>
+        <a href="home.html#moving">Moving help</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
