@@ -172,7 +172,7 @@ Do not commit directly to `main`, and never commit secrets or local environment 
 ## Team
 
 **Project Lead:** Lauryn Gong  
-**Software Team:** Ajay Senthil, Allan Zhen, Arin Rakshe, Binafsha Bakhramova, Caleb Groth, Jayden Sun, Simran Sehgal  
+**Software Team:** Allan Zhen, Arin Rakshe, Binafsha Bakhramova, Caleb Groth, Jayden Sun, Simran Sehgal  
 **Semester:** Fall 2026
 
 For questions, open a [GitHub issue](https://github.com/Forge-NU/software-team-3/issues) or contact the project lead through the team's communication channel.
