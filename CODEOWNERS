@@ -14,4 +14,4 @@
 
 # Repository configuration and review policy
 /.github/ @httpsbina @S1LynKz @lauryngong
-/.github/CODEOWNERS @httpsbina @S1LynKz
+/CODEOWNERS @httpsbina @S1LynKz
