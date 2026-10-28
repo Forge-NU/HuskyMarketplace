@@ -2,10 +2,10 @@
 /* eslint-disable @next/next/no-img-element */
 import {useEffect,useState} from "react";
 import Link from "next/link";
-import PhotoShell from "@/components/PhotoShell";
-import PhotoCards from "@/components/PhotoCards";
-import {getListings,type DemoListing} from "@/lib/photo-data";
-import styles from "@/components/Photo.module.css";
+import UIShell from "@/components/ui/marketplace/UIShell";
+import UICards from "@/components/ui/marketplace/UICards";
+import {getListings,type DemoListing} from "@/lib/ui/demo-data";
+import styles from "@/components/ui/marketplace/UI.module.css";
 const categories=[
   {title:"Clothes & vintage",subtitle:"Closet finds",href:"/browse?cat=clothing",color:"orange",photo:"photo-1666861585341-5bd1e7b1ed71",alt:"Vintage denim jacket"},
   {title:"Dorm & living",subtitle:"Dorm room stuff",href:"/browse?cat=furniture",color:"yellow",photo:"photo-1721743141584-73679ed9938c",alt:"White desk chair"},
@@ -15,7 +15,7 @@ const categories=[
 export default function HomePage(){
  const [featured,setFeatured]=useState<DemoListing[]>(getListings().slice(0,4));
  useEffect(()=>{setFeatured(getListings().slice(0,4))},[]);
- return <PhotoShell><main>
+ return <UIShell><main>
    <section className={`${styles.shell} ${styles.hero}`}><div className={styles.heroCopy}>
     <p className={styles.eyebrow}>FOR STUDENTS. AROUND CAMPUS.</p>
     <h1>Your next great find is close to home<span>.</span></h1>
@@ -28,9 +28,9 @@ export default function HomePage(){
     <div className={styles.categories}>{categories.map(c=><Link href={c.href} key={c.title} className={`${styles.categoryCard} ${styles[c.color]}`}><span className={styles.categoryCopy}><strong>{c.title}</strong><small>{c.subtitle} ↗</small></span><span className={styles.categoryPhoto}><img src={`https://images.unsplash.com/${c.photo}?auto=format&fit=crop&w=540&q=80`} alt={c.alt}/></span></Link>)}</div>
    </section>
    <section className={`${styles.shell} ${styles.section}`}><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>AROUND CAMPUS</p><h2>Fresh finds.</h2></div><Link href="/browse">All listings →</Link></div>
-    <div className={styles.featuredGrid}><PhotoCards items={featured}/></div>
+    <div className={styles.featuredGrid}><UICards items={featured}/></div>
    </section>
    <section className={`${styles.shell} ${styles.section}`} id="moving"><div className={styles.moving}><div><p className={styles.eyebrow}>MOVE-IN / MOVE-OUT</p><h2>Moving day, made easier.</h2><p>Buying a desk? Clearing your dorm? Keep pickup and handoff organized with student-to-student messages.</p><Link className={styles.secondaryButton} href="/moving">Explore moving help →</Link></div><span className={styles.movingArt} aria-hidden="true">↗</span></div></section>
    <section className={`${styles.shell} ${styles.homeNote}`}><p>Sample items, chats, offers, and created demo listings are stored in your browser. They are not shared with other students.</p></section>
-  </main></PhotoShell>
+  </main></UIShell>
 }

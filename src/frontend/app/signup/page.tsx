@@ -1,3 +1,3 @@
 import {Suspense} from "react";
-import PhotoAuth from "@/components/PhotoAuth";
-export default function SignupPage(){return <Suspense><PhotoAuth mode="signup"/></Suspense>}
+import UIAuth from "@/components/ui/marketplace/UIAuth";
+export default function SignupPage(){return <Suspense><UIAuth mode="signup"/></Suspense>}

@@ -1,2 +1,2 @@
-import PhotoPolicy from "@/components/PhotoPolicy";
-export default function PrivacyPage(){return <PhotoPolicy which="privacy"/>}
+import UIPolicy from "@/components/ui/marketplace/UIPolicy";
+export default function PrivacyPage(){return <UIPolicy which="privacy"/>}

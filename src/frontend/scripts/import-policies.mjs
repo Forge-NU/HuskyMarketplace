@@ -5,7 +5,7 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 const root=process.cwd();
 const repo=path.resolve(root,'../..');
-const fn=path.join(root,'lib/photo-policies.ts');
+const fn=path.join(root,'lib/ui/policy-content.ts');
 let output={};
 for(const name of ['terms','privacy']){
  let text=null;

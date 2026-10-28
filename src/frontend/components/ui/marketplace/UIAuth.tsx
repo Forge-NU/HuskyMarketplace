@@ -3,14 +3,14 @@
 import {useEffect,useState,type FormEvent} from "react";
 import {useRouter,useSearchParams} from "next/navigation";
 import Link from "next/link";
-import PhotoShell from "./PhotoShell";
+import UIShell from "./UIShell";
 import {createClient} from "@/lib/supabase/client";
 import {isNortheasternEmail,safeNext} from "@/lib/auth";
-import styles from "./Photo.module.css";
+import styles from "./UI.module.css";
 const NEXT_KEY="husky_auth_next",EMAIL_KEY="husky_auth_pending_email";
 // The project's current email template sends eight digits; align with Arin before merging.
 const CODE_LENGTH=8;
-export default function PhotoAuth({mode}:{mode:"login"|"signup"|"verify"}){
+export default function UIAuth({mode}:{mode:"login"|"signup"|"verify"}){
  const router=useRouter(),search=useSearchParams();
  const [agreed,setAgreed]=useState(false),[updates,setUpdates]=useState(false);
  const [email,setEmail]=useState(""),[code,setCode]=useState(""),[displayName,setDisplayName]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState("");
@@ -26,7 +26,7 @@ export default function PhotoAuth({mode}:{mode:"login"|"signup"|"verify"}){
  sessionStorage.removeItem(EMAIL_KEY);const dest=safeNext(sessionStorage.getItem(NEXT_KEY));sessionStorage.removeItem(NEXT_KEY);router.replace(dest);router.refresh()
  }catch(ex){setError(ex instanceof Error?ex.message:"Verification failed.")}finally{setBusy(false)} }
  const verifyMode=mode==="verify";
- return <PhotoShell><main className={styles.content}><div className={styles.authLayout}><div className={styles.authCard}>
+ return <UIShell><main className={styles.content}><div className={styles.authLayout}><div className={styles.authCard}>
   <p className={styles.eyebrow}>YOUR HUSKY ACCOUNT</p><h1>{verifyMode?"One quick step, and you're in.":mode==="signup"?"Create your Husky account.":"Welcome back."}</h1>
   <p className={styles.hint}>{verifyMode?`Enter the eight-digit code sent to ${email||"your school email"}.`:"Sign in securely with your Northeastern email. We'll email you a verification code."}</p>
   <form onSubmit={verifyMode?verify:request}>
@@ -39,5 +39,5 @@ export default function PhotoAuth({mode}:{mode:"login"|"signup"|"verify"}){
   </form>
   <div className={styles.formActions}>{mode==="login"?<span>New here? <Link href="/signup">Create an account</Link></span>:mode==="signup"?<span>Already have an account? <Link href="/login">Log in</Link></span>:<Link href="/login">Use a different email</Link>}<Link href="/terms">Terms &amp; privacy</Link></div>
   <p className={styles.notice}>This page uses real Supabase OTP authentication. Other marketplace actions remain browser-local demonstrations until their backend integration is reviewed.</p>
- </div><aside className={styles.authArt}><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=800&q=80" alt="College work desk"/><div className={styles.authArtCopy}><p className={styles.eyebrow}>CAMPUS FINDS</p><h2>Buy, sell, and make room for what comes next.</h2></div></aside></div></main></PhotoShell>
+ </div><aside className={styles.authArt}><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=800&q=80" alt="College work desk"/><div className={styles.authArtCopy}><p className={styles.eyebrow}>CAMPUS FINDS</p><h2>Buy, sell, and make room for what comes next.</h2></div></aside></div></main></UIShell>
 }

@@ -3,9 +3,9 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import styles from "./Photo.module.css";
+import styles from "./UI.module.css";
 
-export default function PhotoShell({children}:{children:ReactNode}){
+export default function UIShell({children}:{children:ReactNode}){
  const router=useRouter(),pathname=usePathname();
  const [menu,setMenu]=useState(false),[email,setEmail]=useState<string|null>(null),[q,setQ]=useState("");
  useEffect(()=>{let active=true;createClient().auth.getUser().then(({data})=>{if(active)setEmail(data.user?.email??null)});return()=>{active=false}},[pathname]);

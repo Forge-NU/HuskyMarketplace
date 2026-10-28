@@ -1,2 +1,2 @@
-import PhotoPolicy from "@/components/PhotoPolicy";
-export default function TermsPage(){return <PhotoPolicy which="terms"/>}
+import UIPolicy from "@/components/ui/marketplace/UIPolicy";
+export default function TermsPage(){return <UIPolicy which="terms"/>}

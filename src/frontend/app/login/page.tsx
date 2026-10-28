@@ -1,3 +1,3 @@
 import {Suspense} from "react";
-import PhotoAuth from "@/components/PhotoAuth";
-export default function LoginPage(){return <Suspense><PhotoAuth mode="login"/></Suspense>}
+import UIAuth from "@/components/ui/marketplace/UIAuth";
+export default function LoginPage(){return <Suspense><UIAuth mode="login"/></Suspense>}

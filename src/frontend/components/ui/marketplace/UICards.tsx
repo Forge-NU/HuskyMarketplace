@@ -2,10 +2,10 @@
 /* eslint-disable @next/next/no-img-element */
 import {useEffect,useState} from "react";
 import Link from "next/link";
-import {type DemoListing,getPhoto,getSaved,KEYS,setStored} from "@/lib/photo-data";
-import styles from "./Photo.module.css";
+import {type DemoListing,getPhoto,getSaved,KEYS,setStored} from "@/lib/ui/demo-data";
+import styles from "./UI.module.css";
 
-export default function PhotoCards({items}:{items:DemoListing[]}){
+export default function UICards({items}:{items:DemoListing[]}){
  const [saved,setSaved]=useState<string[]>([]);
  useEffect(()=>{setSaved(getSaved());const cb=()=>setSaved(getSaved());window.addEventListener("husky-demo-update",cb);return()=>window.removeEventListener("husky-demo-update",cb)},[]);
  function toggle(id:number){const s=new Set(saved);if(s.has(String(id)))s.delete(String(id));else s.add(String(id));const next=[...s];setSaved(next);setStored(KEYS.saved,next)}

@@ -1,3 +1,3 @@
 import {Suspense} from "react";
-import PhotoAuth from "@/components/PhotoAuth";
-export default function VerifyPage(){return <Suspense><PhotoAuth mode="verify"/></Suspense>}
+import UIAuth from "@/components/ui/marketplace/UIAuth";
+export default function VerifyPage(){return <Suspense><UIAuth mode="verify"/></Suspense>}
