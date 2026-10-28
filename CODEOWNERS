@@ -1,0 +1,17 @@
+# Husky Marketplace PR review ownership
+# At least one listed owner must approve a change to a matched file when
+# GitHub's "Require review from Code Owners" rule is enabled.
+# Other PR approvals and team-based restrictions are configured separately.
+
+# Default reviewers for repository-wide changes
+* @httpsbina @S1LynKz @lauryngong @cmg6877
+
+# UI, frontend, and design consistency
+/src/frontend/ @httpsbina @S1LynKz @lauryngong
+
+# API, backend logic, and server-side configuration
+/src/backend/ @S1LynKz @cmg6877
+
+# Repository configuration and review policy
+/.github/ @httpsbina @S1LynKz @lauryngong
+/.github/CODEOWNERS @httpsbina @S1LynKz
