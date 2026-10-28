@@ -5,7 +5,7 @@ A campus marketplace for Northeastern students to buy, sell, and connect over go
 
 Built by the Forge software team at Northeastern University for Fall 2026 
 
-**[Current Figma redesign](https://www.figma.com/design/ogZRLNukGpoXWCSgCjt8pD)** · **[GitHub repository](https://github.com/Forge-NU/software-team-3)**
+**[Current Figma redesign](https://www.figma.com/design/maLPrdzL4LrQCWIlZpBbME/Husky-Marketplace?node-id=13-2&p=f&t=AKqsa5u9II3YoPZR-0)** · **[GitHub repository](https://github.com/Forge-NU/software-team-3)**
 
 ## Overview
 
