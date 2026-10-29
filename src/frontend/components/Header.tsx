@@ -30,8 +30,7 @@ function ModeTabs() {
           role="tab"
           aria-selected={filters.mode === m.id}
           // Switching mode starts a fresh search, like the prototype's setMode().
-          onClick={() => router.push(m.id === "services" ? "/?mode=services" : "/")}
-        >
+          onClick={() => router.push(m.id === "services" ? "/browse?mode=services" : "/browse")}        >
           {m.label}
         </button>
       ))}
@@ -60,8 +59,7 @@ function LogoutButton() {
 /** `userEmail` is null when logged out (only possible on /login). */
 export default function Header({ userEmail }: { userEmail: string | null }) {
   const toast = useToast();
-  const isBrowse = usePathname() === "/";
-
+  const isBrowse = usePathname() === "/browse";
   return (
     <header className={`${styles.head} ${isBrowse ? "" : styles.plain}`}>
       <div className={styles.row}>

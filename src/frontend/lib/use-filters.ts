@@ -53,8 +53,7 @@ export function useFilters() {
     }
     const qs = next.toString();
     // Native history API: updates useSearchParams without a server round trip.
-    window.history.replaceState(null, "", qs ? `/?${qs}` : "/");
-  }
+    window.history.replaceState(null, "", qs ? `/browse?${qs}` : "/browse");  }
 
   return { filters, update };
 }
