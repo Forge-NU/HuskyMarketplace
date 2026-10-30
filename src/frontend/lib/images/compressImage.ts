@@ -18,16 +18,19 @@ const DEFAULT_OPTIONS: Required<CompressOptions> = {
 function isHeic(file: File): boolean {
   const name = file.name.toLowerCase();
 
-  return file.type === "image/heic" ||
+  return (
+    file.type === "image/heic" ||
     file.type === "image/heif" ||
     name.endsWith(".heic") ||
-    name.endsWith(".heif");
+    name.endsWith(".heif")
+  );
 }
 
 // Changes the file extension on the file name after compression since the library call doesn't change it.
 function fileExtensionChanger(file: File): File {
   const dotIndex = file.name.lastIndexOf(".");
-  const baseName = dotIndex === -1 ? file.name : file.name.substring(0, dotIndex);
+  const baseName =
+    dotIndex === -1 ? file.name : file.name.substring(0, dotIndex);
   const extension = file.type.split("/")[1];
 
   return new File([file], `${baseName}.${extension}`, { type: file.type });
@@ -49,9 +52,14 @@ function fileExtensionChanger(file: File): File {
  * @throws If file is not an image type.
  * @throws If the library fails to process the image.
  */
-export async function compressImage(file: File, options?: CompressOptions): Promise<File> {
+export async function compressImage(
+  file: File,
+  options?: CompressOptions,
+): Promise<File> {
   if (isHeic(file)) {
-    throw new Error("HEIC photos aren't supported yet. Please choose a JPEG, PNG, or WebP image.");
+    throw new Error(
+      "HEIC photos aren't supported yet. Please choose a JPEG, PNG, or WebP image.",
+    );
   }
 
   if (!file.type.startsWith("image/")) {
@@ -64,7 +72,10 @@ export async function compressImage(file: File, options?: CompressOptions): Prom
   try {
     compressed = await imageCompression(file, mergedOptions);
   } catch (error) {
-    throw new Error("This image couldn't be processed. Please choose a different JPEG, PNG, or WebP image.", { cause: error });
+    throw new Error(
+      "This image couldn't be processed. Please choose a different JPEG, PNG, or WebP image.",
+      { cause: error },
+    );
   }
 
   return fileExtensionChanger(compressed);

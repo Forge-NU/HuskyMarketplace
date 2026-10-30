@@ -53,12 +53,12 @@ The original single-file design lives at `docs/prototype/index.html`. Open it in
 
 How the old code maps onto React:
 
-| Prototype | Next.js |
-|---|---|
-| `renderX()` building HTML strings | a component returning JSX |
-| `onclick="f()"` | `onClick={() => f()}` |
-| `document.getElementById(...)` | state, props, or `useRef` |
-| global `state` / `go(view)` | URL search params / routes in `app/` |
-| `toast("...")` | `const toast = useToast()` |
+| Prototype                         | Next.js                              |
+| --------------------------------- | ------------------------------------ |
+| `renderX()` building HTML strings | a component returning JSX            |
+| `onclick="f()"`                   | `onClick={() => f()}`                |
+| `document.getElementById(...)`    | state, props, or `useRef`            |
+| global `state` / `go(view)`       | URL search params / routes in `app/` |
+| `toast("...")`                    | `const toast = useToast()`           |
 
 **Heads up:** the prototype defines several functions twice (`go`, `render`, `openDetail`, `toggleSave`, `renderCats`, `messageSeller`, `finishSignin`, `renderAcct`, `acctClick`). The browser uses the **second** definition, so port that one.

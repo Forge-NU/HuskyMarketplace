@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useCallback, useContext, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from "react";
 import styles from "./Toast.module.css";
 
 const ToastContext = createContext<(msg: string) => void>(() => {});
@@ -23,7 +29,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div className={`${styles.toast} ${show ? styles.show : ""}`} role="status" aria-live="polite">
+      <div
+        className={`${styles.toast} ${show ? styles.show : ""}`}
+        role="status"
+        aria-live="polite"
+      >
         {msg}
       </div>
     </ToastContext.Provider>

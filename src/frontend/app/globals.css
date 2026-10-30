@@ -1,34 +1,124 @@
 /* Design tokens and base styles, ported from docs/prototype/index.html.
    Component styles live next to each component in *.module.css. */
-:root{
-  --red:#C8102E; --red-dark:#A00D25; --black:#000; --white:#fff;
-  --gray-900:#2B2B2B; --gray-600:#5E5E5E; --gray-400:#9A9A9A; --gray-200:#E3E3E3; --gray-100:#F4F4F4;
-  --font:var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
-  --r-sm:6px; --r-md:10px; --r-lg:16px;
+:root {
+  --red: #c8102e;
+  --red-dark: #a00d25;
+  --black: #000;
+  --white: #fff;
+  --gray-900: #2b2b2b;
+  --gray-600: #5e5e5e;
+  --gray-400: #9a9a9a;
+  --gray-200: #e3e3e3;
+  --gray-100: #f4f4f4;
+  --font: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
 
   /* "Bold" theme: red header with skyline (the prototype's body.theme-bold) */
-  --head-bg:var(--red); --head-fg:#fff; --head-muted:rgba(255,255,255,.75); --head-border:transparent; --go:#000; --go-hover:#222;
-  --sky:#C8102E; --moon:#D93650; --bldg-far:#8F0A1F; --bldg-near:#000; --window:rgba(255,255,255,.55); --water:#000;
+  --head-bg: var(--red);
+  --head-fg: #fff;
+  --head-muted: rgba(255, 255, 255, 0.75);
+  --head-border: transparent;
+  --go: #000;
+  --go-hover: #222;
+  --sky: #c8102e;
+  --moon: #d93650;
+  --bldg-far: #8f0a1f;
+  --bldg-near: #000;
+  --window: rgba(255, 255, 255, 0.55);
+  --water: #000;
 }
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;font-family:var(--font);color:var(--black);background:var(--white);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-button,input,select{font:inherit;color:inherit}
-button{cursor:pointer}
-a{color:inherit}
-:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--black);
+  background: var(--white);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+a {
+  color: inherit;
+}
+:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 2px;
+}
 
 /* Shared utility classes */
-.ic{width:20px;height:20px;flex:none}
-.muted{color:var(--gray-600)}
+.ic {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.muted {
+  color: var(--gray-600);
+}
 
-.btn{text-decoration:none;display:inline-flex;align-items:center;gap:8px;border:0;border-radius:var(--r-sm);padding:11px 18px;font-weight:700;font-size:15px;transition:background .15s, color .15s}
-.btn .ic{width:18px;height:18px}
-.btn.primary{background:var(--red);color:#fff}
-.btn.primary:hover{background:var(--red-dark)}
-.btn.ghost{background:transparent;border:1.5px solid var(--gray-200)}
-.btn.ghost:hover{border-color:#000}
+.btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: var(--r-sm);
+  padding: 11px 18px;
+  font-weight: 700;
+  font-size: 15px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.btn .ic {
+  width: 18px;
+  height: 18px;
+}
+.btn.primary {
+  background: var(--red);
+  color: #fff;
+}
+.btn.primary:hover {
+  background: var(--red-dark);
+}
+.btn.ghost {
+  background: transparent;
+  border: 1.5px solid var(--gray-200);
+}
+.btn.ghost:hover {
+  border-color: #000;
+}
 
-.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--gray-100);color:var(--gray-900);vertical-align:middle}
+.chip {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: var(--gray-100);
+  color: var(--gray-900);
+  vertical-align: middle;
+}
 
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

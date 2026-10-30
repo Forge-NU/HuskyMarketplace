@@ -6,7 +6,7 @@ import { isNortheasternEmail, NU_DOMAIN, safeNext } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./LoginForm.module.css";
 
-const CODE_LENGTH = 6;
+const CODE_LENGTH = 8;
 
 /** Two steps: enter a @northeastern.edu email, then the 6-digit code Supabase emails to it. */
 export default function LoginForm() {
@@ -47,7 +47,11 @@ export default function LoginForm() {
       return;
     }
     setBusy(true);
-    const { error } = await createClient().auth.verifyOtp({ email, token: code, type: "email" });
+    const { error } = await createClient().auth.verifyOtp({
+      email,
+      token: code,
+      type: "email",
+    });
     if (error) {
       setBusy(false);
       setError(error.message);
@@ -64,7 +68,10 @@ export default function LoginForm() {
         {step === "email" ? (
           <>
             <h1>Sign in</h1>
-            <p className="muted">Husky Marketplace is for Northeastern students. We&apos;ll email you a {CODE_LENGTH}-digit code.</p>
+            <p className="muted">
+              Husky Marketplace is for Northeastern students. We&apos;ll email
+              you a {CODE_LENGTH}-digit code.
+            </p>
             <form
               className={styles.form}
               onSubmit={(e) => {
@@ -85,8 +92,16 @@ export default function LoginForm() {
                   autoFocus
                 />
               </label>
-              {error && <p className={styles.error} role="alert">{error}</p>}
-              <button className={`btn primary ${styles.submit}`} type="submit" disabled={busy}>
+              {error && (
+                <p className={styles.error} role="alert">
+                  {error}
+                </p>
+              )}
+              <button
+                className={`btn primary ${styles.submit}`}
+                type="submit"
+                disabled={busy}
+              >
                 {busy ? "Sending…" : "Send code"}
               </button>
             </form>
@@ -94,7 +109,9 @@ export default function LoginForm() {
         ) : (
           <>
             <h1>Check your email</h1>
-            <p className="muted">We sent a {CODE_LENGTH}-digit code to <b>{email}</b>.</p>
+            <p className="muted">
+              We sent a {CODE_LENGTH}-digit code to <b>{email}</b>.
+            </p>
             <form
               className={styles.form}
               onSubmit={(e) => {
@@ -116,8 +133,16 @@ export default function LoginForm() {
                   autoFocus
                 />
               </label>
-              {error && <p className={styles.error} role="alert">{error}</p>}
-              <button className={`btn primary ${styles.submit}`} type="submit" disabled={busy}>
+              {error && (
+                <p className={styles.error} role="alert">
+                  {error}
+                </p>
+              )}
+              <button
+                className={`btn primary ${styles.submit}`}
+                type="submit"
+                disabled={busy}
+              >
                 {busy ? "Verifying…" : "Sign in"}
               </button>
               <div className={styles.row}>
@@ -131,7 +156,12 @@ export default function LoginForm() {
                 >
                   Use a different email
                 </button>
-                <button className={styles.textBtn} type="button" disabled={busy} onClick={sendCode}>
+                <button
+                  className={styles.textBtn}
+                  type="button"
+                  disabled={busy}
+                  onClick={sendCode}
+                >
                   Resend code
                 </button>
               </div>
