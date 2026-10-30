@@ -32,23 +32,45 @@ export default function SearchPill() {
       </div>
       <div className={`${styles.seg} ${styles.opt}`}>
         <label htmlFor="fcat">Category</label>
-        <select id="fcat" value={filters.cat ?? ""} onChange={(e) => update({ cat: e.target.value })}>
+        <select
+          id="fcat"
+          value={filters.cat ?? ""}
+          onChange={(e) => update({ cat: e.target.value })}
+        >
           <option value="">Any category</option>
-          {opts.cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          {opts.cats.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
         </select>
       </div>
       <div className={`${styles.seg} ${styles.opt}`}>
         <label htmlFor="fmax">Max price</label>
-        <select id="fmax" value={filters.max ?? ""} onChange={(e) => update({ max: Number(e.target.value) || null })}>
+        <select
+          id="fmax"
+          value={filters.max ?? ""}
+          onChange={(e) => update({ max: Number(e.target.value) || null })}
+        >
           <option value="">Any price</option>
-          {opts.maxPrices.map((n) => <option key={n} value={n}>${n}</option>)}
+          {opts.maxPrices.map((n) => (
+            <option key={n} value={n}>
+              ${n}
+            </option>
+          ))}
         </select>
       </div>
       <div className={`${styles.seg} ${styles.opt}`}>
         <label htmlFor="fmeet">{opts.meetLabel}</label>
-        <select id="fmeet" value={filters.meet ?? ""} onChange={(e) => update({ meet: e.target.value })}>
+        <select
+          id="fmeet"
+          value={filters.meet ?? ""}
+          onChange={(e) => update({ meet: e.target.value })}
+        >
           <option value="">{opts.meetAny}</option>
-          {opts.meetups.map((m) => <option key={m}>{m}</option>)}
+          {opts.meetups.map((m) => (
+            <option key={m}>{m}</option>
+          ))}
         </select>
       </div>
       <button className={styles.go} type="submit" aria-label="Search">

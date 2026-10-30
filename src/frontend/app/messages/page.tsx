@@ -1,23 +1,323 @@
 "use client";
-import {Suspense,useEffect,useState,type FormEvent} from "react";
-import {useSearchParams} from "next/navigation";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import UIShell from "@/components/ui/marketplace/UIShell";
-import {type DemoThread,type DemoOffer,SAMPLE_THREADS,getStored,KEYS,setStored,PHOTO_LISTINGS,sellerForListing} from "@/lib/ui/demo-data";
+import {
+  type DemoThread,
+  type DemoOffer,
+  SAMPLE_THREADS,
+  getStored,
+  KEYS,
+  setStored,
+  PHOTO_LISTINGS,
+  sellerForListing,
+} from "@/lib/ui/demo-data";
 import styles from "@/components/ui/marketplace/UI.module.css";
-function Messenger(){const params=useSearchParams();const [tab,setTab]=useState(params.get("tab")==="offers"||params.has("offer")?"offers":"messages");const [threads,setThreads]=useState<DemoThread[]>(SAMPLE_THREADS);const [active,setActive]=useState("chair");const [text,setText]=useState(""),[query,setQuery]=useState(""),[offers,setOffers]=useState<DemoOffer[]>([]),[amount,setAmount]=useState(""),[note,setNote]=useState(""),[notice,setNotice]=useState("");
- const targetId=Number(params.get("item")||params.get("offer")||"0");
- useEffect(()=>{const t=getStored<DemoThread[]>(KEYS.conversations,SAMPLE_THREADS);setThreads(Array.isArray(t)?t:SAMPLE_THREADS);setOffers(getStored<DemoOffer[]>(KEYS.offers,[]));const id=Number(params.get("item")||"0");if(id>0){const match=t.find(x=>x.listingId===id);if(match)setActive(match.id);else{const s=sellerForListing(id),thread={id:`item-${id}`,listingId:id,contact:s?.name||"Campus seller",initials:s?.initials||"CS",unread:false,messages:[] as DemoThread["messages"]};const merged=[thread,...t];setThreads(merged);setStored(KEYS.conversations,merged);setActive(thread.id)}}},[params]);
- const current=threads.find(x=>x.id===active);const listing=PHOTO_LISTINGS.find(x=>x.id===current?.listingId);
- const filtered=threads.filter(x=>`${x.contact} ${PHOTO_LISTINGS.find(i=>i.id===x.listingId)?.title||""} ${x.messages.map(m=>m.text).join(" ")}`.toLowerCase().includes(query.toLowerCase()));
- function send(e:FormEvent){e.preventDefault();if(!text.trim()||!current)return;const next=threads.map(x=>x.id===current.id?{...x,messages:[...x.messages,{from:"me" as const,text:text.trim(),time:new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}]}:x);setThreads(next);setStored(KEYS.conversations,next);setText("")}
- function offer(e:FormEvent){e.preventDefault();const listingId=targetId||current?.listingId||0;if(!listingId||!Number.isFinite(+amount)||+amount<=0){setNotice("Choose a listing and enter a valid amount.");return}const created:DemoOffer={id:String(Date.now()),listingId,amount:+amount,note:note.trim(),status:"pending",createdAt:new Date().toISOString()};const next=[created,...offers];setOffers(next);setStored(KEYS.offers,next);setAmount("");setNote("");setNotice("Demo offer saved in this browser. It was not sent.")}
- return <UIShell><main className={styles.content}><header className={styles.contentHead}><p className={styles.eyebrow}>CAMPUS CONVERSATIONS</p><h1>Messages &amp; offers.</h1><p>Keep conversations and offers organized. This prototype stores demo messages on your device only.</p></header>
-  <div className={styles.tabs}><button type="button" className={tab==="messages"?styles.tabActive:""} onClick={()=>setTab("messages")}>Messages</button><button type="button" className={tab==="offers"?styles.tabActive:""} onClick={()=>setTab("offers")}>Offers</button></div>
-  {tab==="messages"?<div className={`${styles.panel} ${styles.inbox}`}><aside className={styles.inboxSidebar}><div className={styles.inboxSidebarHead}><h2>Inbox</h2><input className={styles.input} value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search conversations" aria-label="Search conversations"/></div>{filtered.map(t=><button className={`${styles.thread} ${t.id===active?styles.threadActive:""}`} type="button" key={t.id} aria-pressed={t.id===active} onClick={()=>setActive(t.id)}><span className={styles.sellerAvatar}>{t.initials}</span><span className={styles.threadCopy}><strong>{t.contact}</strong><span>{PHOTO_LISTINGS.find(x=>x.id===t.listingId)?.title||"Campus find"}</span><span>{t.messages.at(-1)?.text||"Start a conversation"}</span></span></button>)}</aside>
-  <section className={styles.conversation}>{current?<><header className={styles.conversationHead}>{current.contact} · {listing?.title||"Listing"} <Link href={`/item/${current.listingId}`} style={{float:"right",fontWeight:500,fontSize:12}}>View listing ↗</Link></header><div className={styles.messages} role="log">{current.messages.map((m,i)=><div key={i} className={`${styles.bubble} ${m.from==="me"?styles.bubbleMe:""}`}>{m.text}<div style={{fontSize:10,opacity:.75,marginTop:5}}>{m.time}</div></div>)}{!current.messages.length&&<p className={styles.hint}>No demo messages yet. Start the conversation below.</p>}</div><form className={styles.reply} onSubmit={send}><input className={styles.input} value={text} onChange={e=>setText(e.target.value)} maxLength={1000} placeholder="Write a demo message..." aria-label="New message" required/><button className={styles.primaryButton} type="submit">Send</button></form></>:<div className={styles.empty}>Select a conversation.</div>}</section>
-  </div>:<div className={styles.split}><div className={styles.panel}><h2>Make a demo offer</h2><p className={styles.hint}>{targetId>0?`For ${PHOTO_LISTINGS.find(x=>x.id===targetId)?.title||"the selected listing"}`:"Choose a listing before submitting an offer."}</p><form onSubmit={offer}><div className={styles.formField}><label className={styles.inputLabel} htmlFor="offer-amount">Offer amount (USD)</label><input id="offer-amount" type="number" min="1" step="1" required className={styles.input} value={amount} onChange={e=>setAmount(e.target.value)}/></div><div className={styles.formField}><label className={styles.inputLabel} htmlFor="offer-note">Message (optional)</label><textarea id="offer-note" className={styles.textarea} rows={4} value={note} onChange={e=>setNote(e.target.value)}/></div><button type="submit" className={styles.primaryButton} disabled={targetId<=0}>Save demo offer</button></form>{notice&&<p role="status" className={styles.notice}>{notice}</p>}</div><div className={styles.panel}><h2>My offers</h2>{offers.length?offers.map(o=><article key={o.id} style={{borderBottom:"1px solid #eee",padding:"14px 0"}}><Link href={`/item/${o.listingId}`}><strong>{PHOTO_LISTINGS.find(x=>x.id===o.listingId)?.title||`Listing ${o.listingId}`}</strong></Link><p>${o.amount} · {o.status}</p><p className={styles.hint}>{o.note||"No message"}</p></article>):<p className={styles.hint}>No demo offers yet. Open an item and select Make an offer.</p>}</div></div>}
-  <p className={styles.notice}>These demo conversations and offers are never delivered to anyone. Real messaging, access controls, reporting and moderation need backend integration.</p>
-  </main></UIShell>
+function Messenger() {
+  const params = useSearchParams();
+  const [tab, setTab] = useState(
+    params.get("tab") === "offers" || params.has("offer")
+      ? "offers"
+      : "messages",
+  );
+  const [threads, setThreads] = useState<DemoThread[]>(SAMPLE_THREADS);
+  const [active, setActive] = useState("chair");
+  const [text, setText] = useState(""),
+    [query, setQuery] = useState(""),
+    [offers, setOffers] = useState<DemoOffer[]>([]),
+    [amount, setAmount] = useState(""),
+    [note, setNote] = useState(""),
+    [notice, setNotice] = useState("");
+  const targetId = Number(params.get("item") || params.get("offer") || "0");
+  useEffect(() => {
+    const t = getStored<DemoThread[]>(KEYS.conversations, SAMPLE_THREADS);
+    setThreads(Array.isArray(t) ? t : SAMPLE_THREADS);
+    setOffers(getStored<DemoOffer[]>(KEYS.offers, []));
+    const id = Number(params.get("item") || "0");
+    if (id > 0) {
+      const match = t.find((x) => x.listingId === id);
+      if (match) setActive(match.id);
+      else {
+        const s = sellerForListing(id),
+          thread = {
+            id: `item-${id}`,
+            listingId: id,
+            contact: s?.name || "Campus seller",
+            initials: s?.initials || "CS",
+            unread: false,
+            messages: [] as DemoThread["messages"],
+          };
+        const merged = [thread, ...t];
+        setThreads(merged);
+        setStored(KEYS.conversations, merged);
+        setActive(thread.id);
+      }
+    }
+  }, [params]);
+  const current = threads.find((x) => x.id === active);
+  const listing = PHOTO_LISTINGS.find((x) => x.id === current?.listingId);
+  const filtered = threads.filter((x) =>
+    `${x.contact} ${PHOTO_LISTINGS.find((i) => i.id === x.listingId)?.title || ""} ${x.messages.map((m) => m.text).join(" ")}`
+      .toLowerCase()
+      .includes(query.toLowerCase()),
+  );
+  function send(e: FormEvent) {
+    e.preventDefault();
+    if (!text.trim() || !current) return;
+    const next = threads.map((x) =>
+      x.id === current.id
+        ? {
+            ...x,
+            messages: [
+              ...x.messages,
+              {
+                from: "me" as const,
+                text: text.trim(),
+                time: new Date().toLocaleTimeString([], {
+                  hour: "numeric",
+                  minute: "2-digit",
+                }),
+              },
+            ],
+          }
+        : x,
+    );
+    setThreads(next);
+    setStored(KEYS.conversations, next);
+    setText("");
+  }
+  function offer(e: FormEvent) {
+    e.preventDefault();
+    const listingId = targetId || current?.listingId || 0;
+    if (!listingId || !Number.isFinite(+amount) || +amount <= 0) {
+      setNotice("Choose a listing and enter a valid amount.");
+      return;
+    }
+    const created: DemoOffer = {
+      id: String(Date.now()),
+      listingId,
+      amount: +amount,
+      note: note.trim(),
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    };
+    const next = [created, ...offers];
+    setOffers(next);
+    setStored(KEYS.offers, next);
+    setAmount("");
+    setNote("");
+    setNotice("Demo offer saved in this browser. It was not sent.");
+  }
+  return (
+    <UIShell>
+      <main className={styles.content}>
+        <header className={styles.contentHead}>
+          <p className={styles.eyebrow}>CAMPUS CONVERSATIONS</p>
+          <h1>Messages &amp; offers.</h1>
+          <p>
+            Keep conversations and offers organized. This prototype stores demo
+            messages on your device only.
+          </p>
+        </header>
+        <div className={styles.tabs}>
+          <button
+            type="button"
+            className={tab === "messages" ? styles.tabActive : ""}
+            onClick={() => setTab("messages")}
+          >
+            Messages
+          </button>
+          <button
+            type="button"
+            className={tab === "offers" ? styles.tabActive : ""}
+            onClick={() => setTab("offers")}
+          >
+            Offers
+          </button>
+        </div>
+        {tab === "messages" ? (
+          <div className={`${styles.panel} ${styles.inbox}`}>
+            <aside className={styles.inboxSidebar}>
+              <div className={styles.inboxSidebarHead}>
+                <h2>Inbox</h2>
+                <input
+                  className={styles.input}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search conversations"
+                  aria-label="Search conversations"
+                />
+              </div>
+              {filtered.map((t) => (
+                <button
+                  className={`${styles.thread} ${t.id === active ? styles.threadActive : ""}`}
+                  type="button"
+                  key={t.id}
+                  aria-pressed={t.id === active}
+                  onClick={() => setActive(t.id)}
+                >
+                  <span className={styles.sellerAvatar}>{t.initials}</span>
+                  <span className={styles.threadCopy}>
+                    <strong>{t.contact}</strong>
+                    <span>
+                      {PHOTO_LISTINGS.find((x) => x.id === t.listingId)
+                        ?.title || "Campus find"}
+                    </span>
+                    <span>
+                      {t.messages.at(-1)?.text || "Start a conversation"}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </aside>
+            <section className={styles.conversation}>
+              {current ? (
+                <>
+                  <header className={styles.conversationHead}>
+                    {current.contact} · {listing?.title || "Listing"}{" "}
+                    <Link
+                      href={`/item/${current.listingId}`}
+                      style={{ float: "right", fontWeight: 500, fontSize: 12 }}
+                    >
+                      View listing ↗
+                    </Link>
+                  </header>
+                  <div className={styles.messages} role="log">
+                    {current.messages.map((m, i) => (
+                      <div
+                        key={i}
+                        className={`${styles.bubble} ${m.from === "me" ? styles.bubbleMe : ""}`}
+                      >
+                        {m.text}
+                        <div
+                          style={{ fontSize: 10, opacity: 0.75, marginTop: 5 }}
+                        >
+                          {m.time}
+                        </div>
+                      </div>
+                    ))}
+                    {!current.messages.length && (
+                      <p className={styles.hint}>
+                        No demo messages yet. Start the conversation below.
+                      </p>
+                    )}
+                  </div>
+                  <form className={styles.reply} onSubmit={send}>
+                    <input
+                      className={styles.input}
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      maxLength={1000}
+                      placeholder="Write a demo message..."
+                      aria-label="New message"
+                      required
+                    />
+                    <button className={styles.primaryButton} type="submit">
+                      Send
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <div className={styles.empty}>Select a conversation.</div>
+              )}
+            </section>
+          </div>
+        ) : (
+          <div className={styles.split}>
+            <div className={styles.panel}>
+              <h2>Make a demo offer</h2>
+              <p className={styles.hint}>
+                {targetId > 0
+                  ? `For ${PHOTO_LISTINGS.find((x) => x.id === targetId)?.title || "the selected listing"}`
+                  : "Choose a listing before submitting an offer."}
+              </p>
+              <form onSubmit={offer}>
+                <div className={styles.formField}>
+                  <label className={styles.inputLabel} htmlFor="offer-amount">
+                    Offer amount (USD)
+                  </label>
+                  <input
+                    id="offer-amount"
+                    type="number"
+                    min="1"
+                    step="1"
+                    required
+                    className={styles.input}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </div>
+                <div className={styles.formField}>
+                  <label className={styles.inputLabel} htmlFor="offer-note">
+                    Message (optional)
+                  </label>
+                  <textarea
+                    id="offer-note"
+                    className={styles.textarea}
+                    rows={4}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className={styles.primaryButton}
+                  disabled={targetId <= 0}
+                >
+                  Save demo offer
+                </button>
+              </form>
+              {notice && (
+                <p role="status" className={styles.notice}>
+                  {notice}
+                </p>
+              )}
+            </div>
+            <div className={styles.panel}>
+              <h2>My offers</h2>
+              {offers.length ? (
+                offers.map((o) => (
+                  <article
+                    key={o.id}
+                    style={{
+                      borderBottom: "1px solid #eee",
+                      padding: "14px 0",
+                    }}
+                  >
+                    <Link href={`/item/${o.listingId}`}>
+                      <strong>
+                        {PHOTO_LISTINGS.find((x) => x.id === o.listingId)
+                          ?.title || `Listing ${o.listingId}`}
+                      </strong>
+                    </Link>
+                    <p>
+                      ${o.amount} · {o.status}
+                    </p>
+                    <p className={styles.hint}>{o.note || "No message"}</p>
+                  </article>
+                ))
+              ) : (
+                <p className={styles.hint}>
+                  No demo offers yet. Open an item and select Make an offer.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+        <p className={styles.notice}>
+          These demo conversations and offers are never delivered to anyone.
+          Real messaging, access controls, reporting and moderation need backend
+          integration.
+        </p>
+      </main>
+    </UIShell>
+  );
 }
-export default function MessagesPage(){return <Suspense><Messenger/></Suspense>}
+export default function MessagesPage() {
+  return (
+    <Suspense>
+      <Messenger />
+    </Suspense>
+  );
+}
