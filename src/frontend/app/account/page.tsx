@@ -72,6 +72,9 @@ export default function AccountPage() {
   return (
     <UIShell>
       <main className={styles.content}>
+        <p className={styles.notice}>
+          <Link href="/my-listings">View and manage your real listings →</Link>
+        </p>
         <header className={styles.contentHead}>
           <p className={styles.eyebrow}>MY ACCOUNT</p>
           <h1>Your Husky space.</h1>

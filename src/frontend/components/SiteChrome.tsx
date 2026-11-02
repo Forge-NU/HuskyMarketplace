@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 const uiRoutes = [
   "/",
   "/browse",
+  "/my-listings",
   "/login",
   "/signup",
   "/verify",
@@ -30,6 +31,7 @@ export default function SiteChrome({
   if (
     uiRoutes.includes(pathname) ||
     pathname.startsWith("/item/") ||
+    pathname.startsWith("/demo/item/") ||
     pathname.startsWith("/seller/")
   )
     return <>{children}</>;

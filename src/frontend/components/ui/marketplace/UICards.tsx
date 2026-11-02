@@ -39,7 +39,7 @@ export default function UICards({ items }: { items: DemoListing[] }) {
         <article className={styles.productCard} key={item.id}>
           <Link
             className={styles.productLink}
-            href={`/item/${item.id}`}
+            href={`/demo/item/${item.id}`}
             aria-label={`View ${item.title}`}
           >
             <img

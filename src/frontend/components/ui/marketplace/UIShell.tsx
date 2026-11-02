@@ -5,7 +5,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./UI.module.css";
 
-export default function UIShell({ children }: { children: ReactNode }) {
+export default function UIShell({
+  children,
+  live = false,
+}: {
+  children: ReactNode;
+  live?: boolean;
+}) {
   const router = useRouter(),
     pathname = usePathname();
   const [menu, setMenu] = useState(false),
@@ -48,8 +54,17 @@ export default function UIShell({ children }: { children: ReactNode }) {
   return (
     <div className={styles.page}>
       <div className={styles.demoRibbon}>
-        <strong>PHOTO-LED MARKETPLACE PREVIEW</strong> · sample listings and
-        browser-local demo actions
+        {live ? (
+          <>
+            <strong>HUSKY MARKETPLACE</strong> · live listings · reviewed before
+            publishing
+          </>
+        ) : (
+          <>
+            <strong>PHOTO-LED MARKETPLACE PREVIEW</strong> · sample listings and
+            browser-local demo actions
+          </>
+        )}
       </div>
       <header className={styles.siteHeader}>
         <div className={styles.headerInner}>
