@@ -4,6 +4,7 @@ export type AccountProfile = {
   username: string;
   displayName: string;
   area: string;
+  bio: string;
 };
 export function validateProfile(username: string, displayName: string) {
   const handle = username.trim().toLowerCase();
@@ -29,4 +30,10 @@ export function profileComplete(
   } catch {
     return false;
   }
+}
+
+export function validateBio(bio: string) {
+  if (bio.length > 200)
+    throw new Error("Keep your bio to 200 characters or fewer.");
+  return bio.trim();
 }

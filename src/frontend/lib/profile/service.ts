@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { validateProfile, type AccountProfile } from "./model.ts";
+import { validateProfile, validateBio, type AccountProfile } from "./model.ts";
 export async function loadProfile(
   client: SupabaseClient,
 ): Promise<AccountProfile> {
@@ -22,6 +22,8 @@ export async function loadProfile(
       typeof user.user_metadata.display_name === "string"
         ? user.user_metadata.display_name
         : "",
+    bio:
+      typeof user.user_metadata.bio === "string" ? user.user_metadata.bio : "",
     area:
       typeof user.user_metadata.campus_area === "string"
         ? user.user_metadata.campus_area
@@ -33,6 +35,7 @@ export async function saveProfile(
   profile: AccountProfile,
 ) {
   const fields = validateProfile(profile.username, profile.displayName);
+  const bio = validateBio(profile.bio ?? "");
   const { data, error } = await client.auth.getUser();
   if (error || !data.user || data.user.id !== profile.userId)
     throw new Error("Your session changed. Sign in again before saving.");
@@ -48,11 +51,11 @@ export async function saveProfile(
     throw new Error("Your username could not be saved. Please retry.");
   // Editable presentation only. These values never authorize access or verification.
   const { error: metadataError } = await client.auth.updateUser({
-    data: { display_name: fields.displayName, campus_area: profile.area },
+    data: { display_name: fields.displayName, campus_area: profile.area, bio },
   });
   if (metadataError)
     throw new Error(
-      "Username saved, but your display name could not be saved. Please retry to finish.",
+      "Username saved, but your display name or bio could not be saved. Please retry to finish.",
     );
-  return { ...profile, ...fields };
+  return { ...profile, ...fields, bio };
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import UIShell from "@/components/ui/marketplace/UIShell";
-import { MOVE_IN_PHOTO } from "@/lib/ui/campus";
+import { MOVE_IN_PHOTO, CAMPUS_MOVING_SOURCE } from "@/lib/ui/campus";
 import styles from "@/components/ui/marketplace/UI.module.css";
 export default function CreditsPage() {
   return (
@@ -20,6 +20,14 @@ export default function CreditsPage() {
             Photo by {MOVE_IN_PHOTO.credit}.{" "}
             <a href={MOVE_IN_PHOTO.source} target="_blank" rel="noreferrer">
               View original source
+            </a>
+            .
+          </p>
+          <p>
+            Moving-post illustrations: Alyssa Stone and Ruby Wallau /
+            Northeastern University.{" "}
+            <a href={CAMPUS_MOVING_SOURCE} target="_blank" rel="noreferrer">
+              Back to School 2025 photo gallery
             </a>
             .
           </p>

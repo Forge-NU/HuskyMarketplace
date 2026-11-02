@@ -1591,3 +1591,337 @@
   height: 64px;
   color: var(--photo-red);
 }
+
+/* Keep the campus invitation compact, with the copy as the first focal point. */
+.moving {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 30%);
+  padding: 28px 32px;
+  gap: 32px;
+}
+.moving h2 {
+  font-size: clamp(26px, 2.8vw, 34px);
+  line-height: 1.15;
+}
+.moving p:not(.eyebrow) {
+  font-size: 16px;
+  max-width: 52ch;
+  margin-block: 12px;
+}
+.movingPhoto img {
+  height: 180px;
+  aspect-ratio: auto;
+}
+.movingPhoto figcaption {
+  font-size: 10px;
+  line-height: 1.4;
+}
+.messageNavIcon {
+  width: 25px;
+  height: 25px;
+}
+.profileContent {
+  min-height: 0;
+  padding-top: 32px;
+  padding-bottom: 40px;
+}
+.setupLayout {
+  display: block;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.setupIntro {
+  margin-bottom: 24px;
+}
+.setupIntro h1 {
+  font-size: clamp(30px, 3.5vw, 40px);
+  margin: 8px 0 12px;
+}
+.profileEditor {
+  padding: 28px;
+}
+.profileDetailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.profilePhotoRow {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  padding-bottom: 16px;
+}
+.profilePhotoRow > div > strong {
+  font-size: 19px;
+}
+.profilePhotoRow .hint {
+  margin-block: 5px 10px;
+}
+.profilePhotoButton {
+  padding: 0;
+  flex-shrink: 0;
+  width: 106px;
+  height: 106px;
+  border: 0;
+  background: #eeeef0;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+}
+.profilePhotoButton :is(img, svg) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profilePhotoButton > span {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 6px 0 9px;
+  font-size: 10px;
+  color: white;
+  background: #171719b3;
+}
+.photoPreviewNote {
+  margin: 0 0 24px;
+  padding: 10px 12px;
+  color: #665550;
+  background: #fff5ef;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.textButton {
+  border: 0;
+  padding: 8px 10px;
+  background: none;
+  color: var(--photo-red);
+  font-size: 12px;
+  text-decoration: underline;
+}
+.unreadBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background: #c8102e;
+  color: white !important;
+  border-radius: 20px;
+  font-size: 10px !important;
+}
+.conversationHead {
+  padding: 14px 18px;
+}
+.conversationContact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.conversationListing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--photo-border);
+  border-radius: 12px;
+  background: #fff9ef;
+}
+.conversationListing:hover {
+  border-color: var(--photo-red);
+}
+.conversationListing > img {
+  width: 62px;
+  height: 62px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.conversationListing > div {
+  min-width: 0;
+}
+.conversationListing strong {
+  display: block;
+  font-size: 14px;
+}
+.conversationListing :is(span, p) {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--photo-muted);
+}
+.conversationListing p {
+  margin: 4px 0 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.listingChip {
+  margin-left: auto;
+  white-space: nowrap;
+  color: var(--photo-red) !important;
+}
+.localMessageStatus {
+  align-self: flex-end;
+  color: var(--photo-muted);
+  font-size: 11px;
+  margin: 0;
+}
+.movingText {
+  background: linear-gradient(transparent, #171719eb);
+  padding: 24px;
+}
+.movingText .eyebrow {
+  color: white;
+  background: #9e1028;
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 4px;
+}
+.movingHero {
+  min-height: 260px;
+}
+.movingHero > img {
+  height: 260px;
+  object-position: center 48%;
+}
+.safetyCallout {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  margin-top: 24px;
+  background: #f4eddc;
+  border-radius: 16px;
+  border: 1px solid #e8dcc3;
+}
+.safetyCallout h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+.safetyCallout p {
+  margin: 0;
+  max-width: 65ch;
+  color: #625747;
+  font-size: 14px;
+}
+.safetyIcon {
+  width: 46px;
+  height: 46px;
+  color: #8b541b;
+}
+.campusPhotoCaption {
+  font-size: 10px;
+  color: var(--photo-muted);
+  padding: 6px 14px 0;
+}
+@media (min-width: 701px) and (max-width: 1100px) {
+  .mainNav {
+    display: flex;
+    gap: 18px;
+  }
+  .mobileToggle {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .siteHeader {
+    height: auto;
+  }
+  .headerInner {
+    flex-wrap: wrap;
+    padding: 12px 16px 8px;
+    gap: 8px 14px;
+  }
+  .mainNav {
+    display: flex;
+    order: 3;
+    flex: 1 0 100%;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .mainNav a {
+    font-size: 13px;
+    padding: 7px 0;
+  }
+  .mobileToggle,
+  .mobileNav {
+    display: none;
+  }
+  .headerActions .iconButton {
+    display: grid;
+  }
+  .moving {
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 32%);
+    padding: 22px;
+    gap: 20px;
+  }
+  .movingPhoto img {
+    height: 145px;
+  }
+  .moving h2 {
+    font-size: 26px;
+  }
+  .moving p:not(.eyebrow) {
+    font-size: 15px;
+  }
+  .safetyCallout {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .safetyCallout > a {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .conversationContact {
+    flex-wrap: wrap;
+  }
+  .listingChip {
+    display: none;
+  }
+}
+@media (max-width: 520px) {
+  .profileDetailsGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .profileEditor {
+    padding: 20px;
+  }
+  .profilePhotoRow {
+    gap: 15px;
+  }
+  .profilePhotoButton {
+    width: 88px;
+    height: 88px;
+  }
+  .moving {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .movingPhoto {
+    max-width: 100%;
+  }
+  .movingPhoto img {
+    height: 130px;
+    aspect-ratio: 16/7;
+  }
+}
+.page {
+  display: flex;
+  flex-direction: column;
+}
+.page > main {
+  flex: 1;
+  width: 100%;
+}
+.footer {
+  margin-top: auto;
+}
+.movingPage {
+  min-height: 0;
+  padding-bottom: 32px;
+}
+@media (max-width: 800px) {
+  .messages {
+    max-height: min(52dvh, 480px);
+    min-height: 200px;
+  }
+}

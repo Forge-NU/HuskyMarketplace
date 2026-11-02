@@ -12,3 +12,20 @@ Live read-only inspection on November 2, 2026 confirmed `profiles(user_id,userna
 - Profile loading and the incomplete-profile Sell redirect were checked using the existing authenticated browser session. No real profile values were changed during verification. Save/collision/ownership/session-change/partial-failure coverage uses isolated mocks.
 
 The concise OTP email is proposed in `supabase/templates/verification.html`; `/email-preview` displays a clearly labeled sample. Hosted templates remain unchanged pending authentication-owner review and installation. See the template README for the applicable template slots.
+
+## Profile refinement and photo storage review
+
+The profile editor now uses a compact single-card layout with a photo chooser, a 200-character optional bio, display name, unique username, school email and campus area. The bio persists as editable Auth metadata (`bio`) alongside the existing presentation preferences. It is not an authorization claim and is not automatically exposed as a public seller bio.
+
+Photo selection reuses Jayden’s existing `compressImage` helper: JPEG/PNG/WebP input, at most 12 MB, compressed to WebP at up to 512 pixels with a 150 KB target and a 256 KB final cap. It creates a circular object-URL preview and revokes URLs on unmount. A repository fixture was processed in the authenticated browser without saving any profile values.
+
+**Persistent profile photos are not implemented.** Live inspection still found only the public `email-assets` bucket and no Storage policies. The UI labels photos as preview-only and explicitly says saving the profile will not save the image. It does not put image bytes in Auth metadata, use the email bucket for user uploads, or silently make photos public.
+
+Backend review requirements before enabling uploads:
+
+- Agree on a dedicated `profile-photos` bucket, maximum file size/MIME constraints and server-side image decoding validation. Keep uploads private until visibility and moderation rules have been agreed.
+- Scope immutable object paths to the authenticated owner (`<user-id>/<random-id>.webp`) with owner-only Storage INSERT/SELECT/DELETE policies and no overwrite. Preserve existing avatar objects until the replacement is confirmed.
+- Validate an object’s ownership and existence before saving a reference to it; reject arbitrary external URLs or another owner’s object. Only store a path/reference, never image bytes, in profile metadata or the agreed profile column.
+- Decide permitted public profile-photo visibility with the profile/moderation owners, use appropriately limited signed reads, and arrange cleanup for abandoned/replaced objects. Test account A versus account B and failed/lost responses in an isolated environment.
+
+No bucket, grant, RLS policy or hosted authentication setting was changed in this follow-up.

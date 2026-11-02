@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateProfile, profileComplete } from "../lib/profile/model.ts";
+import {
+  validateProfile,
+  profileComplete,
+  validateBio,
+} from "../lib/profile/model.ts";
 import { loadProfile, saveProfile } from "../lib/profile/service.ts";
 import { safeNext } from "../lib/auth.ts";
 const profile = {
@@ -9,6 +13,7 @@ const profile = {
   username: "student",
   displayName: "Student",
   area: "Fenway",
+  bio: "Student who loves secondhand finds.",
 };
 // Isolated fixtures: these tests never write to the shared database.
 function fixture() {
@@ -111,7 +116,7 @@ test("saving only updates own username and presentation metadata", async () => {
     username: "student",
   });
   assert.deepEqual(f.calls.find((c) => c[0] === "metadata")[1], {
-    data: { display_name: "Student", campus_area: "Fenway" },
+    data: { display_name: "Student", campus_area: "Fenway", bio: profile.bio },
   });
 });
 test("database unique constraint handles username collisions", async () => {
@@ -144,4 +149,18 @@ test("missing profile is an error rather than demo data", async () => {
   const f = fixture();
   f.state.row = null;
   await assert.rejects(() => loadProfile(f.client), /could not load/);
+});
+
+test("bio is optional, trimmed and limited before any writes", async () => {
+  assert.equal(validateBio("  Hi campus  "), "Hi campus");
+  assert.equal(validateBio(""), "");
+  const f = fixture();
+  await assert.rejects(
+    () => saveProfile(f.client, { ...profile, bio: "x".repeat(201) }),
+    /200 characters/,
+  );
+  assert.equal(
+    f.calls.some((c) => c[0] === "update"),
+    false,
+  );
 });
