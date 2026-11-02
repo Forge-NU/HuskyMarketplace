@@ -1,5 +1,6 @@
 import Link from "next/link";
 import UIShell from "@/components/ui/marketplace/UIShell";
+import { MOVE_IN_PHOTO } from "@/lib/ui/campus";
 import styles from "@/components/ui/marketplace/UI.module.css";
 export default function CreditsPage() {
   return (
@@ -14,6 +15,15 @@ export default function CreditsPage() {
           </p>
         </header>
         <div className={styles.panel}>
+          <h2>Northeastern move-in</h2>
+          <p>
+            Photo by {MOVE_IN_PHOTO.credit}.{" "}
+            <a href={MOVE_IN_PHOTO.source} target="_blank" rel="noreferrer">
+              View original source
+            </a>
+            .
+          </p>
+          <h2>Marketplace sample photos</h2>
           <p>
             Sample imagery is served from{" "}
             <a

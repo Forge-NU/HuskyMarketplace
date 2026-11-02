@@ -11,6 +11,8 @@ const uiRoutes = [
   "/signup",
   "/verify",
   "/account",
+  "/account/setup",
+  "/email-preview",
   "/saved",
   "/sell",
   "/messages",

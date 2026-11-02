@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./UI.module.css";
+import ProfileAvatar from "./ProfileAvatar";
 
 export default function UIShell({
   children,
@@ -120,10 +121,10 @@ export default function UIShell({
                 <Link
                   className={styles.avatar}
                   href="/account"
-                  title={email}
+                  title="My account"
                   aria-label="My account"
                 >
-                  {email.slice(0, 1).toUpperCase()}
+                  <ProfileAvatar />
                 </Link>
               </div>
             ) : (
@@ -132,7 +133,7 @@ export default function UIShell({
                 href="/login"
                 aria-label="Sign in"
               >
-                ↗
+                <ProfileAvatar />
               </Link>
             )}
             <button

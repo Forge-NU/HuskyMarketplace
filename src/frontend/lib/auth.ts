@@ -7,5 +7,10 @@ export function isNortheasternEmail(email: string) {
 
 /** Only allow same-site paths as a post-login redirect, so ?next= can't send users off-site. */
 export function safeNext(next: string | null) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  return next &&
+    next.startsWith("/") &&
+    !next.startsWith("//") &&
+    !/[\\\x00-\x1f\x7f]/.test(next)
+    ? next
+    : "/";
 }
