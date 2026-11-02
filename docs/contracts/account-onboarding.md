@@ -11,7 +11,7 @@ Live read-only inspection on November 2, 2026 confirmed `profiles(user_id,userna
 - Existing browser-local demo records are not copied into the live profile or deleted. New setup does not persist account identity in shared localStorage.
 - Save, collision, ownership, session-change and partial-failure behavior is covered by tests with mocked clients.
 
-The concise OTP email is proposed in `supabase/templates/verification.html`; `/email-preview` displays a clearly labeled sample. Hosted templates remain unchanged pending authentication-owner review and installation. See the template README for the applicable template slots.
+The concise OTP email is proposed in `supabase/templates/verification.html`; `/email-preview` displays a clearly labeled sample. Hosted templates remain unchanged pending authentication-owner review and installation.
 
 ## Profile refinement and photo storage review
 
@@ -19,7 +19,7 @@ The profile editor now uses a compact single-card layout with a photo chooser, a
 
 Photo selection reuses @S1LynKz’s existing `compressImage` helper: JPEG/PNG/WebP input, at most 12 MB, compressed to WebP at up to 512 pixels with a 150 KB target and a 256 KB final cap. It creates a circular object-URL preview and revokes URLs on unmount. A repository fixture was processed in the authenticated browser without saving any profile values.
 
-**Persistent profile photos are not implemented.** Live inspection still found only the public `email-assets` bucket and no Storage policies. The UI labels photos as preview-only and explicitly says saving the profile will not save the image. It does not put image bytes in Auth metadata, use the email bucket for user uploads, or silently make photos public.
+**Persistent profile photos are not implemented.** Live inspection still found only the public `email-assets` bucket and no Storage policies. The UI labels photos as preview-only and says saving the profile will not save the image.
 
 Backend review requirements before enabling uploads:
 
