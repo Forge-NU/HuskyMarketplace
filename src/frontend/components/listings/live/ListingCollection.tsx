@@ -169,6 +169,12 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
         ) : error ? (
           <div role="alert" className={styles.notice}>
             <p>{error}</p>
+            {!own && (
+              <p>
+                <Link href="/">Explore the demo marketplace</Link>
+                {" — sample listings only; no live transactions."}
+              </p>
+            )}
             <button
               onClick={() => {
                 setLoading(true);

@@ -6,7 +6,7 @@ Live read-only inspection on November 2, 2026 confirmed `profiles(user_id,userna
 
 - `/account/setup` collects a display name and personal username after OTP verification. Incomplete profiles are routed here before Sell. Completing setup returns to browsing instead of unexpectedly starting a listing.
 - Usernames save to the existing `profiles.username`, scoped to the authenticated user. The database unique index resolves collisions, including concurrent submissions; no profile search or public profile access was added.
-- Display name and optional campus area save to user-editable Auth metadata (`display_name`, `campus_area`). They are presentation preferences, never verification or authorization claims. Public seller profile integration still needs the profile team's agreed API. If the team introduces dedicated profile columns, migrate these presentation values deliberately.
+- Display name and optional campus area save to user-editable Auth metadata (`display_name`, `campus_area`). They are presentation preferences, never verification or authorization claims. Public seller profile integration still needs the profile team's agreed API. These fields, including `bio`, should move to dedicated `profiles` columns once the profile API is agreed. Auth metadata is included in access tokens, so keeping profile text there increases the token size on authenticated requests.
 - A failed username save does not claim success. If username saves but Auth metadata fails, the UI reports the partial save and allows a retry. This is not an atomic cross-service write.
 - Existing browser-local demo records are not copied into the live profile or deleted. New setup does not persist account identity in shared localStorage.
 - Profile loading and the incomplete-profile Sell redirect were checked using the existing authenticated browser session. No real profile values were changed during verification. Save/collision/ownership/session-change/partial-failure coverage uses isolated mocks.
@@ -17,7 +17,7 @@ The concise OTP email is proposed in `supabase/templates/verification.html`; `/e
 
 The profile editor now uses a compact single-card layout with a photo chooser, a 200-character optional bio, display name, unique username, school email and campus area. The bio persists as editable Auth metadata (`bio`) alongside the existing presentation preferences. It is not an authorization claim and is not automatically exposed as a public seller bio.
 
-Photo selection reuses Jayden’s existing `compressImage` helper: JPEG/PNG/WebP input, at most 12 MB, compressed to WebP at up to 512 pixels with a 150 KB target and a 256 KB final cap. It creates a circular object-URL preview and revokes URLs on unmount. A repository fixture was processed in the authenticated browser without saving any profile values.
+Photo selection reuses @S1LynKz’s existing `compressImage` helper: JPEG/PNG/WebP input, at most 12 MB, compressed to WebP at up to 512 pixels with a 150 KB target and a 256 KB final cap. It creates a circular object-URL preview and revokes URLs on unmount. A repository fixture was processed in the authenticated browser without saving any profile values.
 
 **Persistent profile photos are not implemented.** Live inspection still found only the public `email-assets` bucket and no Storage policies. The UI labels photos as preview-only and explicitly says saving the profile will not save the image. It does not put image bytes in Auth metadata, use the email bucket for user uploads, or silently make photos public.
 
