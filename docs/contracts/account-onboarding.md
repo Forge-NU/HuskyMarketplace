@@ -7,9 +7,9 @@ Live read-only inspection on November 2, 2026 confirmed `profiles(user_id,userna
 - `/account/setup` collects a display name and personal username after OTP verification. Incomplete profiles are routed here before Sell. Completing setup returns to browsing instead of unexpectedly starting a listing.
 - Usernames save to the existing `profiles.username`, scoped to the authenticated user. The database unique index resolves collisions, including concurrent submissions; no profile search or public profile access was added.
 - Display name and optional campus area save to user-editable Auth metadata (`display_name`, `campus_area`). They are presentation preferences, never verification or authorization claims. Public seller profile integration still needs the profile team's agreed API. These fields, including `bio`, should move to dedicated `profiles` columns once the profile API is agreed. Auth metadata is included in access tokens, so keeping profile text there increases the token size on authenticated requests.
-- A failed username save does not claim success. If username saves but Auth metadata fails, the UI reports the partial save and allows a retry. This is not an atomic cross-service write.
+- If the username saves but the Auth metadata update fails, the UI reports the partial save and allows a retry. The two writes are not atomic.
 - Existing browser-local demo records are not copied into the live profile or deleted. New setup does not persist account identity in shared localStorage.
-- Profile loading and the incomplete-profile Sell redirect were checked using the existing authenticated browser session. No real profile values were changed during verification. Save/collision/ownership/session-change/partial-failure coverage uses isolated mocks.
+- Save, collision, ownership, session-change and partial-failure behavior is covered by tests with mocked clients.
 
 The concise OTP email is proposed in `supabase/templates/verification.html`; `/email-preview` displays a clearly labeled sample. Hosted templates remain unchanged pending authentication-owner review and installation. See the template README for the applicable template slots.
 
