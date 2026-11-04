@@ -24,7 +24,9 @@ export function modeOptions(mode: Mode) {
     meetAny: svc ? "Anywhere" : "Anywhere on campus",
     meetups: svc ? ["Online", ...MEETUPS] : MEETUPS,
     maxPrices: svc ? [15, 25, 50] : [25, 50, 100, 200],
-    placeholder: svc ? "Search tutoring, haircuts, moving help" : "Search textbooks, desks, fridges",
+    placeholder: svc
+      ? "Search tutoring, haircuts, moving help"
+      : "Search textbooks, desks, fridges",
     noun: svc ? "service" : "listing",
   };
 }
@@ -53,7 +55,8 @@ export function useFilters() {
     }
     const qs = next.toString();
     // Native history API: updates useSearchParams without a server round trip.
-    window.history.replaceState(null, "", qs ? `/browse?${qs}` : "/browse");  }
+    window.history.replaceState(null, "", qs ? `/browse?${qs}` : "/browse");
+  }
 
   return { filters, update };
 }
@@ -61,11 +64,13 @@ export function useFilters() {
 export function filterListings(f: Filters): Listing[] {
   const q = f.q.trim().toLowerCase();
   const kind = f.mode === "services" ? "service" : "good";
-  return LISTINGS.filter((l) =>
-    l.kind === kind &&
-    (!q || `${l.title} ${l.desc} ${l.sub}`.toLowerCase().includes(q)) &&
-    (!f.cat || l.cat === f.cat) &&
-    (!f.max || l.price <= f.max) &&
-    (!f.meet || l.meetup.includes(f.meet)) &&
-    (!f.free || l.price === 0));
+  return LISTINGS.filter(
+    (l) =>
+      l.kind === kind &&
+      (!q || `${l.title} ${l.desc} ${l.sub}`.toLowerCase().includes(q)) &&
+      (!f.cat || l.cat === f.cat) &&
+      (!f.max || l.price <= f.max) &&
+      (!f.meet || l.meetup.includes(f.meet)) &&
+      (!f.free || l.price === 0),
+  );
 }

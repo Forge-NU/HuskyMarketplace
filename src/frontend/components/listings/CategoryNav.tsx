@@ -34,12 +34,23 @@ export default function CategoryNav({ filters, onChange }: Props) {
           ))}
         </div>
         <div className={styles.tools}>
-          <button className={styles.tool} onClick={() => toast("More filters, like condition and course number, come with the search page.")}>
+          <button
+            className={styles.tool}
+            onClick={() =>
+              toast(
+                "More filters, like condition and course number, come with the search page.",
+              )
+            }
+          >
             <Icon name="sliders" />
             <span className={styles.lbl}>Filters</span>
           </button>
           {filters.mode === "goods" && (
-            <button className={styles.tool} aria-pressed={filters.free} onClick={() => onChange({ free: !filters.free })}>
+            <button
+              className={styles.tool}
+              aria-pressed={filters.free}
+              onClick={() => onChange({ free: !filters.free })}
+            >
               <span className={styles.lbl}>Free stuff only</span>
               <span className={styles.switch} />
             </button>

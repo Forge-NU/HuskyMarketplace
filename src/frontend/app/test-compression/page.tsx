@@ -16,11 +16,27 @@ function describe(file: File): string {
   return `${file.name} (${file.type}, ${(file.size / 1024).toFixed(0)} KB)`;
 }
 
-function ImageCard({ label, preview, fill }: { label: string; preview: Preview; fill: boolean }) {
+function ImageCard({
+  label,
+  preview,
+  fill,
+}: {
+  label: string;
+  preview: Preview;
+  fill: boolean;
+}) {
   const [dimensions, setDimensions] = useState<string | null>(null);
 
   return (
-    <figure style={{ flex: 1, minWidth: 0, margin: 0, display: "flex", flexDirection: "column" }}>
+    <figure
+      style={{
+        flex: 1,
+        minWidth: 0,
+        margin: 0,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <figcaption style={{ marginBottom: 8 }}>
         <strong>{label}:</strong> {describe(preview.file)}
         {dimensions && ` — ${dimensions}`}
@@ -29,7 +45,11 @@ function ImageCard({ label, preview, fill }: { label: string; preview: Preview; 
       <img
         src={preview.url}
         alt={label}
-        onLoad={(e) => setDimensions(`${e.currentTarget.naturalWidth}×${e.currentTarget.naturalHeight}px`)}
+        onLoad={(e) =>
+          setDimensions(
+            `${e.currentTarget.naturalWidth}×${e.currentTarget.naturalHeight}px`,
+          )
+        }
         style={{
           width: "100%",
           height: fill ? "100%" : "70vh",
@@ -47,7 +67,9 @@ export default function TestCompressionPage() {
   const [compressed, setCompressed] = useState<Preview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("side-by-side");
-  const [fullscreenShows, setFullscreenShows] = useState<"original" | "compressed">("compressed");
+  const [fullscreenShows, setFullscreenShows] = useState<
+    "original" | "compressed"
+  >("compressed");
 
   async function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -68,7 +90,8 @@ export default function TestCompressionPage() {
     }
   }
 
-  const fullscreenPreview = fullscreenShows === "original" ? original : compressed;
+  const fullscreenPreview =
+    fullscreenShows === "original" ? original : compressed;
 
   return (
     <div style={{ padding: 24 }}>
@@ -81,8 +104,14 @@ export default function TestCompressionPage() {
       {original && compressed && (
         <>
           <p>
-            Saved {(100 - (compressed.file.size / original.file.size) * 100).toFixed(0)}%{" "}
-            <button onClick={() => setViewMode("fullscreen")}>View fullscreen</button>
+            Saved{" "}
+            {(100 - (compressed.file.size / original.file.size) * 100).toFixed(
+              0,
+            )}
+            %{" "}
+            <button onClick={() => setViewMode("fullscreen")}>
+              View fullscreen
+            </button>
           </p>
           <div style={{ display: "flex", gap: 16 }}>
             <ImageCard label="Original" preview={original} fill={false} />
@@ -106,13 +135,22 @@ export default function TestCompressionPage() {
           }}
         >
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => setFullscreenShows("original")} disabled={fullscreenShows === "original"}>
+            <button
+              onClick={() => setFullscreenShows("original")}
+              disabled={fullscreenShows === "original"}
+            >
               Original
             </button>
-            <button onClick={() => setFullscreenShows("compressed")} disabled={fullscreenShows === "compressed"}>
+            <button
+              onClick={() => setFullscreenShows("compressed")}
+              disabled={fullscreenShows === "compressed"}
+            >
               Compressed
             </button>
-            <button onClick={() => setViewMode("side-by-side")} style={{ marginLeft: "auto" }}>
+            <button
+              onClick={() => setViewMode("side-by-side")}
+              style={{ marginLeft: "auto" }}
+            >
               Close
             </button>
           </div>

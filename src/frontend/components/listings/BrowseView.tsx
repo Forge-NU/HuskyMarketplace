@@ -20,7 +20,10 @@ export default function BrowseView() {
   function toggleSave(id: number) {
     const next = new Set(saved);
     if (next.delete(id)) toast("Removed from saved items");
-    else { next.add(id); toast("Added to saved items"); }
+    else {
+      next.add(id);
+      toast("Added to saved items");
+    }
     setSaved(next);
   }
 
@@ -29,19 +32,29 @@ export default function BrowseView() {
       <CategoryNav filters={filters} onChange={update} />
       <main className={styles.wrap} id="results">
         <p className={styles.count}>
-          {items.length} {noun}{items.length === 1 ? "" : "s"} from verified Northeastern students
+          {items.length} {noun}
+          {items.length === 1 ? "" : "s"} from verified Northeastern students
         </p>
         <ListingGrid
           listings={items}
           saved={saved}
           onToggleSave={toggleSave}
-          empty={<>
-            <strong>No {noun}s match those filters</strong>
-            <span className="muted">Try another category, or raise the max price.</span>
-          </>}
+          empty={
+            <>
+              <strong>No {noun}s match those filters</strong>
+              <span className="muted">
+                Try another category, or raise the max price.
+              </span>
+            </>
+          }
         />
       </main>
-      <button className={styles.mapbtn} onClick={() => toast("A campus map of meetup spots is a later feature.")}>
+      <button
+        className={styles.mapbtn}
+        onClick={() =>
+          toast("A campus map of meetup spots is a later feature.")
+        }
+      >
         Show campus map <Icon name="map" />
       </button>
     </>

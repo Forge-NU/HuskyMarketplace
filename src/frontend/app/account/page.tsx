@@ -1,15 +1,241 @@
 "use client";
-import {useEffect,useState,type FormEvent} from "react";
-import {useRouter} from "next/navigation";
+import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import UIShell from "@/components/ui/marketplace/UIShell";
-import {createClient} from "@/lib/supabase/client";
-import {getStored,setStored,KEYS} from "@/lib/ui/demo-data";
+import { createClient } from "@/lib/supabase/client";
+import { getStored, setStored, KEYS } from "@/lib/ui/demo-data";
 import styles from "@/components/ui/marketplace/UI.module.css";
-type Profile={name:string;email:string;area:string;marketing:boolean};
-export default function AccountPage(){const router=useRouter();const [profile,setProfile]=useState<Profile>({name:"",email:"",area:"",marketing:false}),[notice,setNotice]=useState(""),[counts,setCounts]=useState([0,0,0]);
- useEffect(()=>{let active=true;createClient().auth.getUser().then(({data})=>{if(!active)return;const email=data.user?.email||"";const saved=getStored<Partial<Profile>>(KEYS.identity,{});setProfile({name:saved.name||localStorage.getItem("husky_demo_pending_name")||"",email,area:saved.area||"",marketing:!!saved.marketing})});const count=(key:string)=>{const a=getStored<unknown[]>(key,[]);return Array.isArray(a)?a.length:0};setCounts([count(KEYS.listings),count(KEYS.moving),count(KEYS.offers)]);return()=>{active=false}},[]);
- function save(e:FormEvent){e.preventDefault();if(!profile.name.trim()){setNotice("Please enter a display name.");return}const ok=setStored(KEYS.identity,profile);setNotice(ok?"Profile preferences saved on this device.":"Could not save profile.")}
- async function logout(){const {error}=await createClient().auth.signOut();if(error){setNotice(error.message);return}router.replace("/login");router.refresh()}
- return <UIShell><main className={styles.content}><header className={styles.contentHead}><p className={styles.eyebrow}>MY ACCOUNT</p><h1>Your Husky space.</h1><p>Manage your profile and marketplace activity.</p></header><div className={styles.accountLayout}><nav className={styles.accountNav}><a href="#profile">Profile</a><a href="#preferences">Preferences</a><a href="#activity">Activity</a><Link href="/saved">Saved listings ↗</Link><Link href="/messages?tab=offers">Offers ↗</Link><Link href="/terms">Terms ↗</Link><Link href="/privacy">Privacy ↗</Link><Link href="/safety">Safety ↗</Link></nav><div className={styles.accountContent}><section className={styles.panel} id="profile"><p className={styles.eyebrow}>ACCOUNT PROFILE</p><h2>Profile details</h2><p className={styles.notice}>Email sign-in is authenticated through Supabase. Display name and area are stored locally for this preview; a verified-email login is not a background or identity check.</p><form onSubmit={save}><div className={styles.formGrid}><div className={styles.formField}><label className={styles.inputLabel} htmlFor="display">Display name</label><input className={styles.input} id="display" required maxLength={60} minLength={2} value={profile.name} onChange={e=>setProfile({...profile,name:e.target.value})}/></div><div className={styles.formField}><label className={styles.inputLabel} htmlFor="school-email">Northeastern email</label><input className={styles.input} id="school-email" disabled value={profile.email}/></div></div><div className={styles.formField}><label className={styles.inputLabel} htmlFor="campus-area">General campus area</label><select id="campus-area" className={styles.input} value={profile.area} onChange={e=>setProfile({...profile,area:e.target.value})}><option value="">Prefer not to say</option>{["Fenway","West Village","East Village","LightView","Ruggles","Other near campus"].map(x=><option key={x}>{x}</option>)}</select></div><button className={styles.primaryButton} type="submit">Save profile</button></form>{notice&&<p role="status" className={styles.hint}>{notice}</p>}</section><section className={styles.panel} id="preferences"><p className={styles.eyebrow}>YOUR PREFERENCES</p><h2>Appearance &amp; updates</h2><label><input type="checkbox" checked={profile.marketing} onChange={e=>setProfile({...profile,marketing:e.target.checked})}/> Interested in product update emails (preference only; no emails sent)</label><p className={styles.hint}>No subscription is created by this preference.</p><button className={styles.secondaryButton} type="button" onClick={()=>{const ok=setStored(KEYS.identity,profile);setNotice(ok?"Preferences saved on this device.":"Could not save preferences.")}}>Save preferences</button></section><section className={styles.panel} id="activity"><p className={styles.eyebrow}>AT A GLANCE</p><h2>My marketplace activity</h2><div className={styles.formGrid}><p><strong>{counts[0]}</strong> demo listings</p><p><strong>{counts[1]}</strong> moving posts</p><p><strong>{counts[2]}</strong> offers</p></div><div className={styles.formActions}><Link className={styles.secondaryButton} href="/sell">Post an item</Link><Link className={styles.secondaryButton} href="/moving">Moving help</Link><Link className={styles.secondaryButton} href="/messages">Messages</Link></div></section><section className={styles.panel}><button className={styles.secondaryButton} type="button" onClick={logout}>Sign out of Supabase</button><p className={styles.hint}>Signing out does not erase browser-local demo listings or messages.</p></section></div></div></main></UIShell>
+type Profile = {
+  name: string;
+  email: string;
+  area: string;
+  marketing: boolean;
+};
+export default function AccountPage() {
+  const router = useRouter();
+  const [profile, setProfile] = useState<Profile>({
+      name: "",
+      email: "",
+      area: "",
+      marketing: false,
+    }),
+    [notice, setNotice] = useState(""),
+    [counts, setCounts] = useState([0, 0, 0]);
+  useEffect(() => {
+    let active = true;
+    createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (!active) return;
+        const email = data.user?.email || "";
+        const saved = getStored<Partial<Profile>>(KEYS.identity, {});
+        setProfile({
+          name:
+            saved.name || localStorage.getItem("husky_demo_pending_name") || "",
+          email,
+          area: saved.area || "",
+          marketing: !!saved.marketing,
+        });
+      });
+    const count = (key: string) => {
+      const a = getStored<unknown[]>(key, []);
+      return Array.isArray(a) ? a.length : 0;
+    };
+    setCounts([count(KEYS.listings), count(KEYS.moving), count(KEYS.offers)]);
+    return () => {
+      active = false;
+    };
+  }, []);
+  function save(e: FormEvent) {
+    e.preventDefault();
+    if (!profile.name.trim()) {
+      setNotice("Please enter a display name.");
+      return;
+    }
+    const ok = setStored(KEYS.identity, profile);
+    setNotice(
+      ok
+        ? "Profile preferences saved on this device."
+        : "Could not save profile.",
+    );
+  }
+  async function logout() {
+    const { error } = await createClient().auth.signOut();
+    if (error) {
+      setNotice(error.message);
+      return;
+    }
+    router.replace("/login");
+    router.refresh();
+  }
+  return (
+    <UIShell>
+      <main className={styles.content}>
+        <header className={styles.contentHead}>
+          <p className={styles.eyebrow}>MY ACCOUNT</p>
+          <h1>Your Husky space.</h1>
+          <p>Manage your profile and marketplace activity.</p>
+        </header>
+        <div className={styles.accountLayout}>
+          <nav className={styles.accountNav}>
+            <a href="#profile">Profile</a>
+            <a href="#preferences">Preferences</a>
+            <a href="#activity">Activity</a>
+            <Link href="/saved">Saved listings ↗</Link>
+            <Link href="/messages?tab=offers">Offers ↗</Link>
+            <Link href="/terms">Terms ↗</Link>
+            <Link href="/privacy">Privacy ↗</Link>
+            <Link href="/safety">Safety ↗</Link>
+          </nav>
+          <div className={styles.accountContent}>
+            <section className={styles.panel} id="profile">
+              <p className={styles.eyebrow}>ACCOUNT PROFILE</p>
+              <h2>Profile details</h2>
+              <p className={styles.notice}>
+                Email sign-in is authenticated through Supabase. Display name
+                and area are stored locally for this preview; a verified-email
+                login is not a background or identity check.
+              </p>
+              <form onSubmit={save}>
+                <div className={styles.formGrid}>
+                  <div className={styles.formField}>
+                    <label className={styles.inputLabel} htmlFor="display">
+                      Display name
+                    </label>
+                    <input
+                      className={styles.input}
+                      id="display"
+                      required
+                      maxLength={60}
+                      minLength={2}
+                      value={profile.name}
+                      onChange={(e) =>
+                        setProfile({ ...profile, name: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className={styles.formField}>
+                    <label className={styles.inputLabel} htmlFor="school-email">
+                      Northeastern email
+                    </label>
+                    <input
+                      className={styles.input}
+                      id="school-email"
+                      disabled
+                      value={profile.email}
+                    />
+                  </div>
+                </div>
+                <div className={styles.formField}>
+                  <label className={styles.inputLabel} htmlFor="campus-area">
+                    General campus area
+                  </label>
+                  <select
+                    id="campus-area"
+                    className={styles.input}
+                    value={profile.area}
+                    onChange={(e) =>
+                      setProfile({ ...profile, area: e.target.value })
+                    }
+                  >
+                    <option value="">Prefer not to say</option>
+                    {[
+                      "Fenway",
+                      "West Village",
+                      "East Village",
+                      "LightView",
+                      "Ruggles",
+                      "Other near campus",
+                    ].map((x) => (
+                      <option key={x}>{x}</option>
+                    ))}
+                  </select>
+                </div>
+                <button className={styles.primaryButton} type="submit">
+                  Save profile
+                </button>
+              </form>
+              {notice && (
+                <p role="status" className={styles.hint}>
+                  {notice}
+                </p>
+              )}
+            </section>
+            <section className={styles.panel} id="preferences">
+              <p className={styles.eyebrow}>YOUR PREFERENCES</p>
+              <h2>Appearance &amp; updates</h2>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={profile.marketing}
+                  onChange={(e) =>
+                    setProfile({ ...profile, marketing: e.target.checked })
+                  }
+                />{" "}
+                Interested in product update emails (preference only; no emails
+                sent)
+              </label>
+              <p className={styles.hint}>
+                No subscription is created by this preference.
+              </p>
+              <button
+                className={styles.secondaryButton}
+                type="button"
+                onClick={() => {
+                  const ok = setStored(KEYS.identity, profile);
+                  setNotice(
+                    ok
+                      ? "Preferences saved on this device."
+                      : "Could not save preferences.",
+                  );
+                }}
+              >
+                Save preferences
+              </button>
+            </section>
+            <section className={styles.panel} id="activity">
+              <p className={styles.eyebrow}>AT A GLANCE</p>
+              <h2>My marketplace activity</h2>
+              <div className={styles.formGrid}>
+                <p>
+                  <strong>{counts[0]}</strong> demo listings
+                </p>
+                <p>
+                  <strong>{counts[1]}</strong> moving posts
+                </p>
+                <p>
+                  <strong>{counts[2]}</strong> offers
+                </p>
+              </div>
+              <div className={styles.formActions}>
+                <Link className={styles.secondaryButton} href="/sell">
+                  Post an item
+                </Link>
+                <Link className={styles.secondaryButton} href="/moving">
+                  Moving help
+                </Link>
+                <Link className={styles.secondaryButton} href="/messages">
+                  Messages
+                </Link>
+              </div>
+            </section>
+            <section className={styles.panel}>
+              <button
+                className={styles.secondaryButton}
+                type="button"
+                onClick={logout}
+              >
+                Sign out of Supabase
+              </button>
+              <p className={styles.hint}>
+                Signing out does not erase browser-local demo listings or
+                messages.
+              </p>
+            </section>
+          </div>
+        </div>
+      </main>
+    </UIShell>
+  );
 }

@@ -4,7 +4,9 @@ export function supabaseEnv() {
   const url = process.env.SUPABASE_URL;
   const anonKey = process.env.SUPABASE_ANON_KEY;
   if (!url || !anonKey) {
-    throw new Error("Missing SUPABASE_URL or SUPABASE_ANON_KEY. Copy .env.example to .env.local and fill them in.");
+    throw new Error(
+      "Missing SUPABASE_URL or SUPABASE_ANON_KEY. Copy .env.example to .env.local and fill them in.",
+    );
   }
   return { url, anonKey };
 }

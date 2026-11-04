@@ -30,7 +30,12 @@ function ModeTabs() {
           role="tab"
           aria-selected={filters.mode === m.id}
           // Switching mode starts a fresh search, like the prototype's setMode().
-          onClick={() => router.push(m.id === "services" ? "/browse?mode=services" : "/browse")}        >
+          onClick={() =>
+            router.push(
+              m.id === "services" ? "/browse?mode=services" : "/browse",
+            )
+          }
+        >
           {m.label}
         </button>
       ))}
@@ -63,7 +68,11 @@ export default function Header({ userEmail }: { userEmail: string | null }) {
   return (
     <header className={`${styles.head} ${isBrowse ? "" : styles.plain}`}>
       <div className={styles.row}>
-        <Link className={styles.wordmark} href="/" aria-label="Husky Marketplace home">
+        <Link
+          className={styles.wordmark}
+          href="/"
+          aria-label="Husky Marketplace home"
+        >
           <span className={styles.paw}>H</span>Husky <small>Marketplace</small>
         </Link>
         <Suspense fallback={<div className={styles.modes} />}>
@@ -71,10 +80,17 @@ export default function Header({ userEmail }: { userEmail: string | null }) {
         </Suspense>
         {userEmail && (
           <div className={styles.right}>
-            <button className={styles.link} onClick={() => toast("Posting a listing comes in a later PR.")}>
+            <button
+              className={styles.link}
+              onClick={() => toast("Posting a listing comes in a later PR.")}
+            >
               Post a listing
             </button>
-            <button className={styles.iconBtn} aria-label="Messages" onClick={() => toast("Messages come in a later PR.")}>
+            <button
+              className={styles.iconBtn}
+              aria-label="Messages"
+              onClick={() => toast("Messages come in a later PR.")}
+            >
               <Icon name="chat" />
             </button>
             <LogoutButton />
@@ -85,7 +101,9 @@ export default function Header({ userEmail }: { userEmail: string | null }) {
               onClick={() => toast("Your profile comes in a later PR.")}
             >
               <Icon name="menu" />
-              <span className={styles.av}><Icon name="user" /></span>
+              <span className={styles.av}>
+                <Icon name="user" />
+              </span>
             </button>
           </div>
         )}
@@ -96,7 +114,9 @@ export default function Header({ userEmail }: { userEmail: string | null }) {
           <Suspense fallback={<div className={styles.pillSpace} />}>
             <SearchPill />
           </Suspense>
-          <div className={styles.sky}><Skyline /></div>
+          <div className={styles.sky}>
+            <Skyline />
+          </div>
           <div className={styles.forge}>
             <span>Built by</span>
             <Image src="/forge.png" alt="FORGE" width={65} height={18} />
