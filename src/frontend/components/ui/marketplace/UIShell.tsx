@@ -4,12 +4,19 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./UI.module.css";
+import ProfileAvatar from "./ProfileAvatar";
+import Icon from "@/components/Icon";
 
-export default function UIShell({ children }: { children: ReactNode }) {
+export default function UIShell({
+  children,
+  live = false,
+}: {
+  children: ReactNode;
+  live?: boolean;
+}) {
   const router = useRouter(),
     pathname = usePathname();
-  const [menu, setMenu] = useState(false),
-    [email, setEmail] = useState<string | null>(null),
+  const [email, setEmail] = useState<string | null>(null),
     [q, setQ] = useState("");
   useEffect(() => {
     let active = true;
@@ -27,7 +34,6 @@ export default function UIShell({ children }: { children: ReactNode }) {
     router.push(
       q.trim() ? `/browse?q=${encodeURIComponent(q.trim())}` : "/browse",
     );
-    setMenu(false);
   }
   async function logout() {
     const { error } = await createClient().auth.signOut();
@@ -48,8 +54,17 @@ export default function UIShell({ children }: { children: ReactNode }) {
   return (
     <div className={styles.page}>
       <div className={styles.demoRibbon}>
-        <strong>PHOTO-LED MARKETPLACE PREVIEW</strong> · sample listings and
-        browser-local demo actions
+        {live ? (
+          <>
+            <strong>HUSKY MARKETPLACE</strong> · live listings · reviewed before
+            publishing
+          </>
+        ) : (
+          <>
+            <strong>PHOTO-LED MARKETPLACE PREVIEW</strong> · sample listings and
+            browser-local demo actions
+          </>
+        )}
       </div>
       <header className={styles.siteHeader}>
         <div className={styles.headerInner}>
@@ -95,7 +110,7 @@ export default function UIShell({ children }: { children: ReactNode }) {
               href="/messages"
               aria-label="Messages"
             >
-              ▤
+              <Icon name="chat" className={styles.messageNavIcon} />
             </Link>
             <Link className={styles.postButton} href="/sell">
               ＋ Post an item
@@ -105,10 +120,10 @@ export default function UIShell({ children }: { children: ReactNode }) {
                 <Link
                   className={styles.avatar}
                   href="/account"
-                  title={email}
+                  title="My account"
                   aria-label="My account"
                 >
-                  {email.slice(0, 1).toUpperCase()}
+                  <ProfileAvatar />
                 </Link>
               </div>
             ) : (
@@ -117,38 +132,11 @@ export default function UIShell({ children }: { children: ReactNode }) {
                 href="/login"
                 aria-label="Sign in"
               >
-                ↗
+                <ProfileAvatar />
               </Link>
             )}
-            <button
-              className={styles.mobileToggle}
-              type="button"
-              aria-label={menu ? "Close navigation" : "Open navigation"}
-              aria-expanded={menu}
-              onClick={() => setMenu(!menu)}
-            >
-              {menu ? "✕" : "☰"}
-            </button>
           </div>
         </div>
-        {menu && (
-          <nav className={styles.mobileNav} aria-label="Mobile navigation">
-            {links.map((x) => (
-              <Link key={x.href} href={x.href} onClick={() => setMenu(false)}>
-                {x.text}
-              </Link>
-            ))}
-            <Link href="/saved" onClick={() => setMenu(false)}>
-              Saved items
-            </Link>
-            <Link href="/messages" onClick={() => setMenu(false)}>
-              Messages and offers
-            </Link>
-            <Link href="/account" onClick={() => setMenu(false)}>
-              Account
-            </Link>
-          </nav>
-        )}
       </header>
       {children}
       <footer className={styles.footer}>

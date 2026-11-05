@@ -5,6 +5,7 @@ import Link from "next/link";
 import UIShell from "@/components/ui/marketplace/UIShell";
 import UICards from "@/components/ui/marketplace/UICards";
 import { getListings, type DemoListing } from "@/lib/ui/demo-data";
+import { MOVE_IN_PHOTO } from "@/lib/ui/campus";
 import styles from "@/components/ui/marketplace/UI.module.css";
 const categories = [
   {
@@ -62,7 +63,7 @@ export default function HomePage() {
             </p>
             <div className={styles.actions}>
               <Link className={styles.primaryButton} href="/browse">
-                Explore listings ↗
+                Explore listings
               </Link>
               <Link className={styles.secondaryButton} href="/sell">
                 Sell an item
@@ -90,7 +91,7 @@ export default function HomePage() {
               <p className={styles.eyebrow}>FIND YOUR THING</p>
               <h2>Shop by category.</h2>
             </div>
-            <Link href="/browse">Browse everything →</Link>
+            <Link href="/browse">Browse everything</Link>
           </div>
           <div className={styles.categories}>
             {categories.map((c) => (
@@ -101,7 +102,7 @@ export default function HomePage() {
               >
                 <span className={styles.categoryCopy}>
                   <strong>{c.title}</strong>
-                  <small>{c.subtitle} ↗</small>
+                  <small>{c.subtitle}</small>
                 </span>
                 <span className={styles.categoryPhoto}>
                   <img
@@ -119,7 +120,7 @@ export default function HomePage() {
               <p className={styles.eyebrow}>AROUND CAMPUS</p>
               <h2>Fresh finds.</h2>
             </div>
-            <Link href="/browse">All listings →</Link>
+            <Link href="/browse">All listings</Link>
           </div>
           <div className={styles.featuredGrid}>
             <UICards items={featured} />
@@ -132,15 +133,24 @@ export default function HomePage() {
               <h2>Moving day, made easier.</h2>
               <p>
                 Buying a desk? Clearing your dorm? Keep pickup and handoff
-                organized with student-to-student messages.
+                simple with a little help from your campus community.
               </p>
               <Link className={styles.secondaryButton} href="/moving">
-                Explore moving help →
+                Explore moving help
               </Link>
             </div>
-            <span className={styles.movingArt} aria-hidden="true">
-              ↗
-            </span>
+            <figure className={styles.movingPhoto}>
+              <img
+                src={MOVE_IN_PHOTO.src}
+                alt={MOVE_IN_PHOTO.alt}
+                loading="lazy"
+              />
+              <figcaption>
+                <a href={MOVE_IN_PHOTO.source} target="_blank" rel="noreferrer">
+                  {MOVE_IN_PHOTO.credit}
+                </a>
+              </figcaption>
+            </figure>
           </div>
         </section>
         <section className={`${styles.shell} ${styles.homeNote}`}>

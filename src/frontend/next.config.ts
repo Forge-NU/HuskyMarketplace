@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   // Expose the Supabase project URL and anon (public) key to the browser bundle.
   // Never add the service_role key here.
   env: {

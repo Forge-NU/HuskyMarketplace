@@ -1,3 +1,4 @@
+import { CAMPUS_MOVING_PHOTOS } from "./campus";
 // Sample records transcribed from docs/photographic-ui/listings-data.js.
 // NOT live Supabase records. Browser-created demo records stay on this device.
 export type DemoListing = {
@@ -22,6 +23,8 @@ export type DemoThread = {
   initials: string;
   listingId: number;
   unread: boolean;
+  updatedAt?: string;
+  lastReadAt?: string;
   messages: DemoMessage[];
 };
 export type DemoOffer = {
@@ -309,8 +312,7 @@ export const MOVING_EXAMPLES = [
     when: "Evenings and weekends",
     description:
       "Can help move boxes, chairs and small items between campus buildings.",
-    photo:
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=750&q=80",
+    photo: CAMPUS_MOVING_PHOTOS[0].src,
   },
   {
     id: "sample-delivery",
@@ -323,8 +325,7 @@ export const MOVING_EXAMPLES = [
     rateType: "fixed",
     when: "Weekends",
     description: "Helping with local handoffs and moving small furniture.",
-    photo:
-      "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=750&q=80",
+    photo: CAMPUS_MOVING_PHOTOS[1].src,
   },
   {
     id: "sample-assembly",
@@ -337,8 +338,7 @@ export const MOVING_EXAMPLES = [
     rateType: "hour",
     when: "Weekday afternoons",
     description: "Can help assemble simple flat-pack furniture.",
-    photo:
-      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=750&q=80",
+    photo: CAMPUS_MOVING_PHOTOS[2].src,
   },
   {
     id: "sample-boxes",
@@ -352,8 +352,7 @@ export const MOVING_EXAMPLES = [
     when: "Saturday afternoon",
     description:
       "Moving four medium boxes from an upper floor to a public pickup point.",
-    photo:
-      "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=750&q=80",
+    photo: CAMPUS_MOVING_PHOTOS[0].src,
   },
   {
     id: "sample-desk",
@@ -366,8 +365,7 @@ export const MOVING_EXAMPLES = [
     rateType: "hour",
     when: "Friday after class",
     description: "Need an extra pair of hands for a light desk.",
-    photo:
-      "https://images.unsplash.com/photo-1721743141584-73679ed9938c?auto=format&fit=crop&w=750&q=80",
+    photo: CAMPUS_MOVING_PHOTOS[1].src,
   },
 ] as const;
 export type MovingPost = {

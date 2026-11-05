@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
+import Icon from "@/components/Icon";
 import UIShell from "@/components/ui/marketplace/UIShell";
 import {
   MOVING_EXAMPLES,
@@ -10,6 +11,11 @@ import {
   KEYS,
   setStored,
 } from "@/lib/ui/demo-data";
+import {
+  MOVE_IN_PHOTO,
+  CAMPUS_MOVING_PHOTOS,
+  CAMPUS_MOVING_SOURCE,
+} from "@/lib/ui/campus";
 import styles from "@/components/ui/marketplace/UI.module.css";
 const cats = [
   "Carrying & loading",
@@ -105,7 +111,7 @@ export default function MovingPage() {
   );
   return (
     <UIShell>
-      <main className={styles.content}>
+      <main className={`${styles.content} ${styles.movingPage}`}>
         <header className={styles.contentHead}>
           <p className={styles.eyebrow}>STUDENT-TO-STUDENT SERVICES</p>
           <h1>Moving help, from students nearby.</h1>
@@ -135,13 +141,18 @@ export default function MovingPage() {
           </div>
         </header>
         <div className={styles.movingHero}>
-          <img
-            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=80"
-            alt="Bright interior with furniture"
-          />
+          <img src={MOVE_IN_PHOTO.src} alt={MOVE_IN_PHOTO.alt} />
           <div className={styles.movingText}>
             <p className={styles.eyebrow}>MOVE-IN / MOVE-OUT</p>
             <h2>An extra set of hands makes all the difference.</h2>
+            <a
+              className={styles.photoCredit}
+              href={MOVE_IN_PHOTO.source}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Photo: {MOVE_IN_PHOTO.credit}
+            </a>
           </div>
         </div>
         {notice && (
@@ -389,7 +400,26 @@ export default function MovingPage() {
           {filtered.map((p) => (
             <article className={styles.movingCard} key={p.id}>
               {p.photo ? (
-                <img src={p.photo} alt="Example moving help" />
+                <>
+                  <img
+                    src={p.photo}
+                    alt={
+                      CAMPUS_MOVING_PHOTOS.find(
+                        (photo) => photo.src === p.photo,
+                      )?.alt || "Moving post photo"
+                    }
+                  />
+                  {p.id.startsWith("sample-") && (
+                    <p className={styles.campusPhotoCaption}>
+                      Campus illustration ·{" "}
+                      {
+                        CAMPUS_MOVING_PHOTOS.find(
+                          (photo) => photo.src === p.photo,
+                        )?.credit
+                      }
+                    </p>
+                  )}
+                </>
               ) : (
                 <div
                   style={{
@@ -400,7 +430,7 @@ export default function MovingPage() {
                     fontSize: 70,
                   }}
                 >
-                  ↗
+                  <Icon name="cart" className={styles.movingPlaceholderIcon} />
                 </div>
               )}
               <div className={styles.movingCardBody}>
@@ -422,7 +452,7 @@ export default function MovingPage() {
                   className={styles.secondaryButton}
                   onClick={() => setContact(p)}
                 >
-                  Ask about this post →
+                  Ask about this post
                 </button>
               </div>
             </article>
@@ -431,15 +461,32 @@ export default function MovingPage() {
             <p className={styles.empty}>No matching moving posts.</p>
           )}
         </div>
-        <section className={styles.panel} style={{ marginTop: 35 }}>
-          <h2>Know what you&apos;re agreeing to.</h2>
-          <p>
-            Agree on the task, time, rates, and meeting place before work
-            begins. Husky does not process payments, employ helpers, or
-            guarantee services.
-          </p>
-          <Link href="/safety">Read safety guidance →</Link>
+        <section
+          className={styles.safetyCallout}
+          aria-labelledby="moving-safety-title"
+        >
+          <Icon name="shield" className={styles.safetyIcon} />
+          <div>
+            <p className={styles.eyebrow}>BEFORE YOU MAKE A PLAN</p>
+            <h2 id="moving-safety-title">A safer move starts here.</h2>
+            <p>
+              Meet in public, agree on the job and price, and know your limits
+              before lifting. Husky doesn’t process payments or guarantee
+              services.
+            </p>
+          </div>
+          <Link className={styles.primaryButton} href="/safety">
+            Read safety tips
+          </Link>
         </section>
+        <p className={styles.campusPhotoCaption}>
+          Example posts use campus photography, not photos of the fictional
+          helpers.{" "}
+          <a href={CAMPUS_MOVING_SOURCE} target="_blank" rel="noreferrer">
+            Northeastern photo credits
+          </a>
+          .
+        </p>
       </main>
     </UIShell>
   );
