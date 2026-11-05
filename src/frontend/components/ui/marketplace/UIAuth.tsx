@@ -7,6 +7,8 @@ import UIShell from "./UIShell";
 import { createClient } from "@/lib/supabase/client";
 import { isNortheasternEmail, safeNext } from "@/lib/auth";
 import styles from "./UI.module.css";
+import { loadProfile } from "@/lib/profile/service";
+import { profileComplete } from "@/lib/profile/model";
 const NEXT_KEY = "husky_auth_next",
   EMAIL_KEY = "husky_auth_pending_email";
 // The project's current email template sends eight digits; align with Arin before merging.
@@ -18,14 +20,13 @@ export default function UIAuth({
 }) {
   const router = useRouter(),
     search = useSearchParams();
-  const [agreed, setAgreed] = useState(false),
-    [updates, setUpdates] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   const [email, setEmail] = useState(""),
     [code, setCode] = useState(""),
-    [displayName, setDisplayName] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore the address from browser session storage after hydration.
     if (mode === "verify") setEmail(sessionStorage.getItem(EMAIL_KEY) || "");
   }, [mode]);
   const next = safeNext(search.get("next"));
@@ -37,8 +38,8 @@ export default function UIAuth({
       setError("Use your @northeastern.edu email address.");
       return;
     }
-    if (mode === "signup" && (!agreed || displayName.trim().length < 2)) {
-      setError("Enter a display name and accept the Terms to continue.");
+    if (mode === "signup" && !agreed) {
+      setError("Accept the Terms to continue.");
       return;
     }
     setBusy(true);
@@ -53,10 +54,6 @@ export default function UIAuth({
       }
       sessionStorage.setItem(EMAIL_KEY, addr);
       sessionStorage.setItem(NEXT_KEY, next);
-      if (mode === "signup" && displayName.trim()) {
-        localStorage.setItem("husky_demo_pending_name", displayName.trim());
-        localStorage.setItem("husky_demo_pending_updates", String(updates));
-      }
       router.push("/verify");
     } catch (ex) {
       setError(
@@ -93,7 +90,18 @@ export default function UIAuth({
       sessionStorage.removeItem(EMAIL_KEY);
       const dest = safeNext(sessionStorage.getItem(NEXT_KEY));
       sessionStorage.removeItem(NEXT_KEY);
-      router.replace(dest);
+      try {
+        const profile = await loadProfile(createClient());
+        router.replace(
+          profileComplete(profile)
+            ? dest
+            : `/account/setup?next=${encodeURIComponent(dest === "/sell" ? "/" : dest)}`,
+        );
+      } catch {
+        router.replace(
+          `/account/setup?next=${encodeURIComponent(dest === "/sell" ? "/" : dest)}`,
+        );
+      }
       router.refresh();
     } catch (ex) {
       setError(ex instanceof Error ? ex.message : "Verification failed.");
@@ -121,23 +129,6 @@ export default function UIAuth({
                 : "Sign in securely with your Northeastern email. We'll email you a verification code."}
             </p>
             <form onSubmit={verifyMode ? verify : request}>
-              {mode === "signup" && (
-                <div className={styles.formField}>
-                  <label className={styles.inputLabel} htmlFor="name">
-                    Display name *
-                  </label>
-                  <input
-                    className={styles.input}
-                    id="name"
-                    minLength={2}
-                    required
-                    maxLength={60}
-                    autoComplete="name"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                  />
-                </div>
-              )}
               {!verifyMode ? (
                 <div className={styles.formField}>
                   <label className={styles.inputLabel} htmlFor="email">
@@ -206,25 +197,6 @@ export default function UIAuth({
                       . *
                     </span>
                   </label>
-                  <label
-                    style={{
-                      display: "flex",
-                      gap: 9,
-                      fontSize: 13,
-                      alignItems: "start",
-                      marginTop: 12,
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={updates}
-                      onChange={(e) => setUpdates(e.target.checked)}
-                    />
-                    <span>
-                      I'd like optional marketplace updates (no marketing emails
-                      are sent by this preview).
-                    </span>
-                  </label>
                 </div>
               )}
               {error && (
@@ -241,8 +213,8 @@ export default function UIAuth({
                 {busy
                   ? "Working…"
                   : verifyMode
-                    ? "Verify and sign in →"
-                    : "Send verification code →"}
+                    ? "Verify email"
+                    : "Send verification code"}
               </button>
             </form>
             <div className={styles.formActions}>

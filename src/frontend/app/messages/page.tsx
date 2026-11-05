@@ -1,5 +1,6 @@
 "use client";
-import { Suspense, useEffect, useState, type FormEvent } from "react";
+/* eslint-disable @next/next/no-img-element */
+import { Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import UIShell from "@/components/ui/marketplace/UIShell";
@@ -12,7 +13,13 @@ import {
   setStored,
   PHOTO_LISTINGS,
   sellerForListing,
+  getPhoto,
 } from "@/lib/ui/demo-data";
+import {
+  addLocalMessage,
+  markThreadRead,
+  sortThreads,
+} from "@/lib/ui/demo-messages";
 import styles from "@/components/ui/marketplace/UI.module.css";
 function Messenger() {
   const params = useSearchParams();
@@ -29,12 +36,24 @@ function Messenger() {
     [amount, setAmount] = useState(""),
     [note, setNote] = useState(""),
     [notice, setNotice] = useState("");
+  const messageLog = useRef<HTMLDivElement>(null);
   const targetId = Number(params.get("item") || params.get("offer") || "0");
   useEffect(() => {
-    const t = getStored<DemoThread[]>(KEYS.conversations, SAMPLE_THREADS);
-    setThreads(Array.isArray(t) ? t : SAMPLE_THREADS);
-    setOffers(getStored<DemoOffer[]>(KEYS.offers, []));
+    const stored = getStored<DemoThread[]>(KEYS.conversations, SAMPLE_THREADS);
+    const original = Array.isArray(stored) ? stored : SAMPLE_THREADS;
     const id = Number(params.get("item") || "0");
+    const selectedId =
+      id > 0
+        ? (original.find((t) => t.listingId === id)?.id ?? `item-${id}`)
+        : "chair";
+    const t = sortThreads(
+      markThreadRead(original, selectedId, new Date().toISOString()),
+    );
+    if (original.some((thread) => thread.id === selectedId && thread.unread))
+      setStored(KEYS.conversations, t);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrate the browser-local messaging prototype after mount.
+    setThreads(t);
+    setOffers(getStored<DemoOffer[]>(KEYS.offers, []));
     if (id > 0) {
       const match = t.find((x) => x.listingId === id);
       if (match) setActive(match.id);
@@ -57,7 +76,11 @@ function Messenger() {
   }, [params]);
   const current = threads.find((x) => x.id === active);
   const listing = PHOTO_LISTINGS.find((x) => x.id === current?.listingId);
-  const filtered = threads.filter((x) =>
+  useEffect(() => {
+    const log = messageLog.current;
+    if (log) log.scrollTop = log.scrollHeight;
+  }, [active, current?.messages.length]);
+  const filtered = sortThreads(threads).filter((x) =>
     `${x.contact} ${PHOTO_LISTINGS.find((i) => i.id === x.listingId)?.title || ""} ${x.messages.map((m) => m.text).join(" ")}`
       .toLowerCase()
       .includes(query.toLowerCase()),
@@ -65,27 +88,31 @@ function Messenger() {
   function send(e: FormEvent) {
     e.preventDefault();
     if (!text.trim() || !current) return;
-    const next = threads.map((x) =>
-      x.id === current.id
-        ? {
-            ...x,
-            messages: [
-              ...x.messages,
-              {
-                from: "me" as const,
-                text: text.trim(),
-                time: new Date().toLocaleTimeString([], {
-                  hour: "numeric",
-                  minute: "2-digit",
-                }),
-              },
-            ],
-          }
-        : x,
+    const now = new Date();
+    const next = addLocalMessage(
+      threads,
+      current.id,
+      text,
+      now.toISOString(),
+      now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
     );
+    if (!setStored(KEYS.conversations, next)) {
+      setNotice(
+        "Device storage is full. Your message was not saved. Please try again.",
+      );
+      return;
+    }
     setThreads(next);
-    setStored(KEYS.conversations, next);
+    setNotice("");
     setText("");
+  }
+  function openThread(id: string) {
+    const next = markThreadRead(threads, id, new Date().toISOString());
+    if (!setStored(KEYS.conversations, next)) {
+      setNotice("Could not save read status on this device.");
+    }
+    setThreads(next);
+    setActive(id);
   }
   function offer(e: FormEvent) {
     e.preventDefault();
@@ -155,11 +182,16 @@ function Messenger() {
                   type="button"
                   key={t.id}
                   aria-pressed={t.id === active}
-                  onClick={() => setActive(t.id)}
+                  onClick={() => openThread(t.id)}
                 >
                   <span className={styles.sellerAvatar}>{t.initials}</span>
                   <span className={styles.threadCopy}>
-                    <strong>{t.contact}</strong>
+                    <strong>
+                      {t.contact}
+                      {t.unread && (
+                        <span className={styles.unreadBadge}>Unread</span>
+                      )}
+                    </strong>
                     <span>
                       {PHOTO_LISTINGS.find((x) => x.id === t.listingId)
                         ?.title || "Campus find"}
@@ -175,15 +207,46 @@ function Messenger() {
               {current ? (
                 <>
                   <header className={styles.conversationHead}>
-                    {current.contact} · {listing?.title || "Listing"}{" "}
-                    <Link
-                      href={`/item/${current.listingId}`}
-                      style={{ float: "right", fontWeight: 500, fontSize: 12 }}
-                    >
-                      View listing ↗
-                    </Link>
+                    <div className={styles.conversationContact}>
+                      <strong>{current.contact}</strong>
+                      <span className={styles.hint}>
+                        {current.lastReadAt
+                          ? "Read on this device"
+                          : "Local demo conversation"}
+                      </span>
+                    </div>
+                    {listing ? (
+                      <Link
+                        className={styles.conversationListing}
+                        href={`/demo/item/${listing.id}`}
+                        aria-label={`Open ${listing.title}`}
+                      >
+                        <img src={getPhoto(listing, 200)} alt="" />
+                        <div>
+                          <strong>{listing.title}</strong>
+                          <span>
+                            {listing.price === 0 ? "Free" : `$${listing.price}`}{" "}
+                            · {listing.condition}
+                          </span>
+                          <p>
+                            {listing.description ||
+                              `Pickup near ${listing.area}`}
+                          </p>
+                        </div>
+                        <span className={styles.listingChip}>View item</span>
+                      </Link>
+                    ) : (
+                      <p className={styles.hint}>
+                        Listing no longer available.
+                      </p>
+                    )}
                   </header>
-                  <div className={styles.messages} role="log">
+                  <div
+                    ref={messageLog}
+                    className={styles.messages}
+                    role="log"
+                    aria-label="Conversation messages"
+                  >
                     {current.messages.map((m, i) => (
                       <div
                         key={i}
@@ -197,12 +260,22 @@ function Messenger() {
                         </div>
                       </div>
                     ))}
+                    {current.messages.at(-1)?.from === "me" && (
+                      <p className={styles.localMessageStatus}>
+                        Saved on this device · Not delivered
+                      </p>
+                    )}
                     {!current.messages.length && (
                       <p className={styles.hint}>
                         No demo messages yet. Start the conversation below.
                       </p>
                     )}
                   </div>
+                  {notice && (
+                    <p className={styles.notice} role="status">
+                      {notice}
+                    </p>
+                  )}
                   <form className={styles.reply} onSubmit={send}>
                     <input
                       className={styles.input}
