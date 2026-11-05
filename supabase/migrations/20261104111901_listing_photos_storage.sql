@@ -14,3 +14,30 @@ VALUES (
     ARRAY['image/webp']
 )
 ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Users can upload listing photos to their own folder"
+ON storage.objects
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    bucket_id = 'listing-photos'
+    AND (storage.foldername(name))[1] = (SELECT auth.uid()::text)
+);
+
+CREATE POLICY "Users can see their own folder's listing photos"
+ON storage.objects
+FOR SELECT
+TO authenticated
+USING (
+    bucket_id = 'listing-photos'
+    AND (storage.foldername(name))[1] = (SELECT auth.uid()::text)
+);
+
+CREATE POLICY "Users can delete listing photos from their own folder"
+ON storage.objects
+FOR DELETE
+TO authenticated
+USING (
+    bucket_id = 'listing-photos'
+    AND (storage.foldername(name))[1] = (SELECT auth.uid()::text)
+);
