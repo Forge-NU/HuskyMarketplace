@@ -9,6 +9,7 @@ import {
   type Details,
   type Listing,
 } from "./model.ts";
+import { uploadFile, UploadError } from "../storage/uploadFile.ts";
 
 // This handshake is a deployment gate, not authorization. Every operation still
 // requires backend ownership checks, grants, RLS and immutable pending content.
@@ -98,18 +99,19 @@ export async function uploadPhotos(
   await requireWorkflow(client);
   for (const photo of uploads) {
     if (!photo.uploaded) {
-      const { error } = await client.storage
-        .from(BUCKET)
-        .upload(photo.path, photo.file, {
-          contentType: photo.file.type,
-          upsert: false,
-        });
-      // A previous request may have succeeded before its response was lost.
-      // Paths are random, immutable and scoped to this owner's draft by storage RLS.
-      if (error && String(error.statusCode) !== "409")
-        throw new Error(
-          "Photo upload failed. Your draft is private. Retry to continue uploading.",
-        );
+      try {
+        await uploadFile(client, BUCKET, photo.path, photo.file);
+      } catch (err) {
+        if (err instanceof UploadError && err.kind === "not-allowed") {
+          throw new Error(
+            "Your session has expired. Sign in again, then retry uploading.",
+          );
+        } else {
+          throw new Error(
+            "Photo upload failed. Your draft is private. Retry to continue uploading.",
+          );
+        }
+      }
       photo.uploaded = true;
     }
     if (!photo.attached) {
