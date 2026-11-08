@@ -39,6 +39,8 @@ CREATE INDEX idx_listings_visible ON public.listings (status, is_available)
 
 CREATE INDEX idx_listings_seller ON public.listings (seller_id);
 
+CREATE INDEX idx_listing_photos_photo_url ON public.listing_photos (photo_url);
+
 -- 4. Grants
 GRANT SELECT ON public.listings, public.listing_photos, public.categories TO authenticated;
 
