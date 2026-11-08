@@ -169,3 +169,102 @@ $$;
 
 REVOKE ALL ON FUNCTION public.attach_listing_photo(uuid, text, integer) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.attach_listing_photo(uuid, text, integer) TO authenticated;
+
+-- 4.
+CREATE FUNCTION public.submit_listing(p_id uuid)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_user uuid;
+    v_seller uuid;
+    v_status text;
+BEGIN
+    v_user := auth.uid();
+    IF v_user IS NULL THEN
+        RAISE EXCEPTION 'Not signed in';
+    END IF;
+
+    SELECT seller_id, status
+    INTO v_seller, v_status
+    FROM public.listings
+    WHERE id = p_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Listing not found';
+    END IF;
+    IF v_seller != v_user THEN
+        RAISE EXCEPTION 'Listing belongs to another user';
+    END IF;
+    IF v_status = 'pending' THEN
+        RETURN 'pending';
+    END IF;
+    IF v_status != 'draft' THEN
+        RAISE EXCEPTION 'Only drafts can be submitted (status is %)', v_status;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM public.listing_photos
+        WHERE listing_id = p_id
+    ) THEN
+        RAISE EXCEPTION 'Listing needs at least one photo to be submitted';
+    END IF;
+
+    UPDATE public.listings
+    SET status = 'pending',
+        updated_at = now()
+    WHERE id = p_id;
+
+    RETURN 'pending';
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.submit_listing(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.submit_listing(uuid) TO authenticated;
+
+-- 5.
+CREATE FUNCTION public.delete_listing(p_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_user uuid;
+    v_seller uuid;
+    v_status text;
+BEGIN
+    v_user := auth.uid();
+    IF v_user IS NULL THEN
+        RAISE EXCEPTION 'Not signed in';
+    END IF;
+
+    SELECT seller_id, status
+    INTO v_seller, v_status
+    FROM public.listings
+    WHERE id = p_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Listing not found';
+    END IF;
+    IF v_seller != v_user THEN
+        RAISE EXCEPTION 'Listing belongs to another user';
+    END IF;
+    IF v_status = 'blocked' THEN
+        RAISE EXCEPTION 'Blocked listings cannot be deleted';
+    END IF;
+
+    DELETE FROM public.listings
+    WHERE id = p_id;
+
+    RETURN true;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.delete_listing(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.delete_listing(uuid) TO authenticated;
