@@ -29,19 +29,19 @@ npx supabase@3.0.0 stop # Stops local Supabase
 
 ## What's here
 
-- `seed.sql`: local test data (categories). Runs on `db reset`, never on production.
-
 - `20261022211914_allow_email_only_northeastern_signup_with_generated_username.sql`: the `@northeastern.edu`-only sign-up trigger that creates a profile with a generated username
 
 - `20261104093657_remote_schema.sql`: the baseline (a copy of the live schema made from the dashboard of all 12 tables, policies, grants)
 
-- `20261104111901_listing_photos_storage.sql`: private listing-photos bucket (WebP, 1 MB) + own-folder storage policies
+- `20261104111901_listing_photos_storage.sql`: private `listing-photos` bucket (WebP, 1 MB) + own-folder storage policies
 
 - `20261107071416_listings_workflow_schema.sql`: listing statuses, photo rules, detail constraints, indexes, read grants
 
 - `20261107075122_listings_rls_policies.sql`: who can read listings, photos, categories, and photo files
 
 - `20261108114753_listings_rpcs.sql`: the five listing RPCs (save, attach photo, submit, delete, version)
+
+- `seed.sql`: local test data (categories). Runs on `db reset`, never on production.
 
 ## One-time baseline repair
 
@@ -51,5 +51,5 @@ The tables already exist on production, so production must be marked as already 
 npx supabase@3.0.0 migration repair --status applied 20261104093657 --remote
 ```
 
-- Done: Run by Jayden (S1LynKz) after #36 merged.
+- Done: run by Jayden (S1LynKz) after #36 merged.
 - To check if it's done: `npx supabase@3.0.0 migration list --remote`. If `20261104093657` appears in the Remote column, it's already applied. Don't run it again.
