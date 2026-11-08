@@ -22,6 +22,7 @@ Test migrations on a local copy of the database before opening a PR. This needs 
 ```bash
 npx supabase@3.0.0 start # Starts local Supabase
 npx supabase@3.0.0 db reset # Rebuilds the local database from migrations, then runs seed.sql
+npx supabase@3.0.0 test db # Runs the database tests in supabase/tests
 npx supabase@3.0.0 stop # Stops local Supabase
 ```
 
