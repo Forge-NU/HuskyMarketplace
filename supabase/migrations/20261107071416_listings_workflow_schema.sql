@@ -2,9 +2,10 @@
 --   1. Listing status: draft, pending, approved, blocked, or sold (default
 --      draft). Existing active listings become approved, the visible state.
 --   2. Listing photos: up to five per listing, ordered 0-4, no duplicates.
---   3. Indexes: for visible listings and each seller's own listings.
---   4. Grants: signed-in users can read listings, photos, and categories.
---      Writes go through RPCs only.
+--   3. Indexes: for visible listings, photo paths, and each seller's own listings.
+--   4. Grants: signed-in users can only read listings, photos, and categories.
+--      Writes go through RPCs only. Leftover baseline privileges (TRUNCATE,
+--      TRIGGER, REFERENCES) are removed.
 --   5. Listing details: length limits for title, description, and location,
 --      a price range, and allowed conditions (new rows only, since older
 --      listing mock data uses other condition values).
@@ -39,8 +40,14 @@ CREATE INDEX idx_listings_visible ON public.listings (status, is_available)
 
 CREATE INDEX idx_listings_seller ON public.listings (seller_id);
 
+CREATE INDEX idx_listing_photos_photo_url ON public.listing_photos (photo_url);
+
 -- 4. Grants
 GRANT SELECT ON public.listings, public.listing_photos, public.categories TO authenticated;
+
+REVOKE TRUNCATE, TRIGGER, REFERENCES
+    ON public.listings, public.listing_photos, public.categories
+    FROM anon, authenticated;
 
 -- 5. Listing details
 -- condition is NOT VALID: existing listings use old values that
