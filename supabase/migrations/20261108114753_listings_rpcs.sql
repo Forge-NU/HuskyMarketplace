@@ -106,3 +106,66 @@ $$;
 
 REVOKE ALL ON FUNCTION public.save_listing_draft(uuid, jsonb) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.save_listing_draft(uuid, jsonb) TO authenticated;
+
+-- 3.
+CREATE FUNCTION public.attach_listing_photo(p_listing_id uuid, p_path text, p_sort_order integer)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_user uuid;
+    v_seller uuid;
+    v_status text;
+BEGIN
+    v_user := auth.uid();
+    IF v_user IS NULL THEN
+        RAISE EXCEPTION 'Not signed in';
+    END IF;
+
+    SELECT seller_id, status
+    INTO v_seller, v_status
+    FROM public.listings
+    WHERE id = p_listing_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Listing not found';
+    END IF;
+    IF v_seller != v_user THEN
+        RAISE EXCEPTION 'Listing belongs to another user';
+    END IF;
+    IF v_status != 'draft' THEN
+        RAISE EXCEPTION 'Photos can only be added to drafts (status is %)', v_status;
+    END IF;
+    IF storage.foldername(p_path) != ARRAY[v_user::text, p_listing_id::text] THEN
+        RAISE EXCEPTION 'Photo path must be in your folder for this listing';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1
+        FROM storage.objects
+        WHERE bucket_id = 'listing-photos'
+        AND name = p_path
+    ) THEN
+        RAISE EXCEPTION 'Photo has not been uploaded';
+    END IF;
+
+    INSERT INTO public.listing_photos (
+        listing_id,
+        photo_url,
+        sort_order
+    )
+    VALUES (
+        p_listing_id,
+        p_path,
+        p_sort_order
+    )
+    ON CONFLICT (listing_id, photo_url) DO NOTHING;
+
+    RETURN true;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.attach_listing_photo(uuid, text, integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.attach_listing_photo(uuid, text, integer) TO authenticated;
