@@ -2,7 +2,7 @@
 --   1. Listing status: draft, pending, approved, blocked, or sold (default
 --      draft). Existing active listings become approved, the visible state.
 --   2. Listing photos: up to five per listing, ordered 0-4, no duplicates.
---   3. Indexes: for visible listings and each seller's own listings.
+--   3. Indexes: for visible listings, photo paths, and each seller's own listings.
 --   4. Grants: signed-in users can read listings, photos, and categories.
 --      Writes go through RPCs only.
 --   5. Listing details: length limits for title, description, and location,
