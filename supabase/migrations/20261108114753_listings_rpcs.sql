@@ -52,6 +52,10 @@ BEGIN
         RAISE EXCEPTION 'Title, description, price, category, condition, and location are required';
     END IF;
 
+    IF p_details - ARRAY['title', 'description', 'price', 'category_id', 'condition', 'location'] != '{}'::jsonb THEN
+        RAISE EXCEPTION 'Only title, description, price, category_id, condition, and location can be saved';
+    END IF;
+
     SELECT seller_id, status
     INTO v_seller, v_status
     FROM public.listings
@@ -249,8 +253,9 @@ BEGIN
     WHERE id = p_id
     FOR UPDATE;
 
+    -- Already deleted (e.g. a retry after a lost response).
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Listing not found';
+        RETURN true;
     END IF;
     IF v_seller != v_user THEN
         RAISE EXCEPTION 'Listing belongs to another user';
