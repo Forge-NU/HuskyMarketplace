@@ -82,7 +82,6 @@ select results_eq(
   'After all the attempts, both listings are unchanged drafts'
 );
 
-select todo('Leftover TRUNCATE/TRIGGER/REFERENCES grants from the baseline; see #38', 1);
 select ok(
   not has_table_privilege('authenticated', 'public.listings', 'TRUNCATE'),
   'Logged-in users do not have TRUNCATE on listings (it skips row level security)'

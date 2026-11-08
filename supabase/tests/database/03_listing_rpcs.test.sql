@@ -70,7 +70,6 @@ select throws_ok(
   'A cannot overwrite the draft of B by reusing its id'
 );
 
-select todo('#33: unknown keys and status/seller overrides must be rejected, but they are ignored', 1);
 select throws_ok(
   $$ select public.save_listing_draft('a0000000-0000-0000-0000-000000000001',
        (select d || '{"status": "approved", "seller_id": "bbbbbbbb-0000-0000-0000-000000000000"}' from details)) $$,
@@ -183,7 +182,6 @@ select is(
   'A can delete their own draft'
 );
 
-select todo('#33: deleting an already-deleted listing should return true, not an error', 1);
 select lives_ok(
   $$ select public.delete_listing('a0000000-0000-0000-0000-000000000002') $$,
   'Deleting the same listing twice is safe (for retries after a lost response)'
