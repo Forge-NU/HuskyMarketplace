@@ -1,6 +1,6 @@
 -- Read access for listings (#33). All policies are SELECT only, since
 -- users never write these tables directly (writes go through RPCs).
---   1. Signed in users can view approved listings.
+--   1. Signed in users can view approved, available listings.
 --   2. Sellers can view all of their own listings in any status.
 --   3. Listing photo rows are visible when their listing is visible.
 --   4. Signed in users can view all categories.
@@ -8,12 +8,13 @@
 --      the user can view, so the app can create signed URLs for them.
 
 -- 1.
-CREATE POLICY "Authenticated users can view approved listings"
+CREATE POLICY "Authenticated users can view approved, available listings"
 ON public.listings
 FOR SELECT
 TO authenticated
 USING (
     status = 'approved'
+    AND is_available = true
 );
 
 -- 2.
