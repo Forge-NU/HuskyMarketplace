@@ -53,6 +53,10 @@ function fixture() {
       calls.push(["eq", ...v]);
       return this;
     },
+    textSearch(...v) {
+      calls.push(["textSearch", ...v]);
+      return this;
+    },
     maybeSingle() {
       return Promise.resolve({
         data: state.rows[0] ?? null,
@@ -304,5 +308,47 @@ test("signed out users cannot query owner records or save drafts", async () => {
   assert.equal(
     f.calls.some((c) => c[1] === "save_listing_draft"),
     false,
+  );
+});
+
+test("keyword search uses Caleb's indexed vector without dropping visibility filters", async () => {
+  const { client, calls, state } = fixture();
+  state.rows = [{ id, title: "Desk lamps" }];
+  const result = await loadListings(client, false, '  "desk lamp" OR chair  ');
+  assert.deepEqual(
+    calls.find(([name]) => name === "textSearch"),
+    [
+      "textSearch",
+      "search_vector",
+      '"desk lamp" OR chair',
+      { config: "english", type: "websearch" },
+    ],
+  );
+  assert.ok(
+    calls.some(
+      ([name, field, value]) =>
+        name === "eq" && field === "status" && value === "approved",
+    ),
+  );
+  assert.ok(
+    calls.some(
+      ([name, field, value]) =>
+        name === "eq" && field === "is_available" && value === true,
+    ),
+  );
+  assert.equal(result[0].id, id);
+});
+
+test("empty searches omit textSearch and failed search requests remain errors", async () => {
+  const { client, calls, state } = fixture();
+  await loadListings(client, false, "   ");
+  assert.equal(
+    calls.some(([name]) => name === "textSearch"),
+    false,
+  );
+  state.queryError = { message: "permission denied" };
+  await assert.rejects(
+    loadListings(client, false, "desk"),
+    /Could not load listings/,
   );
 });

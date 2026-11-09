@@ -28,6 +28,7 @@ export async function currentUser(client: SupabaseClient) {
 export async function loadListings(
   client: SupabaseClient,
   own = false,
+  search = "",
 ): Promise<Listing[]> {
   await requireWorkflow(client);
   let query = client
@@ -36,6 +37,12 @@ export async function loadListings(
     .order("created_at", { ascending: false });
   if (own) query = query.eq("seller_id", (await currentUser(client)).id);
   else query = query.eq("status", "approved").eq("is_available", true);
+  if (search.trim()) {
+    query = query.textSearch("search_vector", search.trim(), {
+      config: "english",
+      type: "websearch",
+    });
+  }
   const { data, error } = await query;
   if (error) throw new Error("Could not load listings. Please retry.");
   return (data ?? []) as unknown as Listing[];

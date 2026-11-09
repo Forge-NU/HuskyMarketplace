@@ -31,9 +31,12 @@ export default function UIShell({
   }, [pathname]);
   function search(e: FormEvent) {
     e.preventDefault();
-    router.push(
-      q.trim() ? `/browse?q=${encodeURIComponent(q.trim())}` : "/browse",
+    const next = new URLSearchParams(
+      pathname === "/browse" ? window.location.search : "",
     );
+    if (q.trim()) next.set("q", q.trim());
+    else next.delete("q");
+    router.push(next.size ? `/browse?${next}` : "/browse");
   }
   async function logout() {
     const { error } = await createClient().auth.signOut();
