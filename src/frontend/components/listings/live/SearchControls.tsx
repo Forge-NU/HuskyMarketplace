@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type FormEvent } from "react";
+import { useRef, type FormEvent, type MouseEvent } from "react";
 import Icon from "@/components/Icon";
 import { CONDITIONS } from "@/lib/listings/model";
 import type { SearchFilters } from "@/lib/listings/search";
@@ -11,6 +11,15 @@ type Props = {
   categories: string[];
   onChange: (values: Record<string, string>) => void;
 };
+
+function priceFilterLabel(filters: SearchFilters) {
+  if (filters.free || filters.max === "0") return "Free only";
+  if (filters.min !== "" && filters.max !== "") {
+    return `$${filters.min}–$${filters.max}`;
+  }
+  if (filters.min !== "") return `From $${filters.min}`;
+  return `Up to $${filters.max}`;
+}
 
 export default function SearchControls({
   filters,
@@ -55,6 +64,21 @@ export default function SearchControls({
     onChange({ cat: "", condition: "", min: "", max: "", free: "" });
   }
 
+  function setFreePrice(event: MouseEvent<HTMLButtonElement>) {
+    const form = event.currentTarget.form;
+    if (!form) return;
+    for (const name of ["min", "max"]) {
+      const input = form.elements.namedItem(name) as HTMLInputElement;
+      input.value = "0";
+      input.setCustomValidity("");
+    }
+  }
+
+  function resetFilters(event: MouseEvent<HTMLButtonElement>) {
+    event.currentTarget.form?.reset();
+    clearFilters();
+  }
+
   const categoryOptions = new Map(
     categories.map((name) => [name.toLowerCase(), name]),
   );
@@ -64,34 +88,19 @@ export default function SearchControls({
   ) {
     categoryOptions.set(filters.category.toLowerCase(), filters.category);
   }
-  const chips = [
-    ...(filters.category
-      ? [
-          {
-            key: "cat",
-            label: categoryOptions.get(filters.category.toLowerCase())!,
-          },
-        ]
-      : []),
-    ...(filters.condition
-      ? [{ key: "condition", label: filters.condition }]
-      : []),
-    ...(filters.free || filters.min !== "" || filters.max !== ""
-      ? [
-          {
-            key: "price",
-            label:
-              filters.free || filters.max === "0"
-                ? "Free only"
-                : filters.min !== "" && filters.max !== ""
-                  ? `$${filters.min}–$${filters.max}`
-                  : filters.min !== ""
-                    ? `From $${filters.min}`
-                    : `Up to $${filters.max}`,
-          },
-        ]
-      : []),
-  ];
+  const chips: { key: string; label: string }[] = [];
+  if (filters.category) {
+    chips.push({
+      key: "cat",
+      label:
+        categoryOptions.get(filters.category.toLowerCase()) ?? filters.category,
+    });
+  }
+  if (filters.condition)
+    chips.push({ key: "condition", label: filters.condition });
+  if (filters.free || filters.min !== "" || filters.max !== "") {
+    chips.push({ key: "price", label: priceFilterLabel(filters) });
+  }
 
   return (
     <section
@@ -215,17 +224,7 @@ export default function SearchControls({
                   <button
                     className={styles.freePrice}
                     type="button"
-                    onClick={(event) => {
-                      const form = event.currentTarget.form;
-                      if (!form) return;
-                      for (const name of ["min", "max"]) {
-                        const input = form.elements.namedItem(
-                          name,
-                        ) as HTMLInputElement;
-                        input.value = "0";
-                        input.setCustomValidity("");
-                      }
-                    }}
+                    onClick={setFreePrice}
                   >
                     Free
                   </button>
@@ -236,10 +235,7 @@ export default function SearchControls({
               <button
                 className={styles.reset}
                 type="button"
-                onClick={(event) => {
-                  event.currentTarget.form?.reset();
-                  clearFilters();
-                }}
+                onClick={resetFilters}
               >
                 Reset filters
               </button>

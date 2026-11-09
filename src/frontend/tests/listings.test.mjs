@@ -311,7 +311,7 @@ test("signed out users cannot query owner records or save drafts", async () => {
   );
 });
 
-test("keyword search uses Caleb's indexed vector without dropping visibility filters", async () => {
+test("keyword search uses search_vector and keeps visibility filters", async () => {
   const { client, calls, state } = fixture();
   state.rows = [{ id, title: "Desk lamps" }];
   const result = await loadListings(client, false, '  "desk lamp" OR chair  ');
