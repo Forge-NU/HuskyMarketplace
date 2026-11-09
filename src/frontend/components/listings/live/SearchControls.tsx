@@ -27,11 +27,24 @@ export default function SearchControls({
   function applyFilters(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const min = String(data.get("min") ?? "");
+    const max = String(data.get("max") ?? "");
+    if (min !== "" && max !== "" && Number(min) > Number(max)) {
+      const input = event.currentTarget.elements.namedItem(
+        "max",
+      ) as HTMLInputElement;
+      input.setCustomValidity(
+        "Maximum price must be at least the minimum price.",
+      );
+      input.reportValidity();
+      return;
+    }
     onChange({
+      min,
       cat: String(data.get("cat") ?? ""),
       condition: String(data.get("condition") ?? ""),
-      max: String(data.get("max") ?? ""),
-      free: data.has("free") ? "1" : "",
+      max,
+      free: "",
     });
     if (panel.current) {
       panel.current.open = false;
@@ -39,7 +52,7 @@ export default function SearchControls({
     }
   }
   function clearFilters() {
-    onChange({ cat: "", condition: "", max: "", free: "" });
+    onChange({ cat: "", condition: "", min: "", max: "", free: "" });
   }
 
   const categoryOptions = new Map(
@@ -63,10 +76,21 @@ export default function SearchControls({
     ...(filters.condition
       ? [{ key: "condition", label: filters.condition }]
       : []),
-    ...(filters.max !== ""
-      ? [{ key: "max", label: `Up to $${filters.max}` }]
+    ...(filters.free || filters.min !== "" || filters.max !== ""
+      ? [
+          {
+            key: "price",
+            label:
+              filters.free || filters.max === "0"
+                ? "Free only"
+                : filters.min !== "" && filters.max !== ""
+                  ? `$${filters.min}–$${filters.max}`
+                  : filters.min !== ""
+                    ? `From $${filters.min}`
+                    : `Up to $${filters.max}`,
+          },
+        ]
       : []),
-    ...(filters.free ? [{ key: "free", label: "Free only" }] : []),
   ];
 
   return (
@@ -114,9 +138,16 @@ export default function SearchControls({
           <form
             className={styles.filterPanel}
             onSubmit={applyFilters}
+            onInput={(event) => {
+              const input = event.currentTarget.elements.namedItem(
+                "max",
+              ) as HTMLInputElement;
+              input.setCustomValidity("");
+            }}
             key={JSON.stringify([
               filters.category,
               filters.condition,
+              filters.min,
               filters.max,
               filters.free,
             ])}
@@ -147,29 +178,59 @@ export default function SearchControls({
                   ))}
                 </select>
               </label>
-              <label>
-                Maximum price
-                <span className={styles.price}>
-                  <span aria-hidden="true">$</span>
-                  <input
-                    name="max"
-                    type="number"
-                    min="0"
-                    max="999999.99"
-                    step="0.01"
-                    defaultValue={filters.max}
-                    placeholder="Any price"
-                  />
-                </span>
-              </label>
-              <label className={styles.free}>
-                <input
-                  name="free"
-                  type="checkbox"
-                  defaultChecked={filters.free}
-                />
-                Free items only
-              </label>
+              <fieldset className={styles.priceRange}>
+                <legend>Price</legend>
+                <div className={styles.priceInputs}>
+                  <label>
+                    Minimum
+                    <span className={styles.price}>
+                      <span aria-hidden="true">$</span>
+                      <input
+                        name="min"
+                        type="number"
+                        min="0"
+                        max="999999.99"
+                        step="0.01"
+                        defaultValue={filters.free ? "0" : filters.min}
+                        placeholder="0"
+                      />
+                    </span>
+                  </label>
+                  <span aria-hidden="true">–</span>
+                  <label>
+                    Maximum
+                    <span className={styles.price}>
+                      <span aria-hidden="true">$</span>
+                      <input
+                        name="max"
+                        type="number"
+                        min="0"
+                        max="999999.99"
+                        step="0.01"
+                        defaultValue={filters.free ? "0" : filters.max}
+                        placeholder="No limit"
+                      />
+                    </span>
+                  </label>
+                  <button
+                    className={styles.freePrice}
+                    type="button"
+                    onClick={(event) => {
+                      const form = event.currentTarget.form;
+                      if (!form) return;
+                      for (const name of ["min", "max"]) {
+                        const input = form.elements.namedItem(
+                          name,
+                        ) as HTMLInputElement;
+                        input.value = "0";
+                        input.setCustomValidity("");
+                      }
+                    }}
+                  >
+                    Free
+                  </button>
+                </div>
+              </fieldset>
             </div>
             <div className={styles.panelActions}>
               <button
@@ -208,7 +269,13 @@ export default function SearchControls({
               key={chip.key}
               className={styles.chip}
               type="button"
-              onClick={() => onChange({ [chip.key]: "" })}
+              onClick={() =>
+                onChange(
+                  chip.key === "price"
+                    ? { min: "", max: "", free: "" }
+                    : { [chip.key]: "" },
+                )
+              }
               aria-label={`Remove ${chip.label}`}
             >
               <span>{chip.label}</span>

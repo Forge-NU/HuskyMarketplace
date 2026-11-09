@@ -3,6 +3,7 @@ import { CONDITIONS, isApproved, type Listing } from "./model.ts";
 export function readSearch(params: Pick<URLSearchParams, "get">) {
   const category = params.get("cat") ?? "";
   const max = params.get("max") ?? "";
+  const min = params.get("min") ?? "";
   const condition = params.get("condition") ?? "";
   const sort = params.get("sort") ?? "new";
 
@@ -15,6 +16,7 @@ export function readSearch(params: Pick<URLSearchParams, "get">) {
           ? "books & notes"
           : category,
     condition: CONDITIONS.includes(condition) ? condition : "",
+    min: /^\d+(\.\d{1,2})?$/.test(min) && Number(min) <= 999999.99 ? min : "",
     max: /^\d+(\.\d{1,2})?$/.test(max) && Number(max) <= 999999.99 ? max : "",
     free: params.get("free") === "1" || category === "free",
     sort: sort === "priceAsc" || sort === "priceDesc" ? sort : "new",
@@ -50,6 +52,8 @@ export function filterListings(
         item.categories?.name.toLowerCase() ===
           filters.category.toLowerCase()) &&
       (!filters.condition || item.condition === filters.condition) &&
+      (filters.min === "" ||
+        (item.price !== null && item.price >= Number(filters.min))) &&
       (filters.max === "" ||
         (item.price !== null && item.price <= Number(filters.max))) &&
       (!filters.free || item.price === 0) &&

@@ -94,3 +94,26 @@ test("removing a chip preserves other filters and can clear legacy free links", 
   assert.equal(readSearch(priceOnly).category, "books & notes");
   assert.equal(priceOnly.get("max"), "15");
 });
+
+test("minimum and maximum price combine, with zero-to-zero selecting only free items", () => {
+  assert.deepEqual(
+    filterListings(items, filters("min=5&max=15")).map((item) => item.id),
+    ["book", lamp.id],
+  );
+  assert.deepEqual(
+    filterListings(items, filters("min=0&max=0")).map((item) => item.id),
+    ["free"],
+  );
+  assert.deepEqual(
+    filterListings(items, filters("min=15")).map((item) => item.id),
+    [lamp.id],
+  );
+  assert.equal(filters("min=-1").min, "");
+  const cleared = updateSearch("cat=free&q=desk", {
+    min: "",
+    max: "",
+    free: "",
+  });
+  assert.equal(readSearch(cleared).free, false);
+  assert.equal(cleared.get("q"), "desk");
+});

@@ -111,7 +111,7 @@
 }
 .filters {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: end;
   gap: 20px 16px;
 }
@@ -157,18 +157,40 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.filters .free {
+.priceRange {
   grid-column: 1 / -1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.priceRange legend {
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.priceInputs {
   display: flex;
-  align-items: center;
+  align-items: end;
   gap: 10px;
-  min-height: 32px;
+}
+.priceInputs label {
+  flex: 1;
+  color: #646064;
+  font-size: 12px;
   font-weight: 400;
 }
-.free input {
-  width: 18px;
-  height: 18px;
-  accent-color: #c8102e;
+.priceInputs > span {
+  align-self: center;
+  padding-top: 20px;
+}
+.freePrice {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #ded8cf;
+  border-radius: 8px;
+  background: #fff9ef;
+  font-size: 14px;
 }
 .panelActions {
   display: flex;
