@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
-from app.core.errors import register_exception_handlers
+from app.core.errors import UnhandledErrorMiddleware, register_exception_handlers
 from app.routers import health, listings, profiles
 
 logging.basicConfig(level=logging.INFO)
@@ -14,6 +14,9 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title="Husky Marketplace API", version="0.1.0")
 
+    # Middleware added later wraps middleware added earlier. UnhandledErrorMiddleware
+    # has to sit inside CORS so that 500 responses still get CORS headers.
+    app.add_middleware(UnhandledErrorMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,

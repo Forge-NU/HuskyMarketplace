@@ -2,6 +2,18 @@
 
 from types import SimpleNamespace
 
+import pytest
+from fastapi.testclient import TestClient
+
+from app.core.auth import AuthError
+from app.main import app
+
+
+class FakeAuthError(AuthError):
+    def __init__(self, status):
+        Exception.__init__(self, f"fake Supabase auth error ({status})")
+        self.status = status
+
 
 class FakeAuth:
     def __init__(self, user=None, error=None):
@@ -27,13 +39,38 @@ def test_me_requires_a_token(client):
     assert response.headers["www-authenticate"] == "Bearer"
 
 
-def test_me_rejects_an_invalid_token(client, monkeypatch):
-    use_fake_supabase(monkeypatch, error=Exception("invalid JWT"))
+@pytest.mark.parametrize("status", [400, 401, 403])
+def test_me_rejects_an_invalid_or_expired_token(client, monkeypatch, status):
+    use_fake_supabase(monkeypatch, error=FakeAuthError(status))
 
-    response = client.get("/profiles/me", headers={"Authorization": "Bearer not-a-real-token"})
+    response = client.get("/profiles/me", headers={"Authorization": "Bearer bad-token"})
 
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "invalid_token"
+
+
+@pytest.mark.parametrize("status", [0, 429, 500, 503])
+def test_me_returns_503_when_supabase_auth_fails(client, monkeypatch, status):
+    use_fake_supabase(monkeypatch, error=FakeAuthError(status))
+
+    response = client.get("/profiles/me", headers={"Authorization": "Bearer valid-token"})
+
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "auth_unavailable"
+
+
+def test_me_returns_500_when_supabase_is_not_configured(monkeypatch):
+    def missing_config():
+        raise RuntimeError("SUPABASE_URL is not set.")
+
+    monkeypatch.setattr("app.core.auth.get_anon_client", missing_config)
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.get("/profiles/me", headers={"Authorization": "Bearer valid-token"})
+
+    assert response.status_code == 500
+    assert response.json()["error"]["code"] == "internal_error"
+    assert "SUPABASE_URL" not in response.text
 
 
 def test_me_returns_the_signed_in_student(client, monkeypatch):

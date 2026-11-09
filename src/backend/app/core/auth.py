@@ -3,6 +3,11 @@
 The frontend signs students in with Supabase and sends the session's access
 token as `Authorization: Bearer <token>`. Any route that needs a signed-in
 student adds `user: CurrentUser = Depends(get_current_user)`.
+
+Responses:
+- 401 when there's no token, or Supabase rejects it (bad, expired, unknown user)
+- 503 when Supabase Auth is unreachable or erroring, so we can't tell either way
+- 500 when the backend itself is misconfigured (e.g. SUPABASE_URL is missing)
 """
 
 import logging
@@ -13,6 +18,11 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.errors import APIError
 from app.core.supabase import get_anon_client
+
+try:
+    from supabase_auth.errors import AuthError
+except ImportError:  # older supabase-py releases shipped this as the gotrue package
+    from gotrue.errors import AuthError
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +39,16 @@ class CurrentUser:
     access_token: str
 
 
+def _invalid_token() -> APIError:
+    return APIError(401, "invalid_token", "Your session is invalid or expired. Sign in again.", headers=_WWW_AUTH)
+
+
+def _is_rejected_token(exc: AuthError) -> bool:
+    """True when Supabase checked the token and said no, as opposed to failing to check it."""
+    status = getattr(exc, "status", None)
+    return isinstance(status, int) and 400 <= status < 500 and status != 429
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> CurrentUser:
@@ -36,16 +56,25 @@ def get_current_user(
         raise APIError(401, "unauthorized", "Sign in to continue.", headers=_WWW_AUTH)
 
     token = credentials.credentials
+
+    # Missing Supabase settings raise RuntimeError here. That's our misconfiguration,
+    # not the student's session, so it's left to become a 500.
+    client = get_anon_client()
+
     try:
         # Asks Supabase Auth to validate the token, so this works whichever JWT
         # signing keys the project uses. One extra network call per request.
-        response = get_anon_client().auth.get_user(token)
-    except Exception:
-        logger.info("Rejected access token", exc_info=True)
-        raise APIError(401, "invalid_token", "Your session is invalid or expired. Sign in again.", headers=_WWW_AUTH)
+        response = client.auth.get_user(token)
+    except AuthError as exc:
+        if _is_rejected_token(exc):
+            raise _invalid_token() from None
+        logger.warning("Supabase Auth failed while verifying a token", exc_info=True)
+        raise APIError(
+            503, "auth_unavailable", "We couldn't verify your session right now. Try again in a moment."
+        ) from None
 
     user = getattr(response, "user", None)
     if user is None:
-        raise APIError(401, "invalid_token", "Your session is invalid or expired. Sign in again.", headers=_WWW_AUTH)
+        raise _invalid_token()
 
     return CurrentUser(id=str(user.id), email=user.email, access_token=token)

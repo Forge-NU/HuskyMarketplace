@@ -15,6 +15,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
 
@@ -75,14 +76,43 @@ async def _validation_error_handler(_: Request, exc: RequestValidationError) -> 
     return error_response(422, "validation_error", "Some fields are missing or invalid.", exc.errors())
 
 
-async def _unhandled_error_handler(_: Request, exc: Exception) -> JSONResponse:
-    logger.exception("Unhandled error", exc_info=exc)
-    # Don't leak internals (stack traces, SQL, keys) to the client.
-    return error_response(500, "internal_error", "Something went wrong on our end.")
+class UnhandledErrorMiddleware:
+    """Turns unexpected exceptions into the standard JSON 500 response.
+
+    Starlette runs its built-in handler for plain exceptions outside every other
+    middleware, so those 500s would skip CORS and the browser couldn't read them.
+    This middleware is added inside CORSMiddleware instead (see app/main.py).
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        response_started = False
+
+        async def send_wrapper(message: Message) -> None:
+            nonlocal response_started
+            if message["type"] == "http.response.start":
+                response_started = True
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_wrapper)
+        except Exception:
+            logger.exception("Unhandled error on %s %s", scope.get("method"), scope.get("path"))
+            if response_started:
+                # Part of a response already went out, so a clean 500 is impossible.
+                raise
+            # Don't leak internals (stack traces, SQL, keys) to the client.
+            response = error_response(500, "internal_error", "Something went wrong on our end.")
+            await response(scope, receive, send)
 
 
 def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(APIError, _api_error_handler)
     app.add_exception_handler(StarletteHTTPException, _http_exception_handler)
     app.add_exception_handler(RequestValidationError, _validation_error_handler)
-    app.add_exception_handler(Exception, _unhandled_error_handler)
