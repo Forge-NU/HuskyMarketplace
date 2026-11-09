@@ -67,26 +67,23 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
   return (
     <UIShell live>
       <main className={styles.content}>
-        <header className={styles.contentHead}>
-          <p className={styles.eyebrow}>
-            {own ? "YOUR MARKETPLACE" : "DISCOVER"}
-          </p>
+        <header
+          className={`${styles.contentHead} ${own ? "" : searchStyles.heading}`}
+        >
+          {own && <p className={styles.eyebrow}>YOUR MARKETPLACE</p>}
           <h1>{own ? "My listings" : "Find your next thing."}</h1>
           <p>
             {own
               ? "Drafts stay private. Submitted listings wait for moderation."
               : "Browse approved campus listings."}
           </p>
-          <Link href={own ? "/sell" : "/my-listings"}>
-            {own ? "Create a listing →" : "Manage my listings →"}
-          </Link>
+          {own && <Link href="/sell">Create a listing →</Link>}
         </header>
         {!own && (
           <SearchControls
             filters={filters}
             categories={categoryNames}
             onChange={change}
-            onReset={reset}
           />
         )}
         {loading || loadedQuery !== q ? (

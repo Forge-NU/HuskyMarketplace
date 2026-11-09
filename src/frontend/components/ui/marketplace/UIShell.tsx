@@ -31,12 +31,9 @@ export default function UIShell({
   }, [pathname]);
   function search(e: FormEvent) {
     e.preventDefault();
-    const next = new URLSearchParams(
-      pathname === "/browse" ? window.location.search : "",
+    router.push(
+      q.trim() ? `/browse?q=${encodeURIComponent(q.trim())}` : "/browse",
     );
-    if (q.trim()) next.set("q", q.trim());
-    else next.delete("q");
-    router.push(next.size ? `/browse?${next}` : "/browse");
   }
   async function logout() {
     const { error } = await createClient().auth.signOut();
@@ -70,7 +67,9 @@ export default function UIShell({
         )}
       </div>
       <header className={styles.siteHeader}>
-        <div className={styles.headerInner}>
+        <div
+          className={`${styles.headerInner} ${pathname === "/browse" ? styles.browseHeader : ""}`}
+        >
           <Link
             className={styles.logo}
             href="/"
@@ -90,16 +89,18 @@ export default function UIShell({
               </Link>
             ))}
           </nav>
-          <form className={styles.search} onSubmit={search} role="search">
-            <span aria-hidden="true">⌕</span>
-            <input
-              type="search"
-              aria-label="Search listings"
-              placeholder="Search anything on campus..."
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-          </form>
+          {pathname !== "/browse" && (
+            <form className={styles.search} onSubmit={search} role="search">
+              <span aria-hidden="true">⌕</span>
+              <input
+                type="search"
+                aria-label="Search listings"
+                placeholder="Search anything on campus..."
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+            </form>
+          )}
           <div className={styles.headerActions}>
             <Link
               className={styles.iconButton}
