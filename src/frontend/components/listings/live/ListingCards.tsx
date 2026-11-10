@@ -29,13 +29,19 @@ function Photo({ item }: { item: Listing }) {
   return (
     <>
       {src && !failed ? (
-        <img
-          className={styles.productPhoto}
-          src={src}
-          alt={item.title}
-          loading="lazy"
-          onError={() => setFailed(true)}
-        />
+        <Link
+          className={styles.productLink}
+          href={`/item/${item.id}`}
+          aria-label={`View ${item.title}`}
+        >
+          <img
+            className={styles.productPhoto}
+            src={src}
+            alt={item.title}
+            loading="lazy"
+            onError={() => setFailed(true)}
+          />
+        </Link>
       ) : (
         <p className={styles.notice}>
           {failed ? "Photo unavailable" : "No photo available"}

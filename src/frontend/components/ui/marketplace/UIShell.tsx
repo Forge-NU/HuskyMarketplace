@@ -53,6 +53,9 @@ export default function UIShell({
   ];
   return (
     <div className={styles.page}>
+      <a className={styles.skipLink} href="#main-content">
+        Skip to content
+      </a>
       <div className={styles.demoRibbon}>
         {live ? (
           <>
@@ -138,7 +141,9 @@ export default function UIShell({
           </div>
         </div>
       </header>
-      {children}
+      <div id="main-content" tabIndex={-1}>
+        {children}
+      </div>
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <div>
