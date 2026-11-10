@@ -23,6 +23,8 @@ from generate_series(1, 6) as n;
 insert into storage.objects (bucket_id, name) values
   ('listing-photos', 'bbbbbbbb-0000-0000-0000-000000000000/b0000000-0000-0000-0000-000000000001/1.webp');
 
+-- Auto-approve is on for the demo; these tests check that submitted listings stay pending.
+alter table public.listings disable trigger auto_approve_submitted_listing;
 -- A complete, valid set of listing details.
 create temp table details as
 select '{"title": "Desk lamp", "description": "Works great", "price": 15,
