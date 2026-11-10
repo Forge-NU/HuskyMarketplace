@@ -1,11 +1,11 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState, type FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import UIShell from "./UIShell";
 import { createClient } from "@/lib/supabase/client";
-import { isNortheasternEmail, safeNext } from "@/lib/auth";
+import { isNortheasternEmail } from "@/lib/auth";
 import styles from "./UI.module.css";
 import { loadProfile } from "@/lib/profile/service";
 import { profileComplete } from "@/lib/profile/model";
@@ -18,8 +18,7 @@ export default function UIAuth({
 }: {
   mode: "login" | "signup" | "verify";
 }) {
-  const router = useRouter(),
-    search = useSearchParams();
+  const router = useRouter();
   const [agreed, setAgreed] = useState(false);
   const [email, setEmail] = useState(""),
     [code, setCode] = useState(""),
@@ -29,7 +28,6 @@ export default function UIAuth({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore the address from browser session storage after hydration.
     if (mode === "verify") setEmail(sessionStorage.getItem(EMAIL_KEY) || "");
   }, [mode]);
-  const next = safeNext(search.get("next"));
   async function request(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -53,7 +51,7 @@ export default function UIAuth({
         return;
       }
       sessionStorage.setItem(EMAIL_KEY, addr);
-      sessionStorage.setItem(NEXT_KEY, next);
+      sessionStorage.removeItem(NEXT_KEY);
       router.push("/verify");
     } catch (ex) {
       setError(
@@ -88,19 +86,12 @@ export default function UIAuth({
         return;
       }
       sessionStorage.removeItem(EMAIL_KEY);
-      const dest = safeNext(sessionStorage.getItem(NEXT_KEY));
       sessionStorage.removeItem(NEXT_KEY);
       try {
         const profile = await loadProfile(createClient());
-        router.replace(
-          profileComplete(profile)
-            ? dest
-            : `/account/setup?next=${encodeURIComponent(dest === "/sell" ? "/" : dest)}`,
-        );
+        router.replace(profileComplete(profile) ? "/" : "/account/setup");
       } catch {
-        router.replace(
-          `/account/setup?next=${encodeURIComponent(dest === "/sell" ? "/" : dest)}`,
-        );
+        router.replace("/account/setup");
       }
       router.refresh();
     } catch (ex) {

@@ -30,15 +30,12 @@ export async function proxy(request: NextRequest) {
   });
   const { data } = await supabase.auth.getClaims();
   const loggedIn = !!data?.claims;
-  const { pathname, search } = request.nextUrl;
+  const { pathname } = request.nextUrl;
   const isPublic = PUBLIC_PATHS.includes(pathname);
   if (!loggedIn && !isPublic) {
     const to = request.nextUrl.clone();
     to.pathname = "/login";
-    to.search =
-      pathname === "/" && !search
-        ? ""
-        : `?next=${encodeURIComponent(pathname + search)}`;
+    to.search = "";
     return redirectWithCookies(to, response);
   }
   if (loggedIn && (pathname === "/login" || pathname === "/signup")) {

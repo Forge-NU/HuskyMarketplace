@@ -18,15 +18,8 @@ import {
   profileComplete,
   type AccountProfile as Profile,
 } from "@/lib/profile/model";
-import { safeNext } from "@/lib/auth";
 import styles from "./UI.module.css";
-export default function AccountProfile({
-  setup = false,
-  next = "/",
-}: {
-  setup?: boolean;
-  next?: string;
-}) {
+export default function AccountProfile({ setup = false }: { setup?: boolean }) {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null),
     [loading, setLoading] = useState(true),
@@ -124,7 +117,7 @@ export default function AccountProfile({
       const saved = await saveProfile(createClient(), profile);
       setProfile(saved);
       if (setup) {
-        router.replace(safeNext(next));
+        router.replace("/");
         router.refresh();
       } else
         setNotice(

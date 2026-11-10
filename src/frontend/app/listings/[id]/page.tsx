@@ -19,7 +19,9 @@ export default async function ListingPage({
     <main className={styles.page}>
       <Link
         className={styles.back}
-        href={l.kind === "service" ? "/?mode=services" : "/"}
+        href={
+          l.kind === "service" ? "/team-browse?mode=services" : "/team-browse"
+        }
       >
         ← Back to browse
       </Link>

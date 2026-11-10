@@ -18,7 +18,7 @@ Other scripts: `npm run build` (production build), `npm run lint`.
 Supabase Auth with email one-time codes (no passwords), limited to `@northeastern.edu`.
 
 - `app/login/` + `components/auth/LoginForm.tsx`: enter email, then the 6-digit code.
-- `proxy.ts` runs on every request: refreshes the session cookie and sends logged-out users to `/login?next=...`.
+- `proxy.ts` runs on every request: refreshes the session cookie and sends logged-out users to `/login`. Returning students land on Home after verification; new students finish account setup first, then land on Home.
 - `lib/supabase/client.ts` (Client Components) and `lib/supabase/server.ts` (Server Components) create Supabase clients.
 - The domain check in the form is only for UX. The real gate is the `hook_require_northeastern_email` hook in `supabase/migrations/`, and Row Level Security protects the tables.
 
@@ -38,7 +38,7 @@ components/
   auth/LoginForm.tsx    # email -> code sign-in form
 lib/
   supabase/             # Supabase clients for browser and server, env var check
-  auth.ts               # @northeastern.edu check, safe ?next= redirect
+  auth.ts               # @northeastern.edu check and legacy redirect validation
   types.ts              # Listing, Seller, Category
   mock-data.ts          # sample data until the FastAPI backend exists
   use-filters.ts        # browse filters, stored in the URL (?mode=services&cat=tutoring)
