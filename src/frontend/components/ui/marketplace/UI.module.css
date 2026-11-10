@@ -1062,11 +1062,23 @@
   gap: 16px;
 }
 
-.authCard .formActions a {
+.authCard .formActions a,
+.authCard .formActions button {
   color: #c8102e;
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.authCard .formActions button {
+  padding: 0;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.authCard .formActions button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .authCard .formActions > a[href="/terms"] {
