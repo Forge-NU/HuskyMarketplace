@@ -33,7 +33,12 @@ def get_anon_client() -> Client:
 
 
 def get_user_client(access_token: str) -> Client:
-    """A client that acts as the signed-in student, so RLS applies to every query."""
+    """A client that acts as the signed-in student, so RLS applies to every database query.
+
+    Database only: the token is forwarded to PostgREST (client.table / client.rpc).
+    Storage (client.storage) still uses the anon key, so it does not act as the student.
+    Handle that before connecting photo uploads.
+    """
     settings = get_settings()
     client = create_client(
         _require(settings.supabase_url, "SUPABASE_URL"),

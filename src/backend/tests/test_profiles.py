@@ -59,6 +59,22 @@ def test_me_returns_503_when_supabase_auth_fails(client, monkeypatch, status):
     assert response.json()["error"]["code"] == "auth_unavailable"
 
 
+@pytest.mark.parametrize(
+    "error, user",
+    [
+        (ValueError("could not parse Supabase response"), None),
+        (None, SimpleNamespace(email="husky@northeastern.edu")),  # user without an id
+    ],
+)
+def test_me_returns_503_when_supabase_response_is_malformed(client, monkeypatch, error, user):
+    use_fake_supabase(monkeypatch, user=user, error=error)
+
+    response = client.get("/profiles/me", headers={"Authorization": "Bearer valid-token"})
+
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "auth_unavailable"
+
+
 def test_me_returns_500_when_supabase_is_not_configured(monkeypatch):
     def missing_config():
         raise RuntimeError("SUPABASE_URL is not set.")

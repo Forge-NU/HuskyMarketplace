@@ -43,6 +43,10 @@ def _invalid_token() -> APIError:
     return APIError(401, "invalid_token", "Your session is invalid or expired. Sign in again.", headers=_WWW_AUTH)
 
 
+def _auth_unavailable() -> APIError:
+    return APIError(503, "auth_unavailable", "We couldn't verify your session right now. Try again in a moment.")
+
+
 def _is_rejected_token(exc: AuthError) -> bool:
     """True when Supabase checked the token and said no, as opposed to failing to check it."""
     status = getattr(exc, "status", None)
@@ -69,12 +73,20 @@ def get_current_user(
         if _is_rejected_token(exc):
             raise _invalid_token() from None
         logger.warning("Supabase Auth failed while verifying a token", exc_info=True)
-        raise APIError(
-            503, "auth_unavailable", "We couldn't verify your session right now. Try again in a moment."
-        ) from None
+        raise _auth_unavailable() from None
+    except Exception:
+        # Anything else coming out of the Supabase call (e.g. a response we can't parse)
+        # is Supabase misbehaving, not a bad session.
+        logger.exception("Unexpected error while verifying a token with Supabase Auth")
+        raise _auth_unavailable() from None
 
     user = getattr(response, "user", None)
     if user is None:
         raise _invalid_token()
 
-    return CurrentUser(id=str(user.id), email=user.email, access_token=token)
+    user_id = getattr(user, "id", None)
+    if not user_id:
+        logger.error("Supabase Auth returned a user without an id")
+        raise _auth_unavailable()
+
+    return CurrentUser(id=str(user_id), email=getattr(user, "email", None), access_token=token)
