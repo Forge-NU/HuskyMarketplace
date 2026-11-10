@@ -1916,6 +1916,17 @@
 .footer {
   margin-top: auto;
 }
+@media (min-width: 801px) {
+  .page {
+    min-height: 0;
+  }
+  .page > main {
+    flex: none;
+  }
+  .footer {
+    margin-top: 0;
+  }
+}
 .movingPage {
   min-height: 0;
   padding-bottom: 32px;
