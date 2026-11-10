@@ -70,7 +70,9 @@ export default function UIShell({
         )}
       </div>
       <header className={styles.siteHeader}>
-        <div className={styles.headerInner}>
+        <div
+          className={`${styles.headerInner} ${pathname === "/browse" ? styles.browseHeader : ""}`}
+        >
           <Link
             className={styles.logo}
             href="/"
@@ -90,16 +92,18 @@ export default function UIShell({
               </Link>
             ))}
           </nav>
-          <form className={styles.search} onSubmit={search} role="search">
-            <span aria-hidden="true">⌕</span>
-            <input
-              type="search"
-              aria-label="Search listings"
-              placeholder="Search anything on campus..."
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-          </form>
+          {pathname !== "/browse" && (
+            <form className={styles.search} onSubmit={search} role="search">
+              <span aria-hidden="true">⌕</span>
+              <input
+                type="search"
+                aria-label="Search listings"
+                placeholder="Search anything on campus..."
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+            </form>
+          )}
           <div className={styles.headerActions}>
             <Link
               className={styles.iconButton}

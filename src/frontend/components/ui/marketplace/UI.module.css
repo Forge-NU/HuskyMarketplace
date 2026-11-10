@@ -158,6 +158,9 @@
   align-items: center;
   flex: none;
 }
+.browseHeader .headerActions {
+  margin-left: auto;
+}
 .iconButton {
   display: inline-grid;
   place-items: center;
