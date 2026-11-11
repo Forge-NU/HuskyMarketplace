@@ -42,6 +42,8 @@ npx supabase@3.0.0 stop # Stops local Supabase
 
 - `20261108114753_listings_rpcs.sql`: the five listing RPCs (save, attach photo, submit, delete, version)
 
+- - `20261110032051_auto_approve_listings.sql`: temporary auto-approver that approves listings as soon as they're submitted, until moderation is connected
+
 - `20261110052123_listing_photos_storage_drafts_only.sql`: Storage uploads and deletes only for the caller's own drafts (replaces the #39 upload/delete policies)
 
 - `seed.sql`: local test data (categories). Runs on `db reset`, never on production.

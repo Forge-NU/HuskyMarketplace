@@ -203,7 +203,8 @@ BEGIN
     IF v_seller != v_user THEN
         RAISE EXCEPTION 'Listing belongs to another user';
     END IF;
-    IF v_status = 'pending' THEN
+    -- Already submitted (a retry, or auto-approval already ran).
+    IF v_status IN ('pending', 'approved') THEN
         RETURN 'pending';
     END IF;
     IF v_status != 'draft' THEN
@@ -216,6 +217,20 @@ BEGIN
         WHERE listing_id = p_id
     ) THEN
         RAISE EXCEPTION 'Listing needs at least one photo to be submitted';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM public.listing_photos
+        WHERE listing_id = p_id
+        AND NOT EXISTS (
+            SELECT 1
+            FROM storage.objects
+            WHERE bucket_id = 'listing-photos'
+            AND name = listing_photos.photo_url
+        )
+    ) THEN
+        RAISE EXCEPTION 'Every attached photo must exist in storage (a photo file is missing)';
     END IF;
 
     UPDATE public.listings
