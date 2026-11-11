@@ -10,6 +10,7 @@
   --photo-muted: #727071;
   --photo-border: #ece7e0;
   min-height: 100vh;
+  min-height: 100svh;
   color: var(--photo-ink);
   background: var(--photo-cream);
   font:
@@ -734,10 +735,9 @@
   color: #ffd766;
 }
 .content {
-  min-height: 58vh;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 44px 28px 80px;
+  padding: clamp(24px, 4vw, 44px) clamp(16px, 3vw, 28px) clamp(32px, 4vw, 48px);
 }
 .contentHead {
   padding: 0 0 28px;
@@ -1045,7 +1045,7 @@
 }
 .split {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 24px;
 }
 .formActions {
@@ -1431,6 +1431,7 @@
 .page :is(input, select, textarea) {
   max-width: 100%;
   min-width: 0;
+  font-family: inherit;
   font-size: 16px;
 }
 .page :is(section, form, fieldset, aside, nav) {
@@ -1931,6 +1932,17 @@
 }
 .footer {
   margin-top: auto;
+}
+@media (min-width: 801px) {
+  .page {
+    min-height: 0;
+  }
+  .page > main {
+    flex: none;
+  }
+  .footer {
+    margin-top: 0;
+  }
 }
 .movingPage {
   min-height: 0;
