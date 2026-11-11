@@ -2,21 +2,25 @@
 --   1. Adds display_name, bio, and campus_area to profiles so other students
 --      can see them on seller profiles. The frontend currently stores these in
 --      auth user metadata, which only the owner can read.
---   2. Copies existing values over from user metadata. Values that break the
---      new length rules are left empty instead of failing the migration.
---   3. Adds is_mover for students offering moving help.
---   4. Limits which profile columns students can update.
---   5. Lets signed-in users read all profiles. Everything in profiles is
+--   2. Validates them: display names must be trimmed and 2 to 60 characters,
+--      bios can be up to 200, and campus_area must be one of the dropdown values.
+--   3. Copies existing values over from user metadata. Values that don't pass
+--      the new rules are left empty instead of failing the migration.
+--   4. Keeps updated_at current with a trigger.
+--   5. Limits which profile columns students can update.
+--   6. Lets signed-in users read all profiles. Everything in profiles is
 --      public, so private fields belong in a separate table (like
 --      student_verifications).
+--
+-- Tests: supabase/tests/database/profiles.test.sql
 
 ALTER TABLE "public"."profiles"
   ADD COLUMN "display_name" text,
   ADD COLUMN "bio"          text,
   ADD COLUMN "campus_area"  text,
-  ADD COLUMN "is_mover"     boolean NOT NULL DEFAULT false,
-  ADD CONSTRAINT "profiles_display_name_check" CHECK (((char_length(display_name) >= 2) AND (char_length(display_name) <= 60))),
-  ADD CONSTRAINT "profiles_bio_check" CHECK ((char_length(bio) <= 200));
+  ADD CONSTRAINT "profiles_display_name_check" CHECK (((display_name = btrim(display_name)) AND (char_length(display_name) >= 2) AND (char_length(display_name) <= 60))),
+  ADD CONSTRAINT "profiles_bio_check" CHECK ((char_length(bio) <= 200)),
+  ADD CONSTRAINT "profiles_campus_area_check" CHECK ((campus_area = ANY (ARRAY['Fenway'::text, 'West Village'::text, 'East Village'::text, 'LightView'::text, 'Ruggles'::text, 'Other near campus'::text])));
 
 UPDATE "public"."profiles" AS p
 SET
@@ -28,13 +32,34 @@ SET
     WHEN char_length(btrim(u.raw_user_meta_data ->> 'bio')) BETWEEN 1 AND 200
     THEN btrim(u.raw_user_meta_data ->> 'bio')
   END,
-  "campus_area" = NULLIF(btrim(u.raw_user_meta_data ->> 'campus_area'), '')
+    "campus_area" = CASE
+    WHEN btrim(u.raw_user_meta_data ->> 'campus_area') IN ('Fenway', 'West Village', 'East Village', 'LightView', 'Ruggles', 'Other near campus')
+    THEN btrim(u.raw_user_meta_data ->> 'campus_area')
+  END
 FROM auth.users AS u
 WHERE u.id = p.user_id;
 
+CREATE OR REPLACE FUNCTION public.set_profiles_updated_at()
+  RETURNS trigger
+  LANGUAGE plpgsql
+  SET search_path TO ''
+  AS $function$
+BEGIN
+  new.updated_at := now();
+  RETURN new;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION "public"."set_profiles_updated_at"() FROM PUBLIC;
+
+CREATE TRIGGER set_profiles_updated_at
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.set_profiles_updated_at();
+
 REVOKE UPDATE ON TABLE "public"."profiles" FROM "authenticated";
 
-GRANT UPDATE ("username", "display_name", "bio", "campus_area", "is_mover") ON TABLE "public"."profiles" TO "authenticated";
+GRANT UPDATE ("username", "display_name", "bio", "campus_area") ON TABLE "public"."profiles" TO "authenticated";
 
 DROP POLICY "users can read own profile" ON "public"."profiles";
 
