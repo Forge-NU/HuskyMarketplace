@@ -2,19 +2,24 @@
 
 `registration.html` is the Confirm signup email; subject: **Your Husky Marketplace verification code**.
 `recovery.html` is the Reset password email; subject: **Reset your Husky Marketplace password**.
-Both were saved in the hosted project on November 14, 2026. Their dashboard previews render the code placeholder and short instructions. Inbox delivery and rendering still need verification.
+Both were saved in hosted Supabase on November 14, 2026. Brevo delivery logs confirmed verification and recovery emails reached the test mailbox that evening.
 
 Keep `{{ .Token }}` intact. The app expects eight digits. Email confirmation must remain enabled. `verification.html` remains the Magic Link/OTP template for email sign-in and device checks.
 
-# Device verification rollout
+Custom SMTP uses Brevo. Its free sending allowance and Supabase Auth rate limits still apply. Manage SMTP credentials in Supabase; do not put them in templates or the repository.
 
-The device migration changes data access, including listing RPCs. Review it before applying to the shared project. The migration installs inactive. The private device_verification_settings row keeps existing data access unchanged until its enabled field is set to true. Proof status is separate and never reports unverified sessions as verified.
+# Device verification
 
-1. Run all local database tests with the new migration, including tests for the existing listing flow. Listing tests now include verified-session fixtures; the device tests also cover unverified sessions.
-2. Stage the new frontend with `DEVICE_VERIFICATION_ENABLED=true` in its server environment and the migration on an isolated Supabase project. Use a public client key, never a service-role key.
-3. Verify email delivery, wrong/expired codes, resend errors, signup, recovery, profile saves, logout, fresh browsers, and a remembered browser. Verify direct database, Storage, and RPC denial before email confirmation.
-4. Install the migration inactive, deploy the new frontend with DEVICE_VERIFICATION_ENABLED=true, verify remembered/fresh browsers, then set private.device_verification_settings.enabled=true. Roll back enforcement by setting that field to false if the coordinated release fails; this restores the previous access model while retaining private proof records. No device database change has been applied by this work.
+The migration is installed in shared Supabase, and enforcement was enabled with approval on November 14, 2026. The production frontend has `DEVICE_VERIFICATION_ENABLED=true`.
 
-A remembered device is a random HttpOnly cookie backed by a hash in a private table. Trust expires after 30 days. It does not fingerprint hardware. Clearing cookies or using another browser requires email again. This is email-based device verification, not Supabase AAL2 MFA. School profile fields remain editable metadata pending the public-profile migration and are not used for authorization.
+A remembered browser uses a random HttpOnly cookie backed by a hash in a private table. Trust expires after 30 days. Clearing cookies or using another browser requires email verification again. Recent email verification rotates the remembered credential. This is email-based device verification, not Supabase AAL2 MFA. School profile fields remain editable metadata pending the public-profile migration and are not used for authorization.
 
-Review updates: the staged-rollout and expiry checks now pass 15 isolated PostgreSQL assertions. Device credentials rotate after recent email proof so two students sharing a browser do not collide on one remembered credential. The full hosted browser test is still pending rollout approval and private code entry.
+Hosted testing confirmed sign-in, access to the account page, and remembered-browser login: the latest password-only sessions passed the database device check. A full fresh private-browser test has not been confirmed. Fifteen isolated PostgreSQL checks passed; the full Supabase database suite still needs Docker.
+
+## Installing in another environment
+
+1. Review the migration and run the full database suite, including listing and device tests.
+2. Install the migration inactive. Its default settings preserve the previous data-access rules; proof status still reports unverified sessions correctly.
+3. Deploy the frontend with the server environment variable `DEVICE_VERIFICATION_ENABLED=true`.
+4. Test signup, recovery, profile saves, logout, wrong and expired codes, resend errors, remembered browsers, and fresh browsers. Check direct database, Storage, and listing RPC access before verification.
+5. Enable `private.device_verification_settings.enabled` after those checks. Setting it back to false restores the previous data-access rules while retaining private proof records.

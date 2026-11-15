@@ -200,7 +200,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
           <section className={styles.authCard}>
             <p className={styles.eyebrow}>
               {mode === "signup" || mode === "verify"
-                ? "1 · ACCOUNT   /   2 · EMAIL   /   3 · PROFILE"
+                ? mode === "signup"
+                  ? "STEP 1 OF 3 · CREATE ACCOUNT"
+                  : "STEP 2 OF 3 · VERIFY EMAIL"
                 : "YOUR HUSKY ACCOUNT"}
             </p>
             <h1>{titles[mode]}</h1>
@@ -210,7 +212,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                 : mode === "signup"
                   ? "Verify your Northeastern email, then tell us a little about yourself."
                   : mode === "forgot"
-                    ? "We’ll send a code to your school email. Previously used email codes to log in? You can create your first password here too."
+                    ? "We’ll email you a reset code. You can also use this to set your first password."
                     : "Your campus finds are waiting. Sign in with your email and password."}
             </p>
             <form onSubmit={submit}>
@@ -311,7 +313,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                   </div>
                 )}
                 {mode === "login" && (
-                  <label>
+                  <label className={styles.authChoice}>
                     <input
                       type="checkbox"
                       checked={remember}
@@ -322,22 +324,24 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                 )}
                 {mode === "signup" && (
                   <p>
-                    <label>
+                    <label className={styles.authChoice}>
                       <input
                         type="checkbox"
                         required
                         checked={accepted}
                         onChange={(e) => setAccepted(e.target.checked)}
                       />{" "}
-                      I agree to the{" "}
-                      <Link href="/terms" target="_blank">
-                        Terms
-                      </Link>{" "}
-                      and acknowledge the{" "}
-                      <Link href="/privacy" target="_blank">
-                        Privacy Policy
-                      </Link>
-                      .
+                      <span>
+                        I agree to the{" "}
+                        <Link href="/terms" target="_blank">
+                          Terms
+                        </Link>{" "}
+                        and acknowledge the{" "}
+                        <Link href="/privacy" target="_blank">
+                          Privacy Policy
+                        </Link>
+                        .
+                      </span>
                     </label>
                   </p>
                 )}
