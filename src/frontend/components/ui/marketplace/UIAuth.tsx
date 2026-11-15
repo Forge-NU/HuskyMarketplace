@@ -361,6 +361,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
               </fieldset>
             </form>
             <div className={styles.formActions}>
+              {mode === "device" && (
+                <Link href="/">Already verified? Continue to Home</Link>
+              )}
               {mode === "login" && (
                 <>
                   <Link href="/forgot-password">Forgot password?</Link>

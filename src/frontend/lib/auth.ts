@@ -30,6 +30,7 @@ export function authMessage(error: unknown) {
     case "otp_expired":
       return "That code is incorrect or expired. Request a new code.";
     case "over_email_send_rate_limit":
+      return "Email sending limit reached. Please wait before requesting another code; it may take longer than a minute to reset.";
     case "over_request_rate_limit":
       return "Too many attempts. Please wait a minute and try again.";
     case "email_not_confirmed":

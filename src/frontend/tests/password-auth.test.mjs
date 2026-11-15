@@ -52,3 +52,14 @@ test("remembered credentials rotate only after recent email proof", () => {
   );
   assert.equal(recentEmailProof({ amr: "otp" }, 1001), false);
 });
+
+test("email sending quota does not promise a one-minute reset", () => {
+  assert.match(
+    authMessage({ code: "over_email_send_rate_limit" }),
+    /longer than a minute/,
+  );
+  assert.match(
+    authMessage({ code: "over_request_rate_limit" }),
+    /Too many attempts/,
+  );
+});
