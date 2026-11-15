@@ -1,8 +1,16 @@
--- Deploy with DEVICE_VERIFICATION_ENABLED=true only after reviewing the rollout.
+-- Install inactive, deploy the matching frontend, then enable the database gate.
 -- No password, email code, or raw trusted-device token is stored here.
 create schema if not exists private;
 revoke all on schema private from public;
 grant usage on schema private to authenticated;
+create table private.device_verification_settings (
+  id boolean primary key default true check(id),
+  enabled boolean not null default false
+);
+insert into private.device_verification_settings(id,enabled) values(true,false);
+alter table private.device_verification_settings enable row level security;
+revoke all on private.device_verification_settings from anon, authenticated;
+
 create table private.verified_sessions (
   session_id uuid primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -25,6 +33,17 @@ language sql stable security definer set search_path = '' as $$
 $$;
 revoke all on function private.session_verified() from public;
 grant execute on function private.session_verified() to authenticated;
+
+-- Separate rollout switch from proof status: disabled preserves existing access;
+-- it never labels an unverified session as verified.
+create function private.device_access_allowed() returns boolean
+language sql stable security definer set search_path = '' as $$
+ select auth.uid() is not null and
+ (not coalesce((select enabled from private.device_verification_settings where id),true)
+  or private.session_verified());
+$$;
+revoke all on function private.device_access_allowed() from public;
+grant execute on function private.device_access_allowed() to authenticated;
 
 create function public.device_session_verified() returns boolean
 language sql stable security invoker set search_path = '' as $$
@@ -68,20 +87,20 @@ grant execute on function public.confirm_device_session(text,boolean) to authent
 -- Restrictive policies compose with ownership/visibility policies; they never replace them.
 do $$ declare t text; begin
  foreach t in array array['profiles','student_verifications','listings','listing_photos','categories','saved_items','reports','reviews','conversations','conversation_participants','messages','transactions'] loop
- execute format('create policy verified_device_required on public.%I as restrictive for all to authenticated using ((select private.session_verified())) with check ((select private.session_verified()))',t);
+ execute format('create policy verified_device_required on public.%I as restrictive for all to authenticated using ((select private.device_access_allowed())) with check ((select private.device_access_allowed()))',t);
  end loop;
 end $$;
 create policy verified_listing_storage_session on storage.objects as restrictive
 for all to authenticated
-using (bucket_id <> 'listing-photos' or (select private.session_verified()))
-with check (bucket_id <> 'listing-photos' or (select private.session_verified()));
+using (bucket_id <> 'listing-photos' or (select private.device_access_allowed()))
+with check (bucket_id <> 'listing-photos' or (select private.device_access_allowed()));
 
 -- These SECURITY DEFINER RPCs bypass table RLS, so guard them explicitly too.
 do $$ declare f record; definition text; begin
  for f in select p.oid from pg_proc p join pg_namespace n on n.oid=p.pronamespace
  where n.nspname='public' and p.proname in ('save_listing_draft','attach_listing_photo','submit_listing','delete_listing') loop
  definition := pg_get_functiondef(f.oid);
- definition := regexp_replace(definition, E'BEGIN', E'BEGIN\n    IF NOT private.session_verified() THEN RAISE EXCEPTION ''Verify this device before continuing''; END IF;', 'i');
+ definition := regexp_replace(definition, E'BEGIN', E'BEGIN\n    IF NOT private.device_access_allowed() THEN RAISE EXCEPTION ''Verify this device before continuing''; END IF;', 'i');
  execute definition;
  end loop;
 end $$;

@@ -27,3 +27,28 @@ test("expired codes and rate limits have actionable messages", () => {
   assert.match(authMessage({ code: "otp_expired" }), /new code/);
   assert.match(authMessage({ code: "over_email_send_rate_limit" }), /wait/);
 });
+
+import { recentEmailProof } from "../lib/auth/device.ts";
+test("remembered credentials rotate only after recent email proof", () => {
+  assert.equal(
+    recentEmailProof({ amr: [{ method: "otp", timestamp: 1000 }] }, 1001),
+    true,
+  );
+  assert.equal(
+    recentEmailProof({ amr: [{ method: "password", timestamp: 1000 }] }, 1001),
+    false,
+  );
+  assert.equal(
+    recentEmailProof({ amr: [{ method: "otp", timestamp: 1 }] }, 1001),
+    false,
+  );
+  assert.equal(
+    recentEmailProof({ amr: [{ method: "otp", timestamp: 2000 }] }, 1001),
+    false,
+  );
+  assert.equal(
+    recentEmailProof({ amr: [{ method: "otp", timestamp: "1000" }] }, 1001),
+    false,
+  );
+  assert.equal(recentEmailProof({ amr: "otp" }, 1001), false);
+});

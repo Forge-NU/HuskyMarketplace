@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { recentEmailProof } from "@/lib/auth/device";
 const DEVICE_COOKIE = "husky_device";
 export async function POST(request: NextRequest) {
   if (request.headers.get("origin") !== request.nextUrl.origin)
@@ -17,8 +18,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Sign in first." }, { status: 401 });
   const store = await cookies();
   const previous = store.get(DEVICE_COOKIE)?.value;
+  const verifiedClaims = await client.auth.getClaims();
+  // Rotate after an email challenge, including when another student uses this browser.
+  const freshProof =
+    !verifiedClaims.error &&
+    verifiedClaims.data?.claims &&
+    recentEmailProof(verifiedClaims.data.claims);
   const token =
-    previous && /^[a-f0-9]{64}$/.test(previous)
+    !freshProof && previous && /^[a-f0-9]{64}$/.test(previous)
       ? previous
       : randomBytes(32).toString("hex");
   const remember = store.get("husky_keep_signed_in")?.value === "yes";

@@ -2,6 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select plan(9);
+update private.device_verification_settings set enabled=true;
 insert into auth.users(id,email) values
  ('d1111111-1111-4111-8111-111111111111','device_test_a@northeastern.edu'),
  ('d2222222-2222-4222-8222-222222222222','device_test_b@northeastern.edu');
