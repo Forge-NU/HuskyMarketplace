@@ -195,7 +195,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
   }
   return (
     <UIShell>
-      <main className={styles.content}>
+      <main className={`${styles.content} ${styles.authFlow}`}>
         <div className={styles.authLayout}>
           <section className={styles.authCard}>
             <p className={styles.eyebrow}>
@@ -385,7 +385,28 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                     {remaining ? `Resend in ${remaining}s` : "Resend code"}
                   </button>
                   <Link
-                    href={mode === "reset" ? "/forgot-password" : "/signup"}
+                    onClick={
+                      mode === "device"
+                        ? async (event) => {
+                            event.preventDefault();
+                            await run(async () => {
+                              const result = await createClient().auth.signOut({
+                                scope: "local",
+                              });
+                              if (result.error) throw result.error;
+                              router.replace("/login");
+                              router.refresh();
+                            });
+                          }
+                        : undefined
+                    }
+                    href={
+                      mode === "reset"
+                        ? "/forgot-password"
+                        : mode === "device"
+                          ? "/login"
+                          : "/signup"
+                    }
                   >
                     Use a different email
                   </Link>
@@ -394,13 +415,6 @@ export default function UIAuth({ mode }: { mode: Mode }) {
               {mode === "forgot" && <Link href="/login">Back to login</Link>}
             </div>
           </section>
-          <aside className={styles.authArt}>
-            <div className={styles.authArtCopy}>
-              <p className={styles.eyebrow}>MADE FOR YOUR CAMPUS</p>
-              <h2>A second life for your stuff. A little more room for you.</h2>
-              <p>Buy, sell, and discover something good around Northeastern.</p>
-            </div>
-          </aside>
         </div>
       </main>
     </UIShell>
