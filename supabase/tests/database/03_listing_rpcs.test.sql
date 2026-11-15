@@ -34,8 +34,11 @@ grant select on details to authenticated;
 
 
 -- save_listing_draft (signed in as A) -------------------------------------------
+-- Verified-session fixtures for the listing tests, never shared data.
+insert into private.verified_sessions(session_id,user_id,expires_at)
+select id,id,now()+interval '1 day' from auth.users on conflict do nothing;
 set local role authenticated;
-set local request.jwt.claims = '{"sub": "aaaaaaaa-0000-0000-0000-000000000000", "role": "authenticated"}';
+set local request.jwt.claims = '{"sub": "aaaaaaaa-0000-0000-0000-000000000000", "role": "authenticated", "session_id": "aaaaaaaa-0000-0000-0000-000000000000"}';
 
 select is(
   public.save_listing_draft('a0000000-0000-0000-0000-000000000001', (select d from details)),

@@ -5,6 +5,8 @@ export type AccountProfile = {
   displayName: string;
   area: string;
   bio: string;
+  campus?: string;
+  schoolYear?: string;
 };
 export function validateProfile(username: string, displayName: string) {
   const handle = username.trim().toLowerCase();
@@ -36,4 +38,25 @@ export function validateBio(bio: string) {
   if (bio.length > 200)
     throw new Error("Keep your bio to 200 characters or fewer.");
   return bio.trim();
+}
+
+export const CAMPUSES = [
+  "Boston",
+  "Oakland",
+  "London",
+  "Other Northeastern campus",
+];
+export const SCHOOL_YEARS = [
+  "First year",
+  "Second year",
+  "Third year",
+  "Fourth year",
+  "Fifth year or later",
+  "Graduate student",
+];
+export function validateSchoolDetails(campus?: string, schoolYear?: string) {
+  if (campus && !CAMPUSES.includes(campus))
+    throw new Error("Choose a campus from the list.");
+  if (schoolYear && !SCHOOL_YEARS.includes(schoolYear))
+    throw new Error("Choose your school year from the list.");
 }

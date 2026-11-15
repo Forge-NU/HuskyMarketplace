@@ -1,3 +1,7 @@
+import {
+  PERSISTENCE_COOKIE,
+  sessionCookieOptions,
+} from "@/lib/supabase/session";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { supabaseEnv } from "./env";
@@ -13,7 +17,14 @@ export async function createClient() {
       setAll(cookiesToSet) {
         try {
           cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
+            cookieStore.set(
+              name,
+              value,
+              sessionCookieOptions(
+                options,
+                cookieStore.get(PERSISTENCE_COOKIE)?.value === "yes",
+              ),
+            ),
           );
         } catch {
           // Server Components can't set cookies. Safe to ignore: proxy.ts refreshes the session.

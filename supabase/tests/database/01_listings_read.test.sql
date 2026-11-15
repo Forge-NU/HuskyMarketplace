@@ -24,8 +24,11 @@ values ('bbbbbbbb-0000-0000-0000-000000000000', 'B approved but unavailable', 'a
 
 
 -- Signed in as student A ------------------------------------------------------
+-- Verified-session fixtures for the listing tests, never shared data.
+insert into private.verified_sessions(session_id,user_id,expires_at)
+select id,id,now()+interval '1 day' from auth.users on conflict do nothing;
 set local role authenticated;
-set local request.jwt.claims = '{"sub": "aaaaaaaa-0000-0000-0000-000000000000", "role": "authenticated"}';
+set local request.jwt.claims = '{"sub": "aaaaaaaa-0000-0000-0000-000000000000", "role": "authenticated", "session_id": "aaaaaaaa-0000-0000-0000-000000000000"}';
 
 select results_eq(
   $$ select title from public.listings where seller_id = 'aaaaaaaa-0000-0000-0000-000000000000' order by title $$,
@@ -63,7 +66,7 @@ select isnt_empty(
 
 
 -- Signed in as student B ------------------------------------------------------
-set local request.jwt.claims = '{"sub": "bbbbbbbb-0000-0000-0000-000000000000", "role": "authenticated"}';
+set local request.jwt.claims = '{"sub": "bbbbbbbb-0000-0000-0000-000000000000", "role": "authenticated", "session_id": "bbbbbbbb-0000-0000-0000-000000000000"}';
 
 select results_eq(
   $$ select title from public.listings where seller_id = 'aaaaaaaa-0000-0000-0000-000000000000' $$,

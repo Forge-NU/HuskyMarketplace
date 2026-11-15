@@ -11,8 +11,11 @@ insert into storage.buckets (id, name) values ('listing-photos', 'listing-photos
 insert into storage.objects (bucket_id, name) values
   ('listing-photos', 'aaaaaaaa-0000-0000-0000-000000000000/a0000000-0000-0000-0000-000000000001/1.webp');
 
+-- Verified-session fixtures for the listing tests, never shared data.
+insert into private.verified_sessions(session_id,user_id,expires_at)
+select id,id,now()+interval '1 day' from auth.users on conflict do nothing;
 set local role authenticated;
-set local request.jwt.claims = '{"sub": "aaaaaaaa-0000-0000-0000-000000000000", "role": "authenticated"}';
+set local request.jwt.claims = '{"sub": "aaaaaaaa-0000-0000-0000-000000000000", "role": "authenticated", "session_id": "aaaaaaaa-0000-0000-0000-000000000000"}';
 
 select public.save_listing_draft('a0000000-0000-0000-0000-000000000001',
   '{"title": "Desk lamp", "description": "Works great", "price": 15,

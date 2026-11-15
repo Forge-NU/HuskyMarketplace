@@ -30,8 +30,11 @@ insert into public.listing_photos (listing_id, photo_url, sort_order) values
 
 
 -- Signed in as student A
+-- Verified-session fixtures for the listing tests, never shared data.
+insert into private.verified_sessions(session_id,user_id,expires_at)
+select id,id,now()+interval '1 day' from auth.users on conflict do nothing;
 set local role authenticated;
-set local request.jwt.claims = '{"sub": "aaaaaaaa-0000-0000-0000-000000000000", "role": "authenticated"}';
+set local request.jwt.claims = '{"sub": "aaaaaaaa-0000-0000-0000-000000000000", "role": "authenticated", "session_id": "aaaaaaaa-0000-0000-0000-000000000000"}';
 
 -- 1. Submitting again after auto-approval
 select is(

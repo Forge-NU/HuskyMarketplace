@@ -293,6 +293,48 @@ export default function AccountProfile({ setup = false }: { setup?: boolean }) {
                     </div>
                   </div>
                   <div className={styles.formField}>
+                    <label className={styles.inputLabel} htmlFor="campus">
+                      Campus
+                    </label>
+                    <select
+                      className={styles.input}
+                      id="campus"
+                      required
+                      value={profile.campus || ""}
+                      onChange={(e) =>
+                        setProfile({ ...profile, campus: e.target.value })
+                      }
+                    >
+                      <option value="">Choose your campus</option>
+                      <option>Boston</option>
+                      <option>Oakland</option>
+                      <option>London</option>
+                      <option>Other Northeastern campus</option>
+                    </select>
+                  </div>
+                  <div className={styles.formField}>
+                    <label className={styles.inputLabel} htmlFor="schoolYear">
+                      School year
+                    </label>
+                    <select
+                      className={styles.input}
+                      id="schoolYear"
+                      required
+                      value={profile.schoolYear || ""}
+                      onChange={(e) =>
+                        setProfile({ ...profile, schoolYear: e.target.value })
+                      }
+                    >
+                      <option value="">Choose your school year</option>
+                      <option>First year</option>
+                      <option>Second year</option>
+                      <option>Third year</option>
+                      <option>Fourth year</option>
+                      <option>Fifth year or later</option>
+                      <option>Graduate student</option>
+                    </select>
+                  </div>{" "}
+                  <div className={styles.formField}>
                     <label className={styles.inputLabel} htmlFor="bio">
                       Bio <span className={styles.hint}>(optional)</span>
                     </label>

@@ -14,6 +14,10 @@ function routing(signedIn) {
     return { url, cookies: { getAll: () => [], set() {} } };
   }
   const modules = {
+    "@/lib/supabase/session": {
+      PERSISTENCE_COOKIE: "husky_keep_signed_in",
+      sessionCookieOptions: (options) => options,
+    },
     "next/server": {
       NextResponse: { next: () => response(), redirect: response },
     },
