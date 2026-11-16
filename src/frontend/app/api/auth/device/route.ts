@@ -10,12 +10,28 @@ export async function POST(request: NextRequest) {
       { error: "Invalid request origin." },
       { status: 403 },
     );
-  if (process.env.DEVICE_VERIFICATION_ENABLED !== "true")
-    return NextResponse.json({ enabled: false });
   const client = await createClient();
   const { data, error } = await client.auth.getUser();
   if (error || !data.user)
     return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  if (process.env.DEVICE_VERIFICATION_ENABLED !== "true") {
+    // Every account has a profile row, so a missing row means the database is
+    // enforcing device checks that this frontend has turned off.
+    const probe = await client
+      .from("profiles")
+      .select("user_id")
+      .eq("user_id", data.user.id)
+      .maybeSingle();
+    if (!probe.error && probe.data)
+      return NextResponse.json({ enabled: false });
+    return NextResponse.json(
+      {
+        error:
+          "This app's device verification setting doesn't match the database. Set DEVICE_VERIFICATION_ENABLED=true and restart the app.",
+      },
+      { status: 500 },
+    );
+  }
   const store = await cookies();
   const previous = store.get(DEVICE_COOKIE)?.value;
   const verifiedClaims = await client.auth.getClaims();

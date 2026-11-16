@@ -61,8 +61,12 @@ export async function proxy(request: NextRequest) {
     if (!allowed.includes(pathname)) {
       const verified = await supabase.rpc("device_session_verified");
       if (verified.error || verified.data !== true) {
+        // A leftover session that never finished the device check (for example
+        // the tab was closed on /verify-device). Sign it out and start at login,
+        // which sends a fresh device code after the password step.
+        await supabase.auth.signOut({ scope: "local" });
         const to = request.nextUrl.clone();
-        to.pathname = "/verify-device";
+        to.pathname = "/login";
         to.search = "";
         return redirectWithCookies(to, response);
       }
