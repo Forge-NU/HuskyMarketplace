@@ -50,6 +50,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore the pending address, never a password or code.
       if (pending) setEmail(pending);
       else if (mode === "device") {
+        // No pending address means the proxy redirected an already signed-in,
+        // unverified session here, so no code has been sent yet.
+        setMessage("Click “Resend code” to get a verification code.");
         let active = true;
         createClient()
           .auth.getUser()
@@ -74,10 +77,11 @@ export default function UIAuth({ mode }: { mode: Mode }) {
     const response = await fetch("/api/auth/device", { method: "POST" });
     const result = await response.json();
     if (result.needsCode) {
-      const sent = await createClient().auth.signInWithOtp({
-        email: email.trim().toLowerCase(),
-        options: { shouldCreateUser: false },
-      });
+      // Device codes use the recovery email: the Magic Link email is not being
+      // delivered, and confirm_device_session accepts a recovery code as proof.
+      const sent = await createClient().auth.resetPasswordForEmail(
+        email.trim().toLowerCase(),
+      );
       if (sent.error) throw sent.error;
       router.push("/verify-device");
       return;
@@ -127,7 +131,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
           const result = await auth.verifyOtp({
             email: address,
             token: code,
-            type: mode === "reset" ? "recovery" : "email",
+            type: mode === "reset" || mode === "device" ? "recovery" : "email",
           });
           if (result.error) throw result.error;
           if (mode === "reset") setVerifiedRecovery(true);
@@ -151,6 +155,12 @@ export default function UIAuth({ mode }: { mode: Mode }) {
           throw new Error("Please accept the Terms to create an account.");
         const result = await auth.signUp({ email: address, password });
         if (result.error) throw result.error;
+        // Supabase hides existing accounts: it returns a user with no
+        // identities and sends no email, instead of returning an error.
+        if (result.data.user?.identities?.length === 0)
+          throw new Error(
+            "You already have an account with this email. Log in, or use Forgot password to set one.",
+          );
         if (result.data.session) {
           await auth.signOut({ scope: "local" });
           throw new Error(
@@ -180,14 +190,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
         throw new Error("Enter your school email or start again.");
       const auth = createClient().auth;
       const result =
-        mode === "reset"
+        mode === "reset" || mode === "device"
           ? await auth.resetPasswordForEmail(email)
-          : mode === "device"
-            ? await auth.signInWithOtp({
-                email,
-                options: { shouldCreateUser: false },
-              })
-            : await auth.resend({ type: "signup", email });
+          : await auth.resend({ type: "signup", email });
       if (result.error) throw result.error;
       setRemaining(60);
       setMessage("A new code is on its way. Check your spam folder too.");
