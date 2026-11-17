@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { authMessage, isNortheasternEmail, validatePassword } from "@/lib/auth";
 import {
   DEVICE_CODE_SENT,
+  DeviceSessionExpiredError,
   codeCooldown,
   hasRequestedCode,
   requestDeviceCode,
@@ -73,6 +74,11 @@ export default function UIAuth({ mode }: { mode: Mode }) {
           const response = await fetch("/api/auth/device", { method: "POST" });
           const result = await response.json();
           if (!active) return;
+          if (response.status === 401) {
+            router.replace("/login");
+            router.refresh();
+            return;
+          }
           if (response.ok) {
             await completeSignIn(router);
             return;
@@ -84,8 +90,11 @@ export default function UIAuth({ mode }: { mode: Mode }) {
           const client = createClient();
           const { data, error } = await client.auth.getUser();
           if (!active) return;
-          if (error || !data.user?.email)
-            throw new Error("Please sign in again to verify your device.");
+          if (error && (!error.status || error.status >= 500))
+            throw new Error(
+              "We couldn’t check your session. Please try again.",
+            );
+          if (error || !data.user?.email) throw new DeviceSessionExpiredError();
           const address = data.user.email;
           setEmail(address);
           sessionStorage.setItem(EMAIL, address);
@@ -102,7 +111,12 @@ export default function UIAuth({ mode }: { mode: Mode }) {
             setMessage("A code is on its way. Check your spam folder too.");
           }
         } catch (e) {
-          if (active) setError(authMessage(e));
+          if (active) {
+            if (e instanceof DeviceSessionExpiredError) {
+              router.replace("/login");
+              router.refresh();
+            } else setError(authMessage(e));
+          }
         } finally {
           if (active) setBusy(false);
         }
@@ -126,6 +140,11 @@ export default function UIAuth({ mode }: { mode: Mode }) {
   async function finish() {
     const response = await fetch("/api/auth/device", { method: "POST" });
     const result = await response.json();
+    if (response.status === 401) {
+      router.replace("/login");
+      router.refresh();
+      return;
+    }
     if (result.needsCode) {
       if (mode === "device")
         throw new Error(
@@ -147,7 +166,10 @@ export default function UIAuth({ mode }: { mode: Mode }) {
     try {
       await action();
     } catch (e) {
-      setError(authMessage(e));
+      if (e instanceof DeviceSessionExpiredError) {
+        router.replace("/login");
+        router.refresh();
+      } else setError(authMessage(e));
     } finally {
       lock.current = false;
       setBusy(false);

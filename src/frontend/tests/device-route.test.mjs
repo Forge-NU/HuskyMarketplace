@@ -15,6 +15,8 @@ const compiled = ts.transpileModule(
 ).outputText;
 
 function fixture({
+  authenticated = true,
+  authError = null,
   verified = false,
   rpcError = null,
   remembered = false,
@@ -24,7 +26,10 @@ function fixture({
   const token = "a".repeat(64);
   const client = {
     auth: {
-      getUser: async () => ({ data: { user: { id: "fixture" } }, error: null }),
+      getUser: async () => ({
+        data: { user: authenticated ? { id: "fixture" } : null },
+        error: authError,
+      }),
       getClaims: async () => ({
         data: {
           claims: {
@@ -119,4 +124,15 @@ test("cross-origin device requests are rejected before checking the session", as
   const f = fixture();
   assert.equal((await f.request("https://other.invalid")).status, 403);
   assert.deepEqual(f.calls, []);
+});
+test("expired sessions require login while temporary Auth errors remain retryable", async () => {
+  const expired = fixture({ authenticated: false });
+  assert.equal((await expired.request()).status, 401);
+  assert.deepEqual(expired.calls, []);
+  const unavailable = fixture({
+    authenticated: false,
+    authError: { status: 503 },
+  });
+  assert.equal((await unavailable.request()).status, 503);
+  assert.deepEqual(unavailable.calls, []);
 });

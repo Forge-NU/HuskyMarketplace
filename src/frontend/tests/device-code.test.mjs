@@ -4,6 +4,7 @@ import {
   codeCooldown,
   hasRequestedCode,
   requestDeviceCode,
+  DeviceSessionExpiredError,
 } from "../lib/auth/device-code.ts";
 
 test("device email is sent only to the authenticated account without creating a user", async () => {
@@ -42,7 +43,10 @@ test("failed sends and expired sessions do not report that a code was sent", asy
     (e) => e === error,
   );
   client.auth.getUser = async () => ({ data: { user: null }, error: null });
-  await assert.rejects(() => requestDeviceCode(client), /sign in again/);
+  await assert.rejects(
+    () => requestDeviceCode(client),
+    DeviceSessionExpiredError,
+  );
 });
 test("refreshing a code screen keeps the resend cooldown without treating it as verification", () => {
   assert.equal(codeCooldown("1000", 1000), 60);

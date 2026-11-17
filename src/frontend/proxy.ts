@@ -11,7 +11,6 @@ const PUBLIC_PATHS = [
   "/login",
   "/signup",
   "/verify",
-  "/verify-device",
   "/api/auth/device",
   "/forgot-password",
   "/reset-password",

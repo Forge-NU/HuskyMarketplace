@@ -14,8 +14,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ enabled: false });
   const client = await createClient();
   const { data, error } = await client.auth.getUser();
+  if (error && (!error.status || error.status >= 500))
+    return NextResponse.json(
+      { error: "Device verification is unavailable. Please retry." },
+      { status: 503 },
+    );
   if (error || !data.user)
-    return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Your session expired. Log in to continue." },
+      { status: 401 },
+    );
   const session = await client.rpc("device_session_verified");
   if (session.error)
     return NextResponse.json(

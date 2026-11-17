@@ -71,6 +71,7 @@ test("signed-out protected routes go to login without a saved destination", asyn
     "/",
     "/sell",
     "/my-listings",
+    "/verify-device",
     "/account/setup?next=/my-listings",
   ]) {
     assert.equal(await visit(path), "/login");
