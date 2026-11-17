@@ -10,6 +10,7 @@ import { safeNext } from "../lib/auth.ts";
 const profile = {
   userId: "owner",
   email: "student@northeastern.edu",
+  emailVerified: false,
   username: "student",
   displayName: "Student",
   area: "Fenway",
@@ -107,6 +108,29 @@ test("load reads actual username and editable display metadata", async () => {
     f.calls.some(
       (c) => c[0] === "eq" && c[1] === "user_id" && c[2] === "owner",
     ),
+  );
+});
+test("profile verification comes from Auth, never editable metadata", async () => {
+  const f = fixture();
+  f.state.user.user_metadata.email_verified = true;
+  assert.equal((await loadProfile(f.client)).emailVerified, false);
+  f.state.user.email_confirmed_at = "2026-11-17T12:00:00Z";
+  assert.equal((await loadProfile(f.client)).emailVerified, true);
+});
+test("saving cannot persist a supplied verification flag", async () => {
+  const f = fixture();
+  const saved = await saveProfile(f.client, {
+    ...profile,
+    emailVerified: true,
+  });
+  assert.equal(saved.emailVerified, false);
+  assert.equal(
+    "emailVerified" in f.calls.find((c) => c[0] === "update")[1],
+    false,
+  );
+  assert.equal(
+    "emailVerified" in f.calls.find((c) => c[0] === "metadata")[1].data,
+    false,
   );
 });
 test("saving only updates own username and presentation metadata", async () => {

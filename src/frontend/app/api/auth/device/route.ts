@@ -16,6 +16,13 @@ export async function POST(request: NextRequest) {
   const { data, error } = await client.auth.getUser();
   if (error || !data.user)
     return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  const session = await client.rpc("device_session_verified");
+  if (session.error)
+    return NextResponse.json(
+      { error: "Device verification is unavailable. Please retry." },
+      { status: 503 },
+    );
+  if (session.data === true) return NextResponse.json({ verified: true });
   const store = await cookies();
   const previous = store.get(DEVICE_COOKIE)?.value;
   const verifiedClaims = await client.auth.getClaims();

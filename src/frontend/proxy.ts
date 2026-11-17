@@ -5,6 +5,7 @@ import {
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseEnv } from "@/lib/supabase/env";
+import { isDevelopmentRoute } from "@/lib/routes";
 // Public auth and policy routes; all other routes require valid Supabase session.
 const PUBLIC_PATHS = [
   "/login",
@@ -20,6 +21,11 @@ const PUBLIC_PATHS = [
   "/credits",
 ];
 export async function proxy(request: NextRequest) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    isDevelopmentRoute(request.nextUrl.pathname)
+  )
+    return new NextResponse(null, { status: 404 });
   const { url, anonKey } = supabaseEnv();
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, anonKey, {

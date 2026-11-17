@@ -370,7 +370,11 @@ export default function AccountProfile({ setup = false }: { setup?: boolean }) {
                         readOnly
                         value={profile.email}
                       />
-                      <p className={styles.hint}>Used for sign-in.</p>
+                      <p className={styles.hint}>
+                        {profile.emailVerified
+                          ? "Email verified · Used for sign-in."
+                          : "Email not verified."}
+                      </p>
                     </div>
                     <div className={styles.formField}>
                       <label

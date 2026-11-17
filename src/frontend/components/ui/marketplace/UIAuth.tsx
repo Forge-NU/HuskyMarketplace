@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import UIShell from "./UIShell";
 import { createClient } from "@/lib/supabase/client";
 import { authMessage, isNortheasternEmail, validatePassword } from "@/lib/auth";
+import {
+  DEVICE_CODE_SENT,
+  codeCooldown,
+  requestDeviceCode,
+} from "@/lib/auth/device-code";
 import { loadProfile } from "@/lib/profile/service";
 import { profileComplete } from "@/lib/profile/model";
 import styles from "./UI.module.css";
@@ -27,6 +32,21 @@ const actions: Record<Mode, string> = {
   forgot: "Send reset code",
   reset: "Save new password",
 };
+async function completeSignIn(router: ReturnType<typeof useRouter>) {
+  const address = sessionStorage.getItem(EMAIL);
+  if (address) sessionStorage.removeItem(`${DEVICE_CODE_SENT}:${address}`);
+  sessionStorage.removeItem(EMAIL);
+  sessionStorage.removeItem("husky_auth_next");
+  let complete = false;
+  try {
+    complete = profileComplete(await loadProfile(createClient()));
+  } catch {
+    /* Setup offers a profile-load retry. */
+  }
+  router.replace(complete ? "/" : "/account/setup");
+  router.refresh();
+}
+
 export default function UIAuth({ mode }: { mode: Mode }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -36,7 +56,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
   const [visible, setVisible] = useState(false);
   const [remember, setRemember] = useState(false);
   const [accepted, setAccepted] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(mode === "device");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [remaining, setRemaining] = useState(0);
@@ -45,26 +65,58 @@ export default function UIAuth({ mode }: { mode: Mode }) {
   const codePage = mode === "verify" || mode === "reset" || mode === "device";
   const newPassword = mode === "signup" || mode === "reset";
   useEffect(() => {
+    if (mode === "device") {
+      let active = true;
+      async function start() {
+        try {
+          const response = await fetch("/api/auth/device", { method: "POST" });
+          const result = await response.json();
+          if (!active) return;
+          if (response.ok) {
+            await completeSignIn(router);
+            return;
+          }
+          if (!result.needsCode)
+            throw new Error(
+              result.error || "Unable to check this device. Please retry.",
+            );
+          const client = createClient();
+          const { data, error } = await client.auth.getUser();
+          if (!active) return;
+          if (error || !data.user?.email)
+            throw new Error("Please sign in again to verify your device.");
+          const address = data.user.email;
+          setEmail(address);
+          sessionStorage.setItem(EMAIL, address);
+          const key = `${DEVICE_CODE_SENT}:${address}`;
+          const wait = codeCooldown(sessionStorage.getItem(key));
+          if (wait) {
+            setRemaining(wait);
+            return;
+          }
+          await requestDeviceCode(client);
+          sessionStorage.setItem(key, String(Date.now()));
+          if (active) {
+            setRemaining(60);
+            setMessage("A code is on its way. Check your spam folder too.");
+          }
+        } catch (e) {
+          if (active) setError(authMessage(e));
+        } finally {
+          if (active) setBusy(false);
+        }
+      }
+      void start();
+      return () => {
+        active = false;
+      };
+    }
     if (codePage) {
       const pending = sessionStorage.getItem(EMAIL);
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore the pending address, never a password or code.
       if (pending) setEmail(pending);
-      else if (mode === "device") {
-        let active = true;
-        createClient()
-          .auth.getUser()
-          .then(({ data }) => {
-            if (active && data.user?.email) setEmail(data.user.email);
-          })
-          .catch(() => {
-            /* The email field remains available for retry. */
-          });
-        return () => {
-          active = false;
-        };
-      }
     }
-  }, [codePage, mode]);
+  }, [codePage, mode, router]);
   useEffect(() => {
     if (!remaining) return;
     const timer = setTimeout(() => setRemaining(remaining - 1), 1000);
@@ -74,26 +126,16 @@ export default function UIAuth({ mode }: { mode: Mode }) {
     const response = await fetch("/api/auth/device", { method: "POST" });
     const result = await response.json();
     if (result.needsCode) {
-      const sent = await createClient().auth.signInWithOtp({
-        email: email.trim().toLowerCase(),
-        options: { shouldCreateUser: false },
-      });
-      if (sent.error) throw sent.error;
+      if (mode === "device")
+        throw new Error(
+          "This device could not be confirmed. Please request another code.",
+        );
       router.push("/verify-device");
       return;
     }
     if (!response.ok)
       throw new Error(result.error || "Unable to verify this device.");
-    sessionStorage.removeItem(EMAIL);
-    sessionStorage.removeItem("husky_auth_next");
-    let complete = false;
-    try {
-      complete = profileComplete(await loadProfile(createClient()));
-    } catch {
-      /* Setup offers a profile-load retry. */
-    }
-    router.replace(complete ? "/" : "/account/setup");
-    router.refresh();
+    await completeSignIn(router);
   }
   async function run(action: () => Promise<void>) {
     if (lock.current) return;
@@ -176,18 +218,24 @@ export default function UIAuth({ mode }: { mode: Mode }) {
   }
   async function resend() {
     await run(async () => {
+      if (mode === "device") {
+        const address = await requestDeviceCode(createClient());
+        setEmail(address);
+        sessionStorage.setItem(
+          `${DEVICE_CODE_SENT}:${address}`,
+          String(Date.now()),
+        );
+        setRemaining(60);
+        setMessage("A new code is on its way. Check your spam folder too.");
+        return;
+      }
       if (!isNortheasternEmail(email))
         throw new Error("Enter your school email or start again.");
       const auth = createClient().auth;
       const result =
         mode === "reset"
           ? await auth.resetPasswordForEmail(email)
-          : mode === "device"
-            ? await auth.signInWithOtp({
-                email,
-                options: { shouldCreateUser: false },
-              })
-            : await auth.resend({ type: "signup", email });
+          : await auth.resend({ type: "signup", email });
       if (result.error) throw result.error;
       setRemaining(60);
       setMessage("A new code is on its way. Check your spam folder too.");
@@ -207,20 +255,22 @@ export default function UIAuth({ mode }: { mode: Mode }) {
             </p>
             <h1>{titles[mode]}</h1>
             <p className={styles.hint}>
-              {codePage
-                ? `Enter the eight-digit code sent to ${email || "your Northeastern email"}.`
-                : mode === "signup"
-                  ? "Verify your Northeastern email, then tell us a little about yourself."
-                  : mode === "forgot"
-                    ? "We’ll email you a reset code. You can also use this to set your first password."
-                    : "Your campus finds are waiting. Sign in with your email and password."}
+              {mode === "device" && !email
+                ? "We’ll send a code to the account you just signed in with."
+                : codePage
+                  ? `Enter the eight-digit code sent to ${email || "your Northeastern email"}.`
+                  : mode === "signup"
+                    ? "Verify your Northeastern email, then tell us a little about yourself."
+                    : mode === "forgot"
+                      ? "We’ll email you a reset code. You can also use this to set your first password."
+                      : "Your campus finds are waiting. Sign in with your email and password."}
             </p>
             <form onSubmit={submit}>
               <fieldset
                 disabled={busy}
                 style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
               >
-                {(!codePage || !email) && (
+                {(!codePage || (!email && mode !== "device")) && (
                   <div className={styles.formField}>
                     <label className={styles.inputLabel} htmlFor="email">
                       Northeastern email
@@ -365,9 +415,6 @@ export default function UIAuth({ mode }: { mode: Mode }) {
               </fieldset>
             </form>
             <div className={styles.formActions}>
-              {mode === "device" && (
-                <Link href="/">Already verified? Continue to Home</Link>
-              )}
               {mode === "login" && (
                 <>
                   <Link href="/forgot-password">Forgot password?</Link>

@@ -59,8 +59,7 @@ export default function UIShell({
       <div className={styles.demoRibbon}>
         {live ? (
           <>
-            <strong>HUSKY MARKETPLACE</strong> · live listings · reviewed before
-            publishing
+            <strong>HUSKY MARKETPLACE</strong> · live campus listings
           </>
         ) : (
           <>

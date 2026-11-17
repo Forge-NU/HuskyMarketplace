@@ -2,24 +2,36 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
+import { isDevelopmentRoute } from "../lib/routes.ts";
 
 const source = readFileSync(new URL("../proxy.ts", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS },
 }).outputText;
 
-function routing(signedIn) {
+function routing(signedIn, environment = "development") {
   const exports = {};
   function response(url) {
     return { url, cookies: { getAll: () => [], set() {} } };
   }
   const modules = {
+    "@/lib/routes": { isDevelopmentRoute },
     "@/lib/supabase/session": {
       PERSISTENCE_COOKIE: "husky_keep_signed_in",
       sessionCookieOptions: (options) => options,
     },
     "next/server": {
-      NextResponse: { next: () => response(), redirect: response },
+      NextResponse: class {
+        constructor(_body, options) {
+          this.status = options.status;
+        }
+        static next() {
+          return response();
+        }
+        static redirect(url) {
+          return response(url);
+        }
+      },
     },
     "@/lib/supabase/env": {
       supabaseEnv: () => ({ url: "https://example.test", anonKey: "fixture" }),
@@ -34,9 +46,10 @@ function routing(signedIn) {
       }),
     },
   };
-  new Function("require", "exports", compiled)(
+  new Function("require", "exports", "process", compiled)(
     (name) => modules[name],
     exports,
+    { env: { NODE_ENV: environment } },
   );
   return async (path) => {
     const result = await exports.proxy({
@@ -46,7 +59,9 @@ function routing(signedIn) {
       },
       cookies: { getAll: () => [], set() {} },
     });
-    return result.url ? result.url.pathname + result.url.search : null;
+    return result.url
+      ? result.url.pathname + result.url.search
+      : (result.status ?? null);
   };
 }
 
@@ -60,6 +75,23 @@ test("signed-out protected routes go to login without a saved destination", asyn
   ]) {
     assert.equal(await visit(path), "/login");
   }
+});
+test("internal pages return 404 in production for signed-in and signed-out users", async () => {
+  for (const signedIn of [true, false]) {
+    const visit = routing(signedIn, "production");
+    for (const path of [
+      "/test-compression",
+      "/email-preview",
+      "/team-browse",
+      "/test-compression/nested",
+    ])
+      assert.equal(await visit(path), 404);
+  }
+});
+test("internal pages remain usable by signed-in developers", async () => {
+  const visit = routing(true);
+  for (const path of ["/test-compression", "/email-preview", "/team-browse"])
+    assert.equal(await visit(path), null);
 });
 
 test("signed-in login and signup routes always return Home", async () => {
