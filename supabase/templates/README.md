@@ -8,7 +8,7 @@ Keep `{{ .Token }}` intact. The app expects eight digits. Email confirmation mus
 
 Custom SMTP uses Brevo. Its free sending allowance and Supabase Auth rate limits still apply. Manage SMTP credentials in Supabase; do not put them in templates or the repository.
 
-In the November 17 delivery test, a verification email requested at 5:48 PM arrived in the Northeastern inbox at 5:51 PM Eastern. The device screen allows three minutes before resend and preserves pending requests on refresh. Brevo’s Delivered status confirms recipient-server acceptance, not inbox arrival; the cause of the delay is still unconfirmed.
+In the November 17 delivery test, a verification email requested at 5:48 PM arrived in the Northeastern inbox at 5:51 PM Eastern. Brevo recorded Sent and Delivered within the 5:48 minute, so the observed delay followed recipient-server acceptance. The device screen allows three minutes before resend and preserves pending requests on refresh. Delivered does not confirm inbox arrival; received-message headers or a recipient mail trace are needed to locate the remaining delay.
 
 # Device verification
 
@@ -30,4 +30,4 @@ Hosted testing confirmed sign-in, access to the account page, and remembered-bro
 
 `20261115165537_explicit_listing_device_checks.sql` replaces the four listing RPCs with explicit device checks. It preserves their ownership checks, grants, draft rules, and retry behavior. The original device migration is unchanged apart from its filename, which now matches production’s recorded version; its contents match the applied SQL byte for byte.
 
-The follow-up migration has not been applied to production. Apply it only after review, merge, and team agreement. Future migrations that replace these RPCs must retain the device check; the device tests exercise all four entry points.
+The shared database's migration history includes both device migrations, confirmed on November 17, 2026. Do not reapply them. Future migrations still require review, merge, and team agreement before production. Migrations that replace these RPCs must retain the device check; the device tests exercise all four entry points.
