@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { authMessage, isNortheasternEmail, validatePassword } from "@/lib/auth";
 import {
   DEVICE_CODE_SENT,
+  DEVICE_CODE_RESEND_SECONDS,
   DeviceSessionExpiredError,
   codeCooldown,
   hasRequestedCode,
@@ -107,8 +108,8 @@ export default function UIAuth({ mode }: { mode: Mode }) {
           await requestDeviceCode(client);
           sessionStorage.setItem(key, String(Date.now()));
           if (active) {
-            setRemaining(60);
-            setMessage("A code is on its way. Check your spam folder too.");
+            setRemaining(DEVICE_CODE_RESEND_SECONDS);
+            setMessage("Your code has been requested.");
           }
         } catch (e) {
           if (active) {
@@ -249,8 +250,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
           `${DEVICE_CODE_SENT}:${address}`,
           String(Date.now()),
         );
-        setRemaining(60);
-        setMessage("A new code is on its way. Check your spam folder too.");
+        setCode("");
+        setRemaining(DEVICE_CODE_RESEND_SECONDS);
+        setMessage("New code requested. Use the newest email when it arrives.");
         return;
       }
       if (!isNortheasternEmail(email))
@@ -289,6 +291,12 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                       ? "We’ll email you a reset code. You can also use this to set your first password."
                       : "Your campus finds are waiting. Sign in with your email and password."}
             </p>
+            {mode === "device" && (
+              <p className={styles.hint} id="delivery-help">
+                Emails can take a few minutes. Check Junk too. If you resend,
+                use the code from the newest email.
+              </p>
+            )}
             <form onSubmit={submit}>
               <fieldset
                 disabled={busy}
@@ -322,6 +330,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                       className={styles.input}
                       id="code"
                       autoComplete="one-time-code"
+                      aria-describedby={
+                        mode === "device" ? "delivery-help" : undefined
+                      }
                       inputMode="numeric"
                       maxLength={8}
                       pattern="[0-9]{8}"
@@ -462,7 +473,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                     disabled={busy || remaining > 0}
                     onClick={resend}
                   >
-                    {remaining ? `Resend in ${remaining}s` : "Resend code"}
+                    {remaining
+                      ? `Resend in ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, "0")}`
+                      : "Resend code"}
                   </button>
                   <Link
                     onClick={

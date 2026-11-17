@@ -49,15 +49,17 @@ test("failed sends and expired sessions do not report that a code was sent", asy
   );
 });
 test("refreshing a code screen keeps the resend cooldown without treating it as verification", () => {
-  assert.equal(codeCooldown("1000", 1000), 60);
-  assert.equal(codeCooldown("1000", 31_000), 30);
-  assert.equal(codeCooldown("1000", 61_000), 0);
+  assert.equal(codeCooldown("1000", 1000), 180);
+  assert.equal(codeCooldown("1000", 31_000), 150);
+  assert.equal(codeCooldown("1000", 61_000), 120);
+  assert.equal(codeCooldown("1000", 180_001), 1);
+  assert.equal(codeCooldown("1000", 181_000), 0);
   for (const value of [null, "bad", "999999999"])
     assert.equal(codeCooldown(value, 61_000), 0);
 });
 test("refreshing after the cooldown does not automatically invalidate the pending email code", () => {
-  assert.equal(hasRequestedCode("1000", 121_000), true);
-  assert.equal(codeCooldown("1000", 121_000), 0);
+  assert.equal(hasRequestedCode("1000", 241_000), true);
+  assert.equal(codeCooldown("1000", 241_000), 0);
   for (const value of [null, "", "bad", "-10", "999999999"])
     assert.equal(hasRequestedCode(value, 121_000), false);
 });

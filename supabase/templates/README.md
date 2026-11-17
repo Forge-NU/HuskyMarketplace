@@ -4,9 +4,11 @@
 `recovery.html` is the Reset password email; subject: **Reset your Husky Marketplace password**.
 Both were saved in hosted Supabase on November 14, 2026. Brevo delivery logs confirmed verification and recovery emails reached the test mailbox that evening.
 
-Keep `{{ .Token }}` intact. The app expects eight digits. Email confirmation must remain enabled. `verification.html` remains the Magic Link/OTP template for email sign-in and device checks.
+Keep `{{ .Token }}` intact. The app expects eight digits. Email confirmation must remain enabled. `verification.html` is the Magic Link/OTP template for email sign-in and device checks. Its minimal version was saved in hosted Supabase on November 17, 2026, replacing the older template that incorrectly described eight-digit codes as six digits. The OTP placeholder, SMTP provider, and verification requirements are unchanged.
 
 Custom SMTP uses Brevo. Its free sending allowance and Supabase Auth rate limits still apply. Manage SMTP credentials in Supabase; do not put them in templates or the repository.
+
+In the November 17 delivery test, a verification email requested at 5:48 PM arrived in the Northeastern inbox at 5:51 PM Eastern. The device screen allows three minutes before resend and preserves pending requests on refresh. Brevo’s Delivered status confirms recipient-server acceptance, not inbox arrival; the cause of the delay is still unconfirmed.
 
 # Device verification
 

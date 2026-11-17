@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const DEVICE_CODE_SENT = "husky_device_code_sent";
+export const DEVICE_CODE_RESEND_SECONDS = 180;
 
 export class DeviceSessionExpiredError extends Error {
   constructor() {
@@ -17,7 +18,10 @@ export function hasRequestedCode(sentAt: string | null, now = Date.now()) {
 export function codeCooldown(sentAt: string | null, now = Date.now()) {
   const sent = Number(sentAt);
   if (!hasRequestedCode(sentAt, now)) return 0;
-  return Math.max(0, Math.ceil((sent + 60_000 - now) / 1000));
+  return Math.max(
+    0,
+    Math.ceil((sent + DEVICE_CODE_RESEND_SECONDS * 1000 - now) / 1000),
+  );
 }
 
 export async function requestDeviceCode(client: SupabaseClient) {
