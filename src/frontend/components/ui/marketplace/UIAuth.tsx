@@ -8,6 +8,7 @@ import { authMessage, isNortheasternEmail, validatePassword } from "@/lib/auth";
 import {
   DEVICE_CODE_SENT,
   codeCooldown,
+  hasRequestedCode,
   requestDeviceCode,
 } from "@/lib/auth/device-code";
 import { loadProfile } from "@/lib/profile/service";
@@ -89,9 +90,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
           setEmail(address);
           sessionStorage.setItem(EMAIL, address);
           const key = `${DEVICE_CODE_SENT}:${address}`;
-          const wait = codeCooldown(sessionStorage.getItem(key));
-          if (wait) {
-            setRemaining(wait);
+          const sentAt = sessionStorage.getItem(key);
+          if (hasRequestedCode(sentAt)) {
+            setRemaining(codeCooldown(sentAt));
             return;
           }
           await requestDeviceCode(client);
@@ -213,6 +214,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
         return;
       }
       if (result.error) throw result.error;
+      sessionStorage.removeItem(`${DEVICE_CODE_SENT}:${address}`);
       await finish();
     });
   }
@@ -414,7 +416,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                 </button>
               </fieldset>
             </form>
-            <div className={styles.formActions}>
+            <div
+              className={`${styles.formActions} ${codePage ? styles.codeActions : ""}`}
+            >
               {mode === "login" && (
                 <>
                   <Link href="/forgot-password">Forgot password?</Link>

@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { codeCooldown, requestDeviceCode } from "../lib/auth/device-code.ts";
+import {
+  codeCooldown,
+  hasRequestedCode,
+  requestDeviceCode,
+} from "../lib/auth/device-code.ts";
 
 test("device email is sent only to the authenticated account without creating a user", async () => {
   let sent;
@@ -46,4 +50,10 @@ test("refreshing a code screen keeps the resend cooldown without treating it as 
   assert.equal(codeCooldown("1000", 61_000), 0);
   for (const value of [null, "bad", "999999999"])
     assert.equal(codeCooldown(value, 61_000), 0);
+});
+test("refreshing after the cooldown does not automatically invalidate the pending email code", () => {
+  assert.equal(hasRequestedCode("1000", 121_000), true);
+  assert.equal(codeCooldown("1000", 121_000), 0);
+  for (const value of [null, "", "bad", "-10", "999999999"])
+    assert.equal(hasRequestedCode(value, 121_000), false);
 });
