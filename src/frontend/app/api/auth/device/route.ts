@@ -10,8 +10,13 @@ export async function POST(request: NextRequest) {
       { error: "Invalid request origin." },
       { status: 403 },
     );
-  if (process.env.DEVICE_VERIFICATION_ENABLED !== "true")
-    return NextResponse.json({ enabled: false });
+  const enabled = process.env.DEVICE_VERIFICATION_ENABLED;
+  if (enabled !== "true" && enabled !== "false")
+    return NextResponse.json(
+      { error: "Device verification is unavailable. Please try again later." },
+      { status: 503 },
+    );
+  if (enabled === "false") return NextResponse.json({ enabled: false });
   const client = await createClient();
   const { data, error } = await client.auth.getUser();
   if (error && (!error.status || error.status >= 500))

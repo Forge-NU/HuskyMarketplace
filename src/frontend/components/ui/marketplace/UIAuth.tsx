@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import UIShell from "./UIShell";
 import { createClient } from "@/lib/supabase/client";
 import { authMessage, isNortheasternEmail, validatePassword } from "@/lib/auth";
+import { confirmEmail } from "@/lib/auth/confirm-email";
 import {
   DEVICE_CODE_SENT,
   DEVICE_CODE_RESEND_SECONDS,
   DeviceSessionExpiredError,
   cooldownRemaining,
+  checkDeviceSession,
   hasRequestedCode,
   requestDeviceCode,
 } from "@/lib/auth/device-code";
@@ -66,30 +68,23 @@ export default function UIAuth({ mode }: { mode: Mode }) {
   const [now, setNow] = useState(0);
   const remaining = cooldownRemaining(resendAt, now);
   const lock = useRef(false);
-  const [verifiedRecovery, setVerifiedRecovery] = useState(false);
+  const [verifiedCode, setVerifiedCode] = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [deviceCheckFailed, setDeviceCheckFailed] = useState(false);
+  const [deviceAttempt, setDeviceAttempt] = useState(0);
   const codePage = mode === "verify" || mode === "reset" || mode === "device";
-  const newPassword = mode === "signup" || mode === "reset";
+  const newPassword = mode === "signup" || (mode === "reset" && !passwordSaved);
   useEffect(() => {
     if (mode === "device") {
       let active = true;
       async function start() {
         try {
-          const response = await fetch("/api/auth/device", { method: "POST" });
-          const result = await response.json();
+          const verified = await checkDeviceSession();
           if (!active) return;
-          if (response.status === 401) {
-            router.replace("/login");
-            router.refresh();
-            return;
-          }
-          if (response.ok) {
+          if (verified) {
             await completeSignIn(router);
             return;
           }
-          if (!result.needsCode)
-            throw new Error(
-              result.error || "Unable to check this device. Please retry.",
-            );
           const client = createClient();
           const { data, error } = await client.auth.getUser();
           if (!active) return;
@@ -121,7 +116,10 @@ export default function UIAuth({ mode }: { mode: Mode }) {
             if (e instanceof DeviceSessionExpiredError) {
               router.replace("/login");
               router.refresh();
-            } else setError(authMessage(e));
+            } else {
+              setDeviceCheckFailed(true);
+              setError(authMessage(e));
+            }
           }
         } finally {
           if (active) setBusy(false);
@@ -137,7 +135,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore the pending address, never a password or code.
       if (pending) setEmail(pending);
     }
-  }, [codePage, mode, router]);
+  }, [codePage, deviceAttempt, mode, router]);
   useEffect(() => {
     if (!remaining) return;
     const update = () => setNow(Date.now());
@@ -151,23 +149,18 @@ export default function UIAuth({ mode }: { mode: Mode }) {
     };
   }, [remaining]);
   async function finish() {
-    const response = await fetch("/api/auth/device", { method: "POST" });
-    const result = await response.json();
-    if (response.status === 401) {
-      router.replace("/login");
-      router.refresh();
-      return;
-    }
-    if (result.needsCode) {
-      if (mode === "device")
+    const verified = await checkDeviceSession();
+    if (!verified) {
+      if (mode === "device") {
+        setVerifiedCode(false);
+        setCode("");
         throw new Error(
           "This device could not be confirmed. Please request another code.",
         );
+      }
       router.push("/verify-device");
       return;
     }
-    if (!response.ok)
-      throw new Error(result.error || "Unable to verify this device.");
     await completeSignIn(router);
   }
   async function run(action: () => Promise<void>) {
@@ -199,21 +192,17 @@ export default function UIAuth({ mode }: { mode: Mode }) {
       const auth = createClient().auth;
       if (newPassword) validatePassword(password, confirmation);
       if (codePage) {
-        if (!verifiedRecovery) {
-          if (!/^\d{8}$/.test(code))
-            throw new Error("Enter the full eight-digit code from your email.");
-          const result = await auth.verifyOtp({
-            email: address,
-            token: code,
-            type: mode === "reset" ? "recovery" : "email",
-          });
-          if (result.error) throw result.error;
-          if (mode === "reset") setVerifiedRecovery(true);
-        }
-        if (mode === "reset") {
-          const result = await auth.updateUser({ password });
-          if (result.error) throw result.error;
-        }
+        if (!verifiedCode && !/^\d{8}$/.test(code))
+          throw new Error("Enter the full eight-digit code from your email.");
+        await confirmEmail(
+          auth,
+          { email: address, code, recovery: mode === "reset", password },
+          { verified: verifiedCode, passwordSaved },
+          (progress) => {
+            setVerifiedCode(progress.verified);
+            setPasswordSaved(progress.passwordSaved);
+          },
+        );
         await finish();
         return;
       }
@@ -297,15 +286,21 @@ export default function UIAuth({ mode }: { mode: Mode }) {
             </p>
             <h1>{titles[mode]}</h1>
             <p className={styles.hint}>
-              {mode === "device" && !email
-                ? "We’ll send a code to the account you just signed in with."
-                : codePage
-                  ? `Enter the eight-digit code sent to ${email || "your Northeastern email"}.`
-                  : mode === "signup"
-                    ? "Verify your Northeastern email, then tell us a little about yourself."
-                    : mode === "forgot"
-                      ? "We’ll email you a reset code. You can also use this to set your first password."
-                      : "Your campus finds are waiting. Sign in with your email and password."}
+              {codePage && verifiedCode
+                ? passwordSaved
+                  ? "Password updated. Continue to finish signing in."
+                  : mode === "reset"
+                    ? "Email confirmed. Choose your new password."
+                    : "Email confirmed. Continue to finish signing in."
+                : mode === "device" && !email
+                  ? "We’ll send a code to the account you just signed in with."
+                  : codePage
+                    ? `Enter the eight-digit code sent to ${email || "your Northeastern email"}.`
+                    : mode === "signup"
+                      ? "Verify your Northeastern email, then tell us a little about yourself."
+                      : mode === "forgot"
+                        ? "We’ll email you a reset code. You can also use this to set your first password."
+                        : "Your campus finds are waiting. Sign in with your email and password."}
             </p>
             {mode === "device" && (
               <p className={styles.hint} id="delivery-help">
@@ -337,7 +332,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                     />
                   </div>
                 )}
-                {codePage && !verifiedRecovery && (
+                {codePage && !verifiedCode && (
                   <div className={styles.formField}>
                     <label className={styles.inputLabel} htmlFor="code">
                       Verification code
@@ -360,43 +355,41 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                     />
                   </div>
                 )}
-                {mode !== "verify" &&
-                  mode !== "forgot" &&
-                  mode !== "device" && (
-                    <div className={styles.formField}>
-                      <label className={styles.inputLabel} htmlFor="password">
-                        {newPassword ? "Choose a password" : "Password"}
-                      </label>
-                      {newPassword && (
-                        <p className={styles.hint} id="password-help">
-                          At least 8 characters. A longer, unique passphrase
-                          works well.
-                        </p>
-                      )}
-                      <input
-                        className={styles.input}
-                        id="password"
-                        type={visible ? "text" : "password"}
-                        autoComplete={
-                          newPassword ? "new-password" : "current-password"
-                        }
-                        required
-                        aria-describedby={
-                          newPassword ? "password-help" : undefined
-                        }
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        className={styles.textButton}
-                        aria-pressed={visible}
-                        onClick={() => setVisible(!visible)}
-                      >
-                        {visible ? "Hide password" : "Show password"}
-                      </button>
-                    </div>
-                  )}
+                {(mode === "login" || newPassword) && (
+                  <div className={styles.formField}>
+                    <label className={styles.inputLabel} htmlFor="password">
+                      {newPassword ? "Choose a password" : "Password"}
+                    </label>
+                    {newPassword && (
+                      <p className={styles.hint} id="password-help">
+                        At least 8 characters. A longer, unique passphrase works
+                        well.
+                      </p>
+                    )}
+                    <input
+                      className={styles.input}
+                      id="password"
+                      type={visible ? "text" : "password"}
+                      autoComplete={
+                        newPassword ? "new-password" : "current-password"
+                      }
+                      required
+                      aria-describedby={
+                        newPassword ? "password-help" : undefined
+                      }
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className={styles.textButton}
+                      aria-pressed={visible}
+                      onClick={() => setVisible(!visible)}
+                    >
+                      {visible ? "Hide password" : "Show password"}
+                    </button>
+                  </div>
+                )}
                 {newPassword && (
                   <div className={styles.formField}>
                     <label className={styles.inputLabel} htmlFor="confirmation">
@@ -451,6 +444,20 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                     {error}
                   </p>
                 )}
+                {mode === "device" && deviceCheckFailed && (
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={() => {
+                      setError("");
+                      setDeviceCheckFailed(false);
+                      setBusy(true);
+                      setDeviceAttempt((value) => value + 1);
+                    }}
+                  >
+                    Retry device check
+                  </button>
+                )}
                 {message && (
                   <p role="status" className={styles.hint}>
                     {message}
@@ -460,8 +467,13 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                   className={styles.primaryButton}
                   style={{ width: "100%" }}
                   type="submit"
+                  disabled={mode === "device" && deviceCheckFailed}
                 >
-                  {busy ? "Please wait…" : actions[mode]}
+                  {busy
+                    ? "Please wait…"
+                    : verifiedCode && !newPassword
+                      ? "Continue"
+                      : actions[mode]}
                 </button>
               </fieldset>
             </form>
@@ -486,7 +498,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                   <button
                     type="button"
                     className={styles.textButton}
-                    disabled={busy || remaining > 0}
+                    disabled={
+                      busy || remaining > 0 || verifiedCode || deviceCheckFailed
+                    }
                     onClick={resend}
                   >
                     {remaining

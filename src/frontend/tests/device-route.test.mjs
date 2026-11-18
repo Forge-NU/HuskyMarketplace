@@ -21,6 +21,8 @@ function fixture({
   rpcError = null,
   remembered = false,
   confirms = false,
+  enabled = "true",
+  proofMethod = "password",
 } = {}) {
   const calls = [];
   const token = "a".repeat(64);
@@ -33,7 +35,7 @@ function fixture({
       getClaims: async () => ({
         data: {
           claims: {
-            amr: [{ method: "password", timestamp: Date.now() / 1000 }],
+            amr: [{ method: proofMethod, timestamp: Date.now() / 1000 }],
           },
         },
         error: null,
@@ -69,7 +71,7 @@ function fixture({
   new Function("require", "exports", "process", compiled)(
     (name) => modules[name],
     exports,
-    { env: { DEVICE_VERIFICATION_ENABLED: "true" } },
+    { env: { DEVICE_VERIFICATION_ENABLED: enabled } },
   );
   return {
     calls,
@@ -110,6 +112,41 @@ test("a remembered credential is checked by the database before continuing", asy
   assert.deepEqual(f.calls.find((c) => c[0] === "confirm_device_session")[1], {
     p_token: f.token,
     p_remember: true,
+  });
+});
+test("rejected remembered credentials cannot grant access or set a new trust cookie", async () => {
+  const f = fixture({ remembered: true, confirms: false });
+  assert.equal((await f.request()).status, 403);
+  assert.equal(
+    f.calls.some((call) => call[0] === "cookie"),
+    false,
+  );
+});
+test("recent email verification rotates a remembered credential securely", async () => {
+  const f = fixture({ remembered: true, confirms: true, proofMethod: "otp" });
+  assert.equal((await f.request()).status, 200);
+  const saved = f.calls.find((call) => call[0] === "cookie");
+  assert.equal(saved[1], "husky_device");
+  assert.notEqual(saved[2], f.token);
+  assert.match(saved[2], /^[a-f0-9]{64}$/);
+  assert.deepEqual(saved[3], {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 2592000,
+  });
+});
+test("a missing device setting is an error, not an implicit opt-out", async () => {
+  for (const enabled of [undefined, "", "TRUE", "invalid"]) {
+    const f = fixture({ enabled: enabled ?? "" });
+    assert.equal((await f.request()).status, 503);
+    assert.deepEqual(f.calls, []);
+  }
+  const disabled = fixture({ enabled: "false" });
+  assert.deepEqual(await disabled.request(), {
+    status: 200,
+    body: { enabled: false },
   });
 });
 test("a database outage fails closed without logging out or claiming verification", async () => {

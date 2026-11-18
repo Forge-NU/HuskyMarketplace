@@ -3,10 +3,69 @@ import assert from "node:assert/strict";
 import {
   codeCooldown,
   cooldownRemaining,
+  checkDeviceSession,
   hasRequestedCode,
   requestDeviceCode,
   DeviceSessionExpiredError,
 } from "../lib/auth/device-code.ts";
+
+test("device checks distinguish a code challenge from a temporary failure", async () => {
+  const response = (status, body) => async (path, options) => {
+    assert.equal(path, "/api/auth/device");
+    assert.deepEqual(options, { method: "POST" });
+    return new Response(JSON.stringify(body), { status });
+  };
+  assert.equal(
+    await checkDeviceSession(response(200, { verified: true })),
+    true,
+  );
+  assert.equal(
+    await checkDeviceSession(response(403, { needsCode: true })),
+    false,
+  );
+  await assert.rejects(
+    () => checkDeviceSession(response(401, {})),
+    DeviceSessionExpiredError,
+  );
+  await assert.rejects(
+    () => checkDeviceSession(response(503, { error: "Please retry." })),
+    /Please retry/,
+  );
+  await assert.rejects(() => checkDeviceSession(response(200, {})), /retry/);
+  await assert.rejects(() => checkDeviceSession(response(200, null)), /retry/);
+  await assert.rejects(
+    () => checkDeviceSession(response(503, { needsCode: true })),
+    /retry/,
+  );
+  await assert.rejects(
+    () =>
+      checkDeviceSession(
+        async () => new Response("Unavailable", { status: 502 }),
+      ),
+    /retry/,
+  );
+});
+
+test("retrying a failed device check can reuse the authenticated session", async () => {
+  let attempts = 0;
+  const request = async () => {
+    attempts += 1;
+    return new Response(
+      JSON.stringify(
+        attempts === 1
+          ? { error: "Temporarily unavailable" }
+          : { verified: true },
+      ),
+      { status: attempts === 1 ? 503 : 200 },
+    );
+  };
+  await assert.rejects(
+    () => checkDeviceSession(request),
+    /Temporarily unavailable/,
+  );
+  assert.equal(await checkDeviceSession(request), true);
+  assert.equal(attempts, 2);
+});
 
 test("resend catches up after the browser pauses background timers", () => {
   const deadline = 181_000;
