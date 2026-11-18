@@ -273,7 +273,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
     });
   }
   return (
-    <UIShell>
+    <UIShell live>
       <main className={`${styles.content} ${styles.authFlow}`}>
         <div className={styles.authLayout}>
           <section className={styles.authCard}>
