@@ -16,7 +16,40 @@ The original migration (`20261115035417_verified_device_sessions.sql`) is instal
 
 A remembered browser uses a random HttpOnly cookie backed by a hash in a private table. Trust expires after 30 days. Clearing cookies or using another browser requires email verification again. Recent email verification rotates the remembered credential. This is email-based device verification, not Supabase AAL2 MFA. School profile fields remain editable metadata pending the public-profile migration and are not used for authorization.
 
-Hosted testing confirmed sign-in, access to the account page, and remembered-browser login: the latest password-only sessions passed the database device check. A full fresh private-browser test has not been confirmed. Fifteen isolated PostgreSQL checks passed; the full Supabase database suite still needs Docker.
+Hosted testing confirmed sign-in, access to the account page, and remembered-browser login: the latest password-only sessions passed the database device check. On November 18, all 90 database assertions across eight files passed on a fresh local Supabase stack. Browser tests also passed signup, profile setup, recovery, and fresh/remembered-device flows against the local production build. Final hosted checks still need to run after the reviewed changes are deployed. Local Mailpit delivery does not measure Brevo or Northeastern inbox delays.
+
+## Local auth tests
+
+Use an isolated checkout with Docker running. From the repository root:
+
+```bash
+npx supabase@3.0.0 start
+npx supabase@3.0.0 db query 'update private.device_verification_settings set enabled = true'
+npx supabase@3.0.0 test db supabase/tests/database
+```
+
+These commands target the local database. Do not add `--remote`. Enabling the local gate makes the tests exercise the same verification requirement as production.
+
+In that checkout's `src/frontend/.env.local`, use `SUPABASE_URL=http://127.0.0.1:54321`, the local **anon/public** key from `supabase status`, and `DEVICE_VERIFICATION_ENABLED=true`. Do not use a service-role key or overwrite the shared-project environment file in your usual checkout. Then, from `src/frontend`:
+
+```bash
+npm ci
+npx playwright install chromium
+npm test
+npm run build
+npm start -- --hostname 127.0.0.1 --port 3004
+```
+
+In another terminal in `src/frontend`, run `npm run test:auth`. The runner uses synthetic accounts and the local Mailpit API on port 54324. It rejects non-local app URLs and blocks browser requests to hosted services. It does not read personal inboxes or print passwords/codes. Test accounts remain in the disposable local database; rebuilding it with `db reset` removes them along with other local data. The unit-test command uses native TypeScript support; use Node 22.18 or later (verified with Node 26.12.1).
+
+The browser runner covers 21 checks, including wrong codes, refresh without duplicate sends, access before verification, session-only cookies, reopened browsers, invented device credentials, mobile layout, and old-password rejection after recovery. One device response is deliberately replaced with a 503 to verify that Continue finishes the accepted-code flow without submitting the code twice. Other Auth and database requests use the real local services.
+
+## After #49 is revised
+
+- Review its existing-account handling on top of the current login flow. Retest a new email, an existing confirmed account, and an existing unconfirmed account. Check both resend success and send failures; the screen must not promise a code that was not requested.
+- Run `npm test`, the full database suite, and `npm run test:auth` against the combined code, then complete type generation, TypeScript, lint, formatting, and the production build.
+- After approvals, merge and deploy through the normal release process. With a real Northeastern test account, repeat signup/setup, reset, wrong-code rejection, fresh-browser verification, and remembered-browser login. Check the HTTPS device cookie and confirm the remembered login sends no new email.
+- Record actual send/arrival times separately. Delayed inbox delivery remains open until a live test confirms acceptable timing or mail tracing identifies a fix.
 
 ## Installing in another environment
 

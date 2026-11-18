@@ -37,7 +37,7 @@ const actions: Record<Mode, string> = {
   forgot: "Send reset code",
   reset: "Save new password",
 };
-async function completeSignIn(router: ReturnType<typeof useRouter>) {
+async function completeSignIn() {
   const address = sessionStorage.getItem(EMAIL);
   if (address) sessionStorage.removeItem(`${DEVICE_CODE_SENT}:${address}`);
   sessionStorage.removeItem(EMAIL);
@@ -48,8 +48,8 @@ async function completeSignIn(router: ReturnType<typeof useRouter>) {
   } catch {
     /* Setup offers a profile-load retry. */
   }
-  router.replace(complete ? "/" : "/account/setup");
-  router.refresh();
+  // Recheck server access instead of reusing a cached pre-verification redirect.
+  window.location.replace(complete ? "/" : "/account/setup");
 }
 
 export default function UIAuth({ mode }: { mode: Mode }) {
@@ -82,7 +82,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
           const verified = await checkDeviceSession();
           if (!active) return;
           if (verified) {
-            await completeSignIn(router);
+            await completeSignIn();
             return;
           }
           const client = createClient();
@@ -161,7 +161,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
       router.push("/verify-device");
       return;
     }
-    await completeSignIn(router);
+    await completeSignIn();
   }
   async function run(action: () => Promise<void>) {
     if (lock.current) return;
