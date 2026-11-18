@@ -18,10 +18,11 @@ export function hasRequestedCode(sentAt: string | null, now = Date.now()) {
 export function codeCooldown(sentAt: string | null, now = Date.now()) {
   const sent = Number(sentAt);
   if (!hasRequestedCode(sentAt, now)) return 0;
-  return Math.max(
-    0,
-    Math.ceil((sent + DEVICE_CODE_RESEND_SECONDS * 1000 - now) / 1000),
-  );
+  return cooldownRemaining(sent + DEVICE_CODE_RESEND_SECONDS * 1000, now);
+}
+
+export function cooldownRemaining(until: number, now = Date.now()) {
+  return Math.max(0, Math.ceil((until - now) / 1000));
 }
 
 export async function requestDeviceCode(client: SupabaseClient) {

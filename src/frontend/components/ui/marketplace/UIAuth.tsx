@@ -9,7 +9,7 @@ import {
   DEVICE_CODE_SENT,
   DEVICE_CODE_RESEND_SECONDS,
   DeviceSessionExpiredError,
-  codeCooldown,
+  cooldownRemaining,
   hasRequestedCode,
   requestDeviceCode,
 } from "@/lib/auth/device-code";
@@ -62,7 +62,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
   const [busy, setBusy] = useState(mode === "device");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [remaining, setRemaining] = useState(0);
+  const [resendAt, setResendAt] = useState(0);
+  const [now, setNow] = useState(0);
+  const remaining = cooldownRemaining(resendAt, now);
   const lock = useRef(false);
   const [verifiedRecovery, setVerifiedRecovery] = useState(false);
   const codePage = mode === "verify" || mode === "reset" || mode === "device";
@@ -102,13 +104,16 @@ export default function UIAuth({ mode }: { mode: Mode }) {
           const key = `${DEVICE_CODE_SENT}:${address}`;
           const sentAt = sessionStorage.getItem(key);
           if (hasRequestedCode(sentAt)) {
-            setRemaining(codeCooldown(sentAt));
+            setNow(Date.now());
+            setResendAt(Number(sentAt) + DEVICE_CODE_RESEND_SECONDS * 1000);
             return;
           }
           await requestDeviceCode(client);
-          sessionStorage.setItem(key, String(Date.now()));
+          const requestedAt = Date.now();
+          sessionStorage.setItem(key, String(requestedAt));
           if (active) {
-            setRemaining(DEVICE_CODE_RESEND_SECONDS);
+            setNow(requestedAt);
+            setResendAt(requestedAt + DEVICE_CODE_RESEND_SECONDS * 1000);
             setMessage("Your code has been requested.");
           }
         } catch (e) {
@@ -135,8 +140,15 @@ export default function UIAuth({ mode }: { mode: Mode }) {
   }, [codePage, mode, router]);
   useEffect(() => {
     if (!remaining) return;
-    const timer = setTimeout(() => setRemaining(remaining - 1), 1000);
-    return () => clearTimeout(timer);
+    const update = () => setNow(Date.now());
+    const timer = setTimeout(update, 1000);
+    window.addEventListener("focus", update);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("focus", update);
+      document.removeEventListener("visibilitychange", update);
+    };
   }, [remaining]);
   async function finish() {
     const response = await fetch("/api/auth/device", { method: "POST" });
@@ -245,13 +257,15 @@ export default function UIAuth({ mode }: { mode: Mode }) {
     await run(async () => {
       if (mode === "device") {
         const address = await requestDeviceCode(createClient());
+        const requestedAt = Date.now();
         setEmail(address);
         sessionStorage.setItem(
           `${DEVICE_CODE_SENT}:${address}`,
-          String(Date.now()),
+          String(requestedAt),
         );
         setCode("");
-        setRemaining(DEVICE_CODE_RESEND_SECONDS);
+        setNow(requestedAt);
+        setResendAt(requestedAt + DEVICE_CODE_RESEND_SECONDS * 1000);
         setMessage("New code requested. Use the newest email when it arrives.");
         return;
       }
@@ -263,7 +277,9 @@ export default function UIAuth({ mode }: { mode: Mode }) {
           ? await auth.resetPasswordForEmail(email)
           : await auth.resend({ type: "signup", email });
       if (result.error) throw result.error;
-      setRemaining(60);
+      const requestedAt = Date.now();
+      setNow(requestedAt);
+      setResendAt(requestedAt + 60_000);
       setMessage("A new code is on its way. Check your spam folder too.");
     });
   }

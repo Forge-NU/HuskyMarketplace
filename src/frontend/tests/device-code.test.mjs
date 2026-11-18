@@ -2,10 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   codeCooldown,
+  cooldownRemaining,
   hasRequestedCode,
   requestDeviceCode,
   DeviceSessionExpiredError,
 } from "../lib/auth/device-code.ts";
+
+test("resend catches up after the browser pauses background timers", () => {
+  const deadline = 181_000;
+  assert.equal(cooldownRemaining(deadline, 1000), 180);
+  assert.equal(cooldownRemaining(deadline, 121_000), 60);
+  assert.equal(cooldownRemaining(deadline, 601_000), 0);
+  assert.equal(cooldownRemaining(61_000, 61_001), 0);
+});
 
 test("device email is sent only to the authenticated account without creating a user", async () => {
   let sent;
