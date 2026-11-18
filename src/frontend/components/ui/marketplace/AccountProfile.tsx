@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
 import {
   useEffect,
   useRef,
@@ -15,6 +14,12 @@ import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/images/compressImage";
 import { loadProfile, saveProfile } from "@/lib/profile/service";
 import {
+  loadProfilePhoto,
+  saveProfilePhoto,
+  removeProfilePhoto,
+  PROFILE_PHOTO_UPDATED,
+} from "@/lib/profile/photo";
+import {
   profileComplete,
   type AccountProfile as Profile,
 } from "@/lib/profile/model";
@@ -29,6 +34,10 @@ export default function AccountProfile({ setup = false }: { setup?: boolean }) {
     [notice, setNotice] = useState(""),
     [retry, setRetry] = useState(0),
     [preview, setPreview] = useState("");
+  const [savedPhoto, setSavedPhoto] = useState<string | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  const [removePhoto, setRemovePhoto] = useState(false);
+  const [photoError, setPhotoError] = useState("");
   const lock = useRef(false),
     photoInput = useRef<HTMLInputElement>(null),
     urls = useRef<string[]>([]);
@@ -47,6 +56,13 @@ export default function AccountProfile({ setup = false }: { setup?: boolean }) {
                 : p.username,
           });
           setError("");
+          void loadProfilePhoto(createClient(), p.userId)
+            .then((url) => {
+              if (active) setSavedPhoto(url);
+            })
+            .catch((e) => {
+              if (active) setPhotoError(e.message);
+            });
         }
       })
       .catch((e) => {
@@ -88,15 +104,17 @@ export default function AccountProfile({ setup = false }: { setup?: boolean }) {
         maxWidthOrHeight: 512,
         maxSizeMB: 0.15,
         fileType: "image/webp",
+        useWebWorker: false,
       });
       if (compressed.size > 256 * 1024)
         throw new Error("This photo is still too large. Try a smaller image.");
       const url = URL.createObjectURL(compressed);
       urls.current.push(url);
       setPreview(url);
-      setNotice(
-        "Photo preview ready. Photo uploads aren’t connected yet; this image won’t be saved with your profile.",
-      );
+      setSelectedPhoto(compressed);
+      setRemovePhoto(false);
+      setPhotoError("");
+      setNotice("Photo ready. Save your profile to upload it.");
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Could not process your photo.",
@@ -116,15 +134,35 @@ export default function AccountProfile({ setup = false }: { setup?: boolean }) {
     try {
       const saved = await saveProfile(createClient(), profile);
       setProfile(saved);
+      if (selectedPhoto || removePhoto) {
+        try {
+          if (selectedPhoto) {
+            setSavedPhoto(
+              await saveProfilePhoto(
+                createClient(),
+                saved.userId,
+                selectedPhoto,
+              ),
+            );
+          } else {
+            await removeProfilePhoto(createClient(), saved.userId);
+            setSavedPhoto(null);
+          }
+          setSelectedPhoto(null);
+          setRemovePhoto(false);
+          setPreview("");
+          setPhotoError("");
+          window.dispatchEvent(new Event(PROFILE_PHOTO_UPDATED));
+        } catch (e) {
+          throw new Error(
+            `Profile details saved. ${e instanceof Error ? e.message : "Your photo could not be saved. Please retry."}`,
+          );
+        }
+      }
       if (setup) {
         router.replace("/");
         router.refresh();
-      } else
-        setNotice(
-          preview
-            ? "Profile and bio saved. Your photo remains a preview only."
-            : "Profile and bio saved.",
-        );
+      } else setNotice("Profile saved.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save your profile.");
     } finally {
@@ -184,11 +222,9 @@ export default function AccountProfile({ setup = false }: { setup?: boolean }) {
                       onClick={() => photoInput.current?.click()}
                       aria-label="Choose a profile photo"
                     >
-                      {preview ? (
-                        <img src={preview} alt="Your profile photo preview" />
-                      ) : (
-                        <ProfileAvatar />
-                      )}
+                      <ProfileAvatar
+                        src={removePhoto ? null : preview || savedPhoto}
+                      />
                       <span>Change photo</span>
                     </button>
                     <div>
@@ -205,20 +241,33 @@ export default function AccountProfile({ setup = false }: { setup?: boolean }) {
                       >
                         {photoBusy ? "Compressing…" : "Choose photo"}
                       </button>
-                      {preview && (
+                      {(selectedPhoto || savedPhoto) && !removePhoto && (
                         <button
                           className={styles.textButton}
                           type="button"
                           onClick={() => {
                             setPreview("");
+                            if (selectedPhoto) setSelectedPhoto(null);
+                            else setRemovePhoto(true);
                             setNotice("");
                           }}
                         >
-                          Remove preview
+                          {selectedPhoto
+                            ? "Discard selected photo"
+                            : "Remove photo"}
+                        </button>
+                      )}
+                      {removePhoto && (
+                        <button
+                          type="button"
+                          className={styles.textButton}
+                          onClick={() => setRemovePhoto(false)}
+                        >
+                          Undo photo removal
                         </button>
                       )}
                       <p className={styles.hint}>
-                        JPEG, PNG or WebP. Compressed before previewing.
+                        JPEG, PNG or WebP. Compressed before upload.
                       </p>
                     </div>
                     <input
@@ -230,9 +279,39 @@ export default function AccountProfile({ setup = false }: { setup?: boolean }) {
                     />
                   </div>
                   <p className={styles.photoPreviewNote}>
-                    Photo preview only · Secure photo uploads are coming soon.
-                    Names and bio can be saved now.
+                    Optional · Your saved photo is visible to signed-in,
+                    verified students.
                   </p>
+                  {photoError && (
+                    <div>
+                      <p role="alert" className={styles.error}>
+                        {photoError}
+                      </p>
+                      <button
+                        type="button"
+                        className={styles.textButton}
+                        onClick={async () => {
+                          try {
+                            setSavedPhoto(
+                              await loadProfilePhoto(
+                                createClient(),
+                                profile.userId,
+                              ),
+                            );
+                            setPhotoError("");
+                          } catch (e) {
+                            setPhotoError(
+                              e instanceof Error
+                                ? e.message
+                                : "Your photo could not load. Please retry.",
+                            );
+                          }
+                        }}
+                      >
+                        Retry photo
+                      </button>
+                    </div>
+                  )}
                   <div className={styles.profileDetailsGrid}>
                     <div className={styles.formField}>
                       <label

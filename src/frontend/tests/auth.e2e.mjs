@@ -64,6 +64,30 @@ async function signout(page) {
     .click();
   await page.waitForURL(base + "/login");
 }
+async function choosePhoto(page, color) {
+  const png = await page.evaluate((fill) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 80;
+    const context = canvas.getContext("2d");
+    context.fillStyle = fill;
+    context.fillRect(0, 0, 80, 80);
+    return canvas.toDataURL("image/png").split(",")[1];
+  }, color);
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "local-avatar.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(png, "base64"),
+  });
+  await page
+    .getByText("Photo ready. Save your profile to upload it.", { exact: true })
+    .waitFor();
+}
+async function waitForAvatar(page) {
+  await page.waitForFunction(() => {
+    const image = document.querySelector('a[aria-label="My account"] img');
+    return image?.complete && image.naturalWidth > 0;
+  });
+}
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const external = [];
@@ -131,11 +155,38 @@ async function signout(page) {
     await page.locator("#username").fill(`test_${Date.now()}`);
     await page.locator("#campus").selectOption("Boston");
     await page.locator("#schoolYear").selectOption("Second year");
+    await choosePhoto(page, "#c8102e");
+    pass("Setup compresses a selected PNG profile photo");
+    await page.route(
+      "**/storage/v1/object/profile-photos/**",
+      (route) =>
+        route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({
+            statusCode: "503",
+            error: "Unavailable",
+            message: "Temporary upload failure",
+          }),
+        }),
+      { times: 1 },
+    );
+    await page
+      .getByRole("button", { name: "Save and explore", exact: true })
+      .click();
+    await page
+      .getByRole("alert")
+      .filter({ hasText: "Profile details saved." })
+      .waitFor();
+    assert.equal(new URL(page.url()).pathname, "/account/setup");
+    pass("A failed photo upload preserves profile fields and supports retry");
     await page
       .getByRole("button", { name: "Save and explore", exact: true })
       .click();
     await page.waitForURL(base + "/");
     pass("Name, username, campus and year save; setup opens Home");
+    await waitForAvatar(page);
+    pass("Saved setup photo appears in the header");
     await page.goto(base + "/account");
     await page.locator("#display-name").waitFor();
     assert.match(await page.locator("body").innerText(), /Email verified/);
@@ -144,6 +195,39 @@ async function signout(page) {
       "Local Test Student",
     );
     pass("Account reload preserves profile and verified email");
+    const accountPhoto = page
+      .getByRole("button", { name: "Choose a profile photo", exact: true })
+      .locator("img");
+    await accountPhoto.waitFor();
+    const firstPhoto = await accountPhoto.getAttribute("src");
+    assert.equal(new URL(firstPhoto).origin, api);
+    const firstBytes = await (await context.request.get(firstPhoto)).body();
+    pass("Profile photo persists after account reload");
+    await choosePhoto(page, "#3366aa");
+    await page
+      .getByRole("button", { name: "Save profile", exact: true })
+      .click();
+    await page.getByText("Profile saved.", { exact: true }).waitFor();
+    await page.reload();
+    await accountPhoto.waitFor();
+    const replacement = await accountPhoto.getAttribute("src");
+    assert.equal(new URL(replacement).origin, api);
+    const replacementBytes = await (
+      await context.request.get(replacement)
+    ).body();
+    assert.notDeepEqual(firstBytes, replacementBytes);
+    pass("Replacing a photo persists the new compressed image");
+    await page
+      .getByRole("button", { name: "Remove photo", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Save profile", exact: true })
+      .click();
+    await page.getByText("Profile saved.", { exact: true }).waitFor();
+    await page.reload();
+    await page.locator("#display-name").waitFor();
+    assert.equal(await accountPhoto.count(), 0);
+    pass("Removing a photo restores the default avatar after reload");
     await signout(page);
     before = await messageIds();
     await signin(page, password, true);

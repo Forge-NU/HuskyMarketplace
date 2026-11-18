@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import styles from "./UI.module.css";
 import ProfileAvatar from "./ProfileAvatar";
 import Icon from "@/components/Icon";
+import { loadProfilePhoto, PROFILE_PHOTO_UPDATED } from "@/lib/profile/photo";
 
 export default function UIShell({
   children,
@@ -18,15 +19,32 @@ export default function UIShell({
     pathname = usePathname();
   const [email, setEmail] = useState<string | null>(null),
     [q, setQ] = useState("");
+  const [photo, setPhoto] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
-    createClient()
-      .auth.getUser()
-      .then(({ data }) => {
-        if (active) setEmail(data.user?.email ?? null);
-      });
+    function refreshPhoto() {
+      createClient()
+        .auth.getUser()
+        .then(({ data }) => {
+          if (active) setEmail(data.user?.email ?? null);
+          if (!data.user) {
+            if (active) setPhoto(null);
+            return;
+          }
+          return loadProfilePhoto(createClient(), data.user.id)
+            .then((url) => {
+              if (active) setPhoto(url);
+            })
+            .catch(() => {
+              if (active) setPhoto(null);
+            });
+        });
+    }
+    refreshPhoto();
+    window.addEventListener(PROFILE_PHOTO_UPDATED, refreshPhoto);
     return () => {
       active = false;
+      window.removeEventListener(PROFILE_PHOTO_UPDATED, refreshPhoto);
     };
   }, [pathname]);
   function search(e: FormEvent) {
@@ -42,6 +60,7 @@ export default function UIShell({
       return;
     }
     setEmail(null);
+    setPhoto(null);
     router.replace("/login");
     router.refresh();
   }
@@ -129,7 +148,7 @@ export default function UIShell({
                   title="My account"
                   aria-label="My account"
                 >
-                  <ProfileAvatar />
+                  <ProfileAvatar src={photo} />
                 </Link>
               </div>
             ) : (

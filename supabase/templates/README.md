@@ -16,7 +16,7 @@ The original migration (`20261115035417_verified_device_sessions.sql`) is instal
 
 A remembered browser uses a random HttpOnly cookie backed by a hash in a private table. Trust expires after 30 days. Clearing cookies or using another browser requires email verification again. Recent email verification rotates the remembered credential. This is email-based device verification, not Supabase AAL2 MFA. School profile fields remain editable metadata pending the public-profile migration and are not used for authorization.
 
-Hosted testing confirmed sign-in, access to the account page, and remembered-browser login: the latest password-only sessions passed the database device check. On November 18, all 90 database assertions across eight files passed on a fresh local Supabase stack. Browser tests also passed signup, profile setup, recovery, and fresh/remembered-device flows against the local production build. Final hosted checks still need to run after the reviewed changes are deployed. Local Mailpit delivery does not measure Brevo or Northeastern inbox delays.
+Hosted testing confirmed sign-in, access to the account page, and remembered-browser login: the latest password-only sessions passed the database device check. On November 18, all 111 database assertions across nine files passed on a fresh local Supabase stack including the proposed photo migration. Browser tests also passed signup, profile setup, recovery, and fresh/remembered-device flows against the local production build. Final hosted checks still need to run after the reviewed changes are deployed. Local Mailpit delivery does not measure Brevo or Northeastern inbox delays.
 
 ## Local auth tests
 
@@ -42,7 +42,7 @@ npm start -- --hostname 127.0.0.1 --port 3004
 
 In another terminal in `src/frontend`, run `npm run test:auth`. The runner uses synthetic accounts and the local Mailpit API on port 54324. It rejects non-local app URLs and blocks browser requests to hosted services. It does not read personal inboxes or print passwords/codes. Test accounts remain in the disposable local database; rebuilding it with `db reset` removes them along with other local data. The unit-test command uses native TypeScript support; use Node 22.18 or later (verified with Node 26.12.1).
 
-The browser runner covers 21 checks, including wrong codes, refresh without duplicate sends, access before verification, session-only cookies, reopened browsers, invented device credentials, mobile layout, and old-password rejection after recovery. One device response is deliberately replaced with a 503 to verify that Continue finishes the accepted-code flow without submitting the code twice. Other Auth and database requests use the real local services.
+The browser runner covers 27 checks, including photo upload/retry/replacement/removal, wrong codes, refresh without duplicate sends, access before verification, session-only cookies, reopened browsers, invented device credentials, mobile layout, and old-password rejection after recovery. One device response and one photo upload deliberately return 503 to exercise recovery. Other Auth, Storage and database requests use the real local services. Photo tests require the proposed `20261118064148_profile_photo_storage.sql` migration in the local stack; it remains unapplied to shared Supabase.
 
 ## After #49 is revised
 

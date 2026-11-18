@@ -4,6 +4,7 @@ export type CompressOptions = {
   maxWidthOrHeight?: number;
   fileType?: "image/webp" | "image/jpeg" | "image/png";
   maxSizeMB?: number;
+  useWebWorker?: boolean;
 };
 
 // 500KB keeps us within Supabase's 1 GB free storage
@@ -13,6 +14,7 @@ const DEFAULT_OPTIONS: Required<CompressOptions> = {
   maxWidthOrHeight: 1600,
   fileType: "image/webp",
   maxSizeMB: 0.5,
+  useWebWorker: true,
 };
 
 function isHeic(file: File): boolean {
