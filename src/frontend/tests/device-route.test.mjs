@@ -23,6 +23,8 @@ function fixture({
   confirms = false,
   enabled = "true",
   proofMethod = "password",
+  host = "fixture.invalid",
+  requestUrl = "https://fixture.invalid/api/auth/device",
 } = {}) {
   const calls = [];
   const token = "a".repeat(64);
@@ -78,8 +80,8 @@ function fixture({
     token,
     request: (origin = "https://fixture.invalid") =>
       exports.POST({
-        headers: { get: () => origin },
-        nextUrl: new URL("https://fixture.invalid/api/auth/device"),
+        headers: { get: (name) => (name === "host" ? host : origin) },
+        nextUrl: new URL(requestUrl),
       }),
   };
 }
@@ -161,6 +163,25 @@ test("cross-origin device requests are rejected before checking the session", as
   const f = fixture();
   assert.equal((await f.request("https://other.invalid")).status, 403);
   assert.deepEqual(f.calls, []);
+});
+test("same-origin loopback requests survive Next.js hostname normalization", async () => {
+  const f = fixture({
+    host: "127.0.0.1:3004",
+    requestUrl: "http://localhost:3004/api/auth/device",
+    verified: true,
+  });
+  assert.equal((await f.request("http://127.0.0.1:3004")).status, 200);
+  assert.equal((await f.request("http://localhost:3004")).status, 403);
+  assert.equal((await f.request("https://127.0.0.1:3004")).status, 403);
+  assert.equal((await f.request("http://127.0.0.1:3005")).status, 403);
+});
+test("device requests without Host or Origin are rejected", async () => {
+  const missingHost = fixture({ host: null });
+  assert.equal((await missingHost.request()).status, 403);
+  const missingOrigin = fixture();
+  assert.equal((await missingOrigin.request(null)).status, 403);
+  assert.deepEqual(missingHost.calls, []);
+  assert.deepEqual(missingOrigin.calls, []);
 });
 test("expired sessions require login while temporary Auth errors remain retryable", async () => {
   const expired = fixture({ authenticated: false });
