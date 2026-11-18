@@ -22,6 +22,7 @@ export async function loadProfile(
   return {
     userId: user.id,
     email: user.email ?? "",
+    emailVerified: Boolean(user.email_confirmed_at),
     username: profile.username,
     campus:
       typeof user.user_metadata.campus === "string"
@@ -77,5 +78,10 @@ export async function saveProfile(
     throw new Error(
       "Username saved, but your display name or bio could not be saved. Please retry to finish.",
     );
-  return { ...profile, ...fields, bio };
+  return {
+    ...profile,
+    ...fields,
+    bio,
+    emailVerified: Boolean(data.user.email_confirmed_at),
+  };
 }

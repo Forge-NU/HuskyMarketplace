@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test:auth": "node tests/auth.e2e.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -22,6 +24,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
+    "playwright": "1.65.1",
     "typescript": "^5"
   }
 }

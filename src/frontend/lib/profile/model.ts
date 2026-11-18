@@ -1,6 +1,7 @@
 export type AccountProfile = {
   userId: string;
   email: string;
+  emailVerified: boolean;
   username: string;
   displayName: string;
   area: string;
