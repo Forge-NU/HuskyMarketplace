@@ -1,21 +1,22 @@
 # Each group: (action, [labels]).  "a photo of " is added in front of each label later.
 # block = clearly not allowed, flag = send to human review, allow = normal marketplace items
+# Group names match text_check.py so both checks give the same reason.
 
 GROUPS = {
     # ---------- Prohibited items (from the prohibited-items policy) ----------
     "weapons": ("block", [
         "a handgun", "a rifle or shotgun", "ammunition or bullets", "gun parts or a gun magazine",
-        "a combat knife or switchblade", "brass knuckles", "a taser or stun gun",
-        "a can of pepper spray", "a sword or machete",
+        "a combat knife or switchblade", "a butterfly knife", "a dagger", "brass knuckles",
+        "nunchucks", "a taser or stun gun", "a can of pepper spray", "a sword or machete",
         "a pistol", "a firearm on a table", "a gun in a holster",
     ]),
     "replica_weapons": ("flag", [
         "an airsoft or BB gun", "a toy gun",
     ]),
     "explosives_hazmat": ("block", [
-        "fireworks", "firecrackers", "an explosive device",
-        "a propane tank or gas canister", "a bottle of chemicals or poison",
-        "fireworks or firecracker packaging",
+        "fireworks", "firecrackers", "an explosive device", "fireworks or firecracker packaging",
+        "a pack of firecrackers", "a string of red firecrackers",
+        "a bottle of chemicals or poison", "a can of lighter fluid", "small nitrous oxide canisters",
     ]),
     "tobacco_vapes": ("block", [
         "a vape pen or e-cigarette", "a disposable vape", "bottles of vape juice",
@@ -28,17 +29,22 @@ GROUPS = {
     ]),
     "drugs": ("block", [
         "marijuana buds", "cannabis edibles", "loose pills or tablets",
-        "a prescription pill bottle", "a syringe or needle", "a bong or glass pipe",
-        "white powder drugs",
+        "a prescription pill bottle", "a syringe or needle", "white powder drugs",
     ]),
-    "ids_cards_tickets": ("block", [
-        "a driver's license or ID card", "a student ID card", "a passport",
-        "a credit card or debit card", "a gift card", "an event or concert ticket",
-        "a sports game ticket",
+    "paraphernalia": ("block", [
+        "a bong", "a glass smoking pipe", "rolling papers", "a dab rig",
+    ]),
+    "nu_issued": ("block", [
+        "a student ID card", "a university parking permit",
+    ]),
+    "ids_accounts": ("block", [
+        "a driver's license or ID card", "a passport", "a credit card or debit card", "a gift card",
+    ]),
+    "live_animals": ("flag", [
+        "a live pet dog or cat", "a pet fish, bird, or reptile", "a hamster or guinea pig",
     ]),
     "policy_restricted": ("flag", [
-        "a used mattress", "used pillows or bedding", "a live pet dog or cat",
-        "a pet fish, bird, or reptile", "homemade food or baked goods",
+        "a used mattress", "used pillows or bedding", "homemade food or baked goods",
         "contact lens boxes", "prescription medication boxes", "cash or banknotes",
     ]),
 
@@ -81,7 +87,7 @@ GROUPS = {
     "dorm_kitchen": ("allow", [
         "a mini fridge", "a microwave", "a rice cooker", "a kettle or coffee maker",
         "a fan", "a laundry hamper", "pots and pans", "dishes and utensils",
-        "a kitchen knife set", "a shower caddy", "a trash can", "clothes hangers",
+        "a kitchen knife set", "a coffee grinder", "a shower caddy", "a trash can", "clothes hangers",
         "sealed packaged snacks", "a glass bottle of juice or kombucha", "a bottle of soda",
     ]),
     "electronics": ("allow", [
@@ -97,8 +103,9 @@ GROUPS = {
     "other_goods": ("allow", [
         "a bicycle", "an electric scooter", "sports equipment", "a yoga mat",
         "gym weights", "a guitar or musical instrument", "a board game or playing cards",
-        "a toy or stuffed animal", "a nerf blaster", "a fire extinguisher", "a houseplant", "a poster or wall art",
-        "string lights or decorations", "a suitcase", "moving boxes", "an umbrella",
+        "a toy or stuffed animal", "a nerf blaster", "a red fire extinguisher", "a houseplant",
+        "a poster or wall art", "string lights or decorations", "a suitcase", "moving boxes",
+        "an umbrella", "an event or concert ticket", "a sports game ticket",
     ]),
     "services": ("allow", [
         "a person carrying boxes", "a car or moving van", "a person tutoring",
@@ -109,4 +116,3 @@ GROUPS = {
         "a room interior", "a product on a table",
     ]),
 }
-
