@@ -12,8 +12,6 @@ insert into auth.users (id, email) values
   ('aaaaaaaa-0000-0000-0000-000000000000', 'student.a@northeastern.edu'),
   ('bbbbbbbb-0000-0000-0000-000000000000', 'student.b@northeastern.edu');
 
-alter table public.listings disable trigger auto_approve_submitted_listing;
-
 insert into public.listings (id, seller_id, title, status) values
   ('a0000000-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000000', 'A draft', 'draft'),
   ('a0000000-0000-0000-0000-000000000002', 'aaaaaaaa-0000-0000-0000-000000000000', 'A pending', 'pending'),

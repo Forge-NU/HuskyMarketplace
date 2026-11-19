@@ -4,3 +4,4 @@ pillow
 fastapi
 uvicorn
 python-multipart
+supabase>=2.9,<3.0

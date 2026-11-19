@@ -36,21 +36,28 @@ select id,id,now()+interval '1 day' from auth.users on conflict do nothing;
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "aaaaaaaa-0000-0000-0000-000000000000", "role": "authenticated", "session_id": "aaaaaaaa-0000-0000-0000-000000000000"}';
 
--- 1. Submitting again after auto-approval
+-- 1. Submitting again after the listing was approved
 select is(
   public.submit_listing('a0000000-0000-0000-0000-000000000001'),
   'pending',
   'A can submit a draft whose photo files all exist'
 );
+
+-- Moderation approves it (backend only).
+reset role;
+select public.save_moderation_result('a0000000-0000-0000-0000-000000000001', 'allow', null);
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "aaaaaaaa-0000-0000-0000-000000000000", "role": "authenticated", "session_id": "aaaaaaaa-0000-0000-0000-000000000000"}';
+
 select is(
   (select status from public.listings where id = 'a0000000-0000-0000-0000-000000000001'),
   'approved',
-  'Auto-approve approves the listing right after submission'
+  'Moderation approved the listing'
 );
 select is(
   public.submit_listing('a0000000-0000-0000-0000-000000000001'),
   'pending',
-  'Submitting again after auto-approval succeeds instead of raising an error'
+  'Submitting again after approval succeeds instead of raising an error'
 );
 
 -- 2. A photo file was deleted
