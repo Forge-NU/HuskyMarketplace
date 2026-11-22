@@ -30,10 +30,15 @@ export async function uploadFile(
   if (!error) {
     return path;
   }
-  // 409 indicates file already exists. This happens when a retry resends an
-  // upload whose first attempt succeeded but the response was lost. The callers
-  // use unique paths and upsert is off, so an existing file is the same exact upload.
-  if (error.statusCode === "409") {
+  // A retry can reach an upload whose successful response was lost. Keep the
+  // original path and never overwrite it; other 400 errors must still fail.
+  if (
+    error.statusCode === "409" ||
+    (error.statusCode === "400" &&
+      (("code" in error && error.code === "ResourceAlreadyExists") ||
+        error.message === "The resource already exists" ||
+        error.message === "Asset Already Exists"))
+  ) {
     return path;
   }
   throw new UploadError(errorType(error.statusCode), error.message);

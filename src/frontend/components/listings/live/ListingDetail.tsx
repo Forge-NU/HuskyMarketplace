@@ -164,6 +164,8 @@ export default function ListingDetail({ id }: { id: string }) {
                         Status: {item.status}
                         {item.status === "pending" &&
                           ". Waiting for moderation; this listing is not public."}
+                        {item.status === "blocked" &&
+                          ". This listing is not public and cannot be edited or deleted."}
                       </p>
                       <div className={styles.detailActions}>
                         {item.status === "draft" && (
@@ -175,13 +177,15 @@ export default function ListingDetail({ id }: { id: string }) {
                           </Link>
                         )}
                         <Link href="/my-listings">My listings</Link>
-                        <button
-                          className={styles.secondaryButton}
-                          disabled={busy}
-                          onClick={() => setConfirm(true)}
-                        >
-                          Delete listing
-                        </button>
+                        {item.status !== "blocked" && (
+                          <button
+                            className={styles.secondaryButton}
+                            disabled={busy}
+                            onClick={() => setConfirm(true)}
+                          >
+                            Delete listing
+                          </button>
+                        )}
                         {confirm && (
                           <div role="alert">
                             <p>Delete this listing permanently?</p>
