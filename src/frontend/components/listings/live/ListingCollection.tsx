@@ -94,6 +94,14 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
             <h2>We couldn’t load listings.</h2>
             <p>{error}</p>
             <div className={searchStyles.stateActions}>
+              {filters.page > 1 && (
+                <button
+                  className={styles.secondaryButton}
+                  onClick={() => change({ page: "" })}
+                >
+                  Back to first page
+                </button>
+              )}
               <button
                 className={styles.primaryButton}
                 onClick={() => {
@@ -103,23 +111,7 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
               >
                 Try again
               </button>
-              {filters.page > 1 && (
-                <button
-                  className={styles.secondaryButton}
-                  onClick={() => change({ page: "" })}
-                >
-                  Back to first page
-                </button>
-              )}
-              {!own && (
-                <Link className={styles.secondaryButton} href="/">
-                  Explore the demo
-                </Link>
-              )}
             </div>
-            {!own && (
-              <p>The demo uses sample listings, separate from live results.</p>
-            )}
           </div>
         ) : (
           <>

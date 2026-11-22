@@ -11,14 +11,14 @@ import {
 } from "../lib/listings/model.ts";
 import {
   loadListings,
-  loadListingPage,
-  PAGE_SIZE,
   loadListing,
   saveDraft,
   uploadPhotos,
   submitDraft,
   signedPhotos,
   deleteListing,
+  loadListingPage,
+  PAGE_SIZE,
 } from "../lib/listings/service.ts";
 const id = "d806ce19-530a-4c15-b4f6-f209ad910453",
   seller = "6b13c715-a869-4023-8581-bcc12ccddc6c";
@@ -54,10 +54,6 @@ function fixture() {
       calls.push(["eq", ...v]);
       return this;
     },
-    textSearch(...v) {
-      calls.push(["textSearch", ...v]);
-      return this;
-    },
     ilike(...v) {
       calls.push(["ilike", ...v]);
       return this;
@@ -72,6 +68,10 @@ function fixture() {
     },
     range(...v) {
       calls.push(["range", ...v]);
+      return this;
+    },
+    textSearch(...v) {
+      calls.push(["textSearch", ...v]);
       return this;
     },
     maybeSingle() {
