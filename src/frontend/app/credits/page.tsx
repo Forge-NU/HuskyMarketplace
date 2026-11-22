@@ -44,7 +44,7 @@ export default function CreditsPage() {
             . Photographer and individual photo attribution should be reviewed
             and documented before launch.
           </p>
-          <Link href="/browse">Browse demo images →</Link>
+          <Link href="/browse">Browse listings →</Link>
         </div>
       </main>
     </UIShell>

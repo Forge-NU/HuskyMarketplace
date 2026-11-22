@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import styles from "@/components/ui/marketplace/UI.module.css";
 /** UI routes supply their own navigation; existing team routes keep their original header. */
 const uiRoutes = [
   "/",
@@ -42,8 +43,13 @@ export default function SiteChrome({
     return <>{children}</>;
   return (
     <>
+      <a className={styles.skipLink} href="#main-content">
+        Skip to content
+      </a>
       <Header userEmail={userEmail} />
-      {children}
+      <div id="main-content" tabIndex={-1}>
+        {children}
+      </div>
       <Footer />
     </>
   );

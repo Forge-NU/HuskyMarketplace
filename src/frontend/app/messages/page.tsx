@@ -122,7 +122,7 @@ function Messenger() {
       return;
     }
     const created: DemoOffer = {
-      id: String(Date.now()),
+      id: crypto.randomUUID(),
       listingId,
       amount: +amount,
       note: note.trim(),
@@ -151,6 +151,7 @@ function Messenger() {
           <button
             type="button"
             className={tab === "messages" ? styles.tabActive : ""}
+            aria-pressed={tab === "messages"}
             onClick={() => setTab("messages")}
           >
             Messages
@@ -158,6 +159,7 @@ function Messenger() {
           <button
             type="button"
             className={tab === "offers" ? styles.tabActive : ""}
+            aria-pressed={tab === "offers"}
             onClick={() => setTab("offers")}
           >
             Offers
@@ -176,6 +178,11 @@ function Messenger() {
                   aria-label="Search conversations"
                 />
               </div>
+              {!filtered.length && (
+                <p className={styles.inboxEmpty} role="status">
+                  No conversations match your search.
+                </p>
+              )}
               {filtered.map((t) => (
                 <button
                   className={`${styles.thread} ${t.id === active ? styles.threadActive : ""}`}
@@ -253,9 +260,7 @@ function Messenger() {
                         className={`${styles.bubble} ${m.from === "me" ? styles.bubbleMe : ""}`}
                       >
                         {m.text}
-                        <div
-                          style={{ fontSize: 10, opacity: 0.75, marginTop: 5 }}
-                        >
+                        <div style={{ fontSize: 10, marginTop: 5 }}>
                           {m.time}
                         </div>
                       </div>
@@ -358,7 +363,7 @@ function Messenger() {
                       padding: "14px 0",
                     }}
                   >
-                    <Link href={`/item/${o.listingId}`}>
+                    <Link href={`/demo/item/${o.listingId}`}>
                       <strong>
                         {PHOTO_LISTINGS.find((x) => x.id === o.listingId)
                           ?.title || `Listing ${o.listingId}`}

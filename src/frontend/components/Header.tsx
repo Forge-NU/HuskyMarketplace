@@ -5,42 +5,31 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useFilters } from "@/lib/use-filters";
-import type { Mode } from "@/lib/types";
 import Icon from "./Icon";
 import SearchPill from "./SearchPill";
 import Skyline from "./Skyline";
 import styles from "./Header.module.css";
 
-const MODES: { id: Mode; label: string }[] = [
-  { id: "goods", label: "Goods" },
-  { id: "services", label: "Services" },
+const SECTIONS = [
+  { href: "/browse", label: "Goods" },
+  { href: "/moving", label: "Services" },
 ];
 
 function ModeTabs() {
-  const router = useRouter();
-  const { filters } = useFilters();
+  const pathname = usePathname();
   return (
-    <div className={styles.modes} role="tablist">
-      {MODES.map((m) => (
-        <button
-          key={m.id}
-          className={`${styles.mode} ${filters.mode === m.id ? styles.on : ""}`}
-          role="tab"
-          aria-selected={filters.mode === m.id}
-          // Switching mode starts a fresh search, like the prototype's setMode().
-          onClick={() =>
-            router.push(
-              m.id === "services"
-                ? "/team-browse?mode=services"
-                : "/team-browse",
-            )
-          }
+    <nav className={styles.modes} aria-label="Marketplace sections">
+      {SECTIONS.map((section) => (
+        <Link
+          key={section.href}
+          href={section.href}
+          className={`${styles.mode} ${pathname === section.href ? styles.on : ""}`}
+          aria-current={pathname === section.href ? "page" : undefined}
         >
-          {m.label}
-        </button>
+          {section.label}
+        </Link>
       ))}
-    </div>
+    </nav>
   );
 }
 
