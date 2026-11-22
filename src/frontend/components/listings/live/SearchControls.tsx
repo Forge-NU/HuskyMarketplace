@@ -30,6 +30,7 @@ export default function SearchControls({
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     onChange({ q: String(data.get("q") ?? "").trim() });
+    if (panel.current) panel.current.open = false;
   }
 
   const panel = useRef<HTMLDetailsElement>(null);
@@ -62,6 +63,7 @@ export default function SearchControls({
   }
   function clearFilters() {
     onChange({ cat: "", condition: "", min: "", max: "", free: "" });
+    if (panel.current) panel.current.open = false;
   }
 
   function setFreePrice(event: MouseEvent<HTMLButtonElement>) {
@@ -131,9 +133,9 @@ export default function SearchControls({
           className={styles.filterMenu}
           ref={panel}
           onKeyDown={(event) => {
-            if (event.key === "Escape" && panel.current) {
-              panel.current.open = false;
-              panel.current.querySelector("summary")?.focus();
+            if (event.key === "Escape") {
+              event.currentTarget.open = false;
+              event.currentTarget.querySelector("summary")?.focus();
             }
           }}
         >

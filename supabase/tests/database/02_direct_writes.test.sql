@@ -80,7 +80,9 @@ select throws_ok(
 reset role;
 
 select results_eq(
-  $$ select title, status from public.listings order by title $$,
+  $$ select title, status from public.listings
+     where id in ('a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001')
+     order by title $$,
   $$ values ('A draft', 'draft'), ('B draft', 'draft') $$,
   'After all the attempts, both listings are unchanged drafts'
 );

@@ -122,7 +122,9 @@ export default function ListingEditor({ editId }: { editId?: string }) {
       if (files.length + photos.length + existingCount > 5)
         throw new Error("Choose at most five photos per listing.");
       files.forEach(validatePhoto);
-      const compressed = await Promise.all(files.map((f) => compressImage(f)));
+      const compressed = await Promise.all(
+        files.map((f) => compressImage(f, { useWebWorker: false })),
+      );
       if (
         compressed.some(
           (file) => file.size > 1024 * 1024 || file.type !== "image/webp",
