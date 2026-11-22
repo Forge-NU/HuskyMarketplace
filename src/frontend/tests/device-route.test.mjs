@@ -20,6 +20,7 @@ function fixture({
   verified = false,
   rpcError = null,
   remembered = false,
+  keepSignedIn = remembered,
   confirms = false,
   enabled = "true",
   proofMethod = "password",
@@ -55,9 +56,11 @@ function fixture({
     "next/headers": {
       cookies: async () => ({
         get: (name) =>
-          remembered
-            ? { value: name === "husky_device" ? token : "yes" }
-            : undefined,
+          name === "husky_device"
+            ? remembered
+              ? { value: token }
+              : undefined
+            : { value: keepSignedIn ? "yes" : "no" },
         set: (...args) => calls.push(["cookie", ...args]),
       }),
     },
@@ -123,6 +126,22 @@ test("rejected remembered credentials cannot grant access or set a new trust coo
     f.calls.some((call) => call[0] === "cookie"),
     false,
   );
+});
+test("temporary sign-in clears an old remembered cookie after using it to verify this session", async () => {
+  const f = fixture({ remembered: true, keepSignedIn: false, confirms: true });
+  assert.equal((await f.request()).status, 200);
+  assert.equal(
+    f.calls.find((c) => c[0] === "confirm_device_session")[1].p_remember,
+    false,
+  );
+  const saved = f.calls.find((c) => c[0] === "cookie");
+  assert.equal(saved[2], "");
+  assert.equal(saved[3].maxAge, 0);
+});
+test("an already verified temporary session also clears an old remembered cookie", async () => {
+  const f = fixture({ verified: true, remembered: true, keepSignedIn: false });
+  assert.equal((await f.request()).status, 200);
+  assert.equal(f.calls.find((c) => c[0] === "cookie")[3].maxAge, 0);
 });
 test("recent email verification rotates a remembered credential securely", async () => {
   const f = fixture({ remembered: true, confirms: true, proofMethod: "otp" });

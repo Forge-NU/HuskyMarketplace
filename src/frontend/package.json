@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "test:auth": "node tests/auth.e2e.mjs"
+    "test:auth": "node --env-file-if-exists=.env.local tests/auth.e2e.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -5,6 +5,7 @@ Related to #2, #12 and #20. Usernames use the existing database constraint. Prof
 The `profiles` table has `user_id`, `username`, `created_at` and `updated_at`, an owner-only SELECT/UPDATE policy, a 3–24 character username constraint and a unique index on `lower(username)`. New accounts get a `husky_<18 hex digits>` handle from the registration trigger.
 
 - `/account/setup` collects a display name, username, campus and school year after email verification, plus an optional bio and photo. Finishing setup returns to Home.
+- These are the registration fields for this release. School year is used instead of graduation year; college is deferred to the broader profile work in #20. Existing accounts keep their profiles and can add missing school details from Account.
 - The username is saved to `profiles.username` for the signed-in user. The unique index handles collisions, including concurrent submissions.
 - Display name, campus area and bio are saved as Auth metadata (`display_name`, `campus_area`, `bio`). They are presentation only, not verification or authorization data. Auth metadata is included in access tokens, so these fields should move to `profiles` columns once the profile API is agreed.
 - If the username saves but the metadata update fails, the UI reports a partial save and allows a retry. The two writes are not atomic.

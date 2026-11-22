@@ -31,6 +31,17 @@ export async function POST(request: NextRequest) {
       { error: "Your session expired. Log in to continue." },
       { status: 401 },
     );
+  const store = await cookies();
+  const previous = store.get(DEVICE_COOKIE)?.value;
+  const remember = store.get("husky_keep_signed_in")?.value === "yes";
+  if (!remember && previous)
+    store.set(DEVICE_COOKIE, "", {
+      httpOnly: true,
+      secure: request.nextUrl.protocol === "https:",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
   const session = await client.rpc("device_session_verified");
   if (session.error)
     return NextResponse.json(
@@ -38,8 +49,6 @@ export async function POST(request: NextRequest) {
       { status: 503 },
     );
   if (session.data === true) return NextResponse.json({ verified: true });
-  const store = await cookies();
-  const previous = store.get(DEVICE_COOKIE)?.value;
   const verifiedClaims = await client.auth.getClaims();
   // Rotate after an email challenge, including when another student uses this browser.
   const freshProof =
@@ -50,7 +59,6 @@ export async function POST(request: NextRequest) {
     !freshProof && previous && /^[a-f0-9]{64}$/.test(previous)
       ? previous
       : randomBytes(32).toString("hex");
-  const remember = store.get("husky_keep_signed_in")?.value === "yes";
   const result = await client.rpc("confirm_device_session", {
     p_token: token,
     p_remember: remember,
