@@ -28,7 +28,8 @@ Each browser passed 23 page variants and 138 layout checks: 46 accessibility sca
 - [x] The two-student listing walkthrough passes all 19 checks, including uploads, retries, visibility and ownership.
 - [x] Chromium and WebKit pass the accessibility and layout checks above with the homepage spacing changes included.
 - [x] Next.js route types, TypeScript, targeted ESLint and the production build pass.
-- [x] The Figma sync includes 33 desktop/mobile screens for #52, #53 and #55. The newer homepage changes in #56 still need to be copied over.
+- [x] Figma includes 33 desktop/mobile screens for #52, #53, #55 and #56. Home uses the shorter hero, mobile photo visibility, simpler copy and category title widths from the app. Shared banners are updated across the current screens; fonts, colors, images and component instances are preserved.
+- [x] All 130 database assertions across ten files pass with #46’s profile migration included in rolled-back local transactions. This checks compatibility; it does not install the migration or switch the frontend to the new columns.
 
 The current screens are in [Desktop](https://www.figma.com/design/maLPrdzL4LrQCWIlZpBbME/Husky-Marketplace?node-id=145-7) and [Mobile](https://www.figma.com/design/maLPrdzL4LrQCWIlZpBbME/Husky-Marketplace?node-id=150-2). The original pages remain in the file.
 
@@ -73,7 +74,7 @@ These checks are separate from the local UI pass. Keep the related issues open u
 - [ ] Test public seller fields and saved items after their backend work lands (#20, #26, #38, #46).
 - [ ] Review real moderation, sold/report actions and their permissions with their owners (#10, #22).
 - [ ] Check a physical phone, native browser zoom and a screen reader (#12).
-- [ ] Update the Figma Home screens with #56's spacing changes (#12).
+- [x] Update the Figma Home screens with #56's spacing changes (#12).
 - [ ] Confirm final policy/contact text and photo permissions with the team.
 - [ ] Complete the joint launch review (#19, #25).
 
