@@ -10,7 +10,6 @@ import type { Mode } from "@/lib/types";
 import Icon from "./Icon";
 import SearchPill from "./SearchPill";
 import Skyline from "./Skyline";
-import { useToast } from "./ui/Toast";
 import styles from "./Header.module.css";
 
 const MODES: { id: Mode; label: string }[] = [
@@ -32,7 +31,9 @@ function ModeTabs() {
           // Switching mode starts a fresh search, like the prototype's setMode().
           onClick={() =>
             router.push(
-              m.id === "services" ? "/browse?mode=services" : "/browse",
+              m.id === "services"
+                ? "/team-browse?mode=services"
+                : "/team-browse",
             )
           }
         >
@@ -63,7 +64,6 @@ function LogoutButton() {
 
 /** `userEmail` is null when logged out (only possible on /login). */
 export default function Header({ userEmail }: { userEmail: string | null }) {
-  const toast = useToast();
   const isBrowse = usePathname() === "/browse";
   return (
     <header className={`${styles.head} ${isBrowse ? "" : styles.plain}`}>
@@ -80,31 +80,27 @@ export default function Header({ userEmail }: { userEmail: string | null }) {
         </Suspense>
         {userEmail && (
           <div className={styles.right}>
-            <button
-              className={styles.link}
-              onClick={() => toast("Posting a listing comes in a later PR.")}
-            >
+            <Link className={styles.link} href="/sell">
               Post a listing
-            </button>
-            <button
+            </Link>
+            <Link
               className={styles.iconBtn}
               aria-label="Messages"
-              onClick={() => toast("Messages come in a later PR.")}
+              href="/messages"
             >
               <Icon name="chat" />
-            </button>
+            </Link>
             <LogoutButton />
-            <button
+            <Link
               className={styles.acct}
-              aria-label={`Account: ${userEmail}`}
-              title={userEmail}
-              onClick={() => toast("Your profile comes in a later PR.")}
+              aria-label="My account"
+              href="/account"
             >
               <Icon name="menu" />
               <span className={styles.av}>
                 <Icon name="user" />
               </span>
-            </button>
+            </Link>
           </div>
         )}
       </div>

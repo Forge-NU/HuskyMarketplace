@@ -18,15 +18,8 @@ import {
   profileComplete,
   type AccountProfile as Profile,
 } from "@/lib/profile/model";
-import { safeNext } from "@/lib/auth";
 import styles from "./UI.module.css";
-export default function AccountProfile({
-  setup = false,
-  next = "/",
-}: {
-  setup?: boolean;
-  next?: string;
-}) {
+export default function AccountProfile({ setup = false }: { setup?: boolean }) {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null),
     [loading, setLoading] = useState(true),
@@ -124,7 +117,7 @@ export default function AccountProfile({
       const saved = await saveProfile(createClient(), profile);
       setProfile(saved);
       if (setup) {
-        router.replace(safeNext(next));
+        router.replace("/");
         router.refresh();
       } else
         setNotice(
@@ -299,6 +292,48 @@ export default function AccountProfile({
                       </p>
                     </div>
                   </div>
+                  <div className={styles.formField}>
+                    <label className={styles.inputLabel} htmlFor="campus">
+                      Campus
+                    </label>
+                    <select
+                      className={styles.input}
+                      id="campus"
+                      required
+                      value={profile.campus || ""}
+                      onChange={(e) =>
+                        setProfile({ ...profile, campus: e.target.value })
+                      }
+                    >
+                      <option value="">Choose your campus</option>
+                      <option>Boston</option>
+                      <option>Oakland</option>
+                      <option>London</option>
+                      <option>Other Northeastern campus</option>
+                    </select>
+                  </div>
+                  <div className={styles.formField}>
+                    <label className={styles.inputLabel} htmlFor="schoolYear">
+                      School year
+                    </label>
+                    <select
+                      className={styles.input}
+                      id="schoolYear"
+                      required
+                      value={profile.schoolYear || ""}
+                      onChange={(e) =>
+                        setProfile({ ...profile, schoolYear: e.target.value })
+                      }
+                    >
+                      <option value="">Choose your school year</option>
+                      <option>First year</option>
+                      <option>Second year</option>
+                      <option>Third year</option>
+                      <option>Fourth year</option>
+                      <option>Fifth year or later</option>
+                      <option>Graduate student</option>
+                    </select>
+                  </div>{" "}
                   <div className={styles.formField}>
                     <label className={styles.inputLabel} htmlFor="bio">
                       Bio <span className={styles.hint}>(optional)</span>

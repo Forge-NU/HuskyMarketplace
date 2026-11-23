@@ -18,6 +18,7 @@ import {
   saveDraft,
   uploadPhotos,
   submitDraft,
+  signedPhotos,
   type Upload,
 } from "@/lib/listings/service";
 import {
@@ -29,6 +30,7 @@ import {
   type Details,
 } from "@/lib/listings/model";
 import styles from "@/components/ui/marketplace/UI.module.css";
+import ListingPreview from "./ListingPreview";
 export default function ListingEditor({ editId }: { editId?: string }) {
   const [details, setDetails] = useState<Details>(EMPTY_DETAILS),
     [cats, setCats] = useState<{ id: string; name: string }[]>([]);
@@ -41,6 +43,7 @@ export default function ListingEditor({ editId }: { editId?: string }) {
     [retry, setRetry] = useState(0);
   const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([]);
   const [existingCount, setExistingCount] = useState(0);
+  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
   const id = useRef(editId ?? ""),
     userId = useRef(""),
@@ -66,7 +69,11 @@ export default function ListingEditor({ editId }: { editId?: string }) {
           throw new Error(
             "Only your private drafts can be edited. Open My listings to check this item.",
           );
+        const savedPhotos = item
+          ? await signedPhotos(client, item).catch(() => [])
+          : [];
         if (!active) return;
+        setExistingPhotos(savedPhotos);
         userId.current = user.id;
         setCats(options);
         if (item) {
@@ -369,17 +376,21 @@ export default function ListingEditor({ editId }: { editId?: string }) {
               )}
               {pending && <Link href="/my-listings">View submission →</Link>}
             </form>
-            <aside className={styles.panel}>
-              <h2>Make a good listing.</h2>
-              <p>
-                Use bright, clear photos. Mention the condition and anything
-                missing. Choose a safe, public pickup spot near campus.
-              </p>
-              <p className={styles.notice}>
-                Your draft stays private. Submitted content is locked during
-                review. Moderators decide whether it can appear in Browse.
-              </p>
-            </aside>
+            <ListingPreview
+              details={details}
+              photos={[
+                ...existingPhotos,
+                ...photos.map((photo) => photo.preview),
+              ]}
+              category={
+                cats.find((category) => category.id === details.category_id)
+                  ?.name ?? ""
+              }
+              pending={pending}
+              savedPhotosUnavailable={
+                existingCount > 0 && existingPhotos.length === 0
+              }
+            />
           </div>
         )}
       </main>

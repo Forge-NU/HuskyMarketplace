@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { validateProfile, validateBio, type AccountProfile } from "./model.ts";
+import {
+  validateProfile,
+  validateBio,
+  validateSchoolDetails,
+  type AccountProfile,
+} from "./model.ts";
 export async function loadProfile(
   client: SupabaseClient,
 ): Promise<AccountProfile> {
@@ -18,6 +23,14 @@ export async function loadProfile(
     userId: user.id,
     email: user.email ?? "",
     username: profile.username,
+    campus:
+      typeof user.user_metadata.campus === "string"
+        ? user.user_metadata.campus
+        : "",
+    schoolYear:
+      typeof user.user_metadata.school_year === "string"
+        ? user.user_metadata.school_year
+        : "",
     displayName:
       typeof user.user_metadata.display_name === "string"
         ? user.user_metadata.display_name
@@ -35,6 +48,7 @@ export async function saveProfile(
   profile: AccountProfile,
 ) {
   const fields = validateProfile(profile.username, profile.displayName);
+  validateSchoolDetails(profile.campus, profile.schoolYear);
   const bio = validateBio(profile.bio ?? "");
   const { data, error } = await client.auth.getUser();
   if (error || !data.user || data.user.id !== profile.userId)
@@ -51,7 +65,13 @@ export async function saveProfile(
     throw new Error("Your username could not be saved. Please retry.");
   // Editable presentation only. These values never authorize access or verification.
   const { error: metadataError } = await client.auth.updateUser({
-    data: { display_name: fields.displayName, campus_area: profile.area, bio },
+    data: {
+      display_name: fields.displayName,
+      campus_area: profile.area,
+      bio,
+      ...(profile.campus ? { campus: profile.campus } : {}),
+      ...(profile.schoolYear ? { school_year: profile.schoolYear } : {}),
+    },
   });
   if (metadataError)
     throw new Error(

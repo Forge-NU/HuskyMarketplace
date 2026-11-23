@@ -1,17 +1,16 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { isNortheasternEmail, NU_DOMAIN, safeNext } from "@/lib/auth";
+import { isNortheasternEmail, NU_DOMAIN } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./LoginForm.module.css";
 
 const CODE_LENGTH = 8;
 
-/** Two steps: enter a @northeastern.edu email, then the 6-digit code Supabase emails to it. */
+/** Two steps: enter a @northeastern.edu email, then the 8-digit code Supabase emails to it. */
 export default function LoginForm() {
   const router = useRouter();
-  const next = safeNext(useSearchParams().get("next"));
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -58,7 +57,7 @@ export default function LoginForm() {
       return;
     }
     // refresh() so the server-rendered header picks up the new session.
-    router.replace(next);
+    router.replace("/");
     router.refresh();
   }
 
