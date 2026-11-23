@@ -172,6 +172,43 @@ async function screenshot(page, name) {
   await mkdir(directory, { recursive: true });
   await page.screenshot({ path: join(directory, name), fullPage: true });
 }
+async function signInAgain(page, account) {
+  await page.goto(base + "/account");
+  await page
+    .getByRole("button", { name: "Sign out", exact: true })
+    .first()
+    .click();
+  await page.waitForURL(base + "/login");
+  const before = await fetch(mail + "/api/v1/messages").then((r) => r.json());
+  const old = new Set(before.messages.map((m) => m.ID));
+  await page
+    .getByLabel("Northeastern email", { exact: true })
+    .fill(account.email);
+  await page.getByLabel("Password", { exact: true }).fill(account.password);
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
+  await page.waitForURL(base + "/verify-device");
+  let token;
+  for (let i = 0; i < 40; i++) {
+    const inbox = await fetch(mail + "/api/v1/messages").then((r) => r.json());
+    const msg = inbox.messages.find(
+      (m) => !old.has(m.ID) && m.To.some((to) => to.Address === account.email),
+    );
+    if (msg) {
+      const body = await fetch(`${mail}/api/v1/message/${msg.ID}`).then((r) =>
+        r.json(),
+      );
+      token = `${body.Text} ${body.HTML}`.match(/\b\d{8}\b/)?.[0];
+      if (token) break;
+    }
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  assert.ok(token, "Local device code arrived");
+  await page.getByLabel("Verification code", { exact: true }).fill(token);
+  await page
+    .getByRole("button", { name: "Verify this device", exact: true })
+    .click();
+  await page.waitForURL(base + "/");
+}
 try {
   const first = await listing(1),
     second = await listing(2),
@@ -466,45 +503,22 @@ try {
     "demo favorites remain browser-local and separate from real saved rows",
   );
 
-  await page.goto(base + "/account");
-  await page
-    .getByRole("button", { name: "Sign out", exact: true })
-    .first()
-    .click();
-  await page.waitForURL(base + "/login");
-  const before = await fetch(mail + "/api/v1/messages").then((r) => r.json());
-  const old = new Set(before.messages.map((m) => m.ID));
-  await page
-    .getByLabel("Northeastern email", { exact: true })
-    .fill(buyer.email);
-  await page.getByLabel("Password", { exact: true }).fill(buyer.password);
-  await page.getByRole("button", { name: "Log in", exact: true }).click();
-  await page.waitForURL(base + "/verify-device");
-  let token;
-  for (let i = 0; i < 40; i++) {
-    const inbox = await fetch(mail + "/api/v1/messages").then((r) => r.json());
-    const msg = inbox.messages.find(
-      (m) => !old.has(m.ID) && m.To.some((to) => to.Address === buyer.email),
-    );
-    if (msg) {
-      const body = await fetch(`${mail}/api/v1/message/${msg.ID}`).then((r) =>
-        r.json(),
-      );
-      token = `${body.Text} ${body.HTML}`.match(/\b\d{8}\b/)?.[0];
-      if (token) break;
-    }
-    await new Promise((r) => setTimeout(r, 250));
-  }
-  assert.ok(token, "Local device code arrived");
-  await page.getByLabel("Verification code", { exact: true }).fill(token);
-  await page
-    .getByRole("button", { name: "Verify this device", exact: true })
-    .click();
-  await page.waitForURL(base + "/");
+  await signInAgain(page, buyer);
   await page.goto(base + "/saved");
   await expect(page.getByText("26 saved items", { exact: true })).toBeVisible();
   passed(
     "saves remain after real logout, password login and device verification",
+  );
+  await signInAgain(page, owner);
+  await page.goto(base + "/saved");
+  await expect(
+    page.getByText("No saved items yet.", { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByText("26 saved items", { exact: true })).toHaveCount(
+    0,
+  );
+  passed(
+    "switching accounts in the same browser clears the previous student's saves",
   );
 } finally {
   for (const context of contexts) await context.close();
