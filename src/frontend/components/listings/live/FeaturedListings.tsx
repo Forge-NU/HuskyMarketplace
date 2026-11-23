@@ -7,12 +7,14 @@ import { message, type Listing } from "@/lib/listings/model";
 import ListingCards from "./ListingCards";
 import styles from "@/components/ui/marketplace/UI.module.css";
 import searchStyles from "./SearchControls.module.css";
+import { useSaved } from "./useSaved";
 
 export default function FeaturedListings() {
   const [items, setItems] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
+  const saved = useSaved(items.map((item) => item.id));
   useEffect(() => {
     let active = true;
     loadFeaturedListings(createClient())
@@ -66,7 +68,7 @@ export default function FeaturedListings() {
     );
   return (
     <div className={styles.featuredGrid}>
-      <ListingCards items={items} />
+      <ListingCards items={items} saved={saved} />
     </div>
   );
 }
