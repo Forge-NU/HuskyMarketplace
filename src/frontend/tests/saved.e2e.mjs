@@ -226,6 +226,32 @@ try {
     exact: true,
   });
   await expect(save).toBeEnabled();
+  let holdNext = true,
+    captured = false,
+    release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  await page.route(api + "/rest/v1/saved_items**", async (route) => {
+    const url = new URL(route.request().url());
+    if (
+      holdNext &&
+      route.request().method() === "GET" &&
+      url.searchParams.get("select") === "listing_id"
+    ) {
+      holdNext = false;
+      const response = await route.fetch();
+      captured = true;
+      await gate;
+      return route.fulfill({
+        response,
+        headers: { ...response.headers(), "x-husky-stale-read": "1" },
+      });
+    }
+    return route.continue();
+  });
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect.poll(() => captured).toBe(true);
   await save.click();
   await expect(
     page.getByRole("button", {
@@ -233,6 +259,20 @@ try {
       exact: true,
     }),
   ).toHaveAttribute("aria-pressed", "true");
+  const oldResponse = page.waitForResponse(
+    (response) => response.headers()["x-husky-stale-read"] === "1",
+  );
+  release();
+  await oldResponse;
+  await page.waitForLoadState("networkidle");
+  await expect(
+    page.getByRole("button", {
+      name: "Unsave Local saved item 1",
+      exact: true,
+    }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.unroute(api + "/rest/v1/saved_items**");
+  passed("a late background read cannot undo a successful save");
   await setSaved(buyer.client, first, buyer.user.id, true);
   const rows = await buyer.client
     .from("saved_items")

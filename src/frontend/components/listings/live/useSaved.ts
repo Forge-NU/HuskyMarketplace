@@ -16,24 +16,27 @@ export function useSaved(ids: string[]) {
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
   const locks = useRef(new Set<string>());
+  const version = useRef(0);
   useEffect(() => {
     if (!query) return;
     let active = true;
+    const request = ++version.current;
     const client = createClient();
     loadSavedIds(client, query.split(","))
       .then((data) => {
-        if (active) {
+        if (active && version.current === request) {
           setState({ query, ...data });
           setError("");
         }
       })
       .catch((e) => {
-        if (active) {
+        if (active && version.current === request) {
           setState({ query: "", userId: "", ids: [] });
           setError(message(e));
         }
       });
     function refresh() {
+      version.current++;
       setRetry((value) => value + 1);
     }
     function update(event: Event) {
@@ -49,6 +52,7 @@ export function useSaved(ids: string[]) {
             : previous.ids.filter((id) => id !== data.id),
         };
       });
+      refresh();
     }
     const { data: subscription } = client.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
@@ -68,6 +72,7 @@ export function useSaved(ids: string[]) {
   async function toggle(id: string) {
     if (state.query !== query || !state.userId || locks.current.has(id)) return;
     locks.current.add(id);
+    const attempt = ++version.current;
     setBusy((previous) => [...previous, id]);
     setError("");
     const saved = !state.ids.includes(id);
@@ -79,7 +84,7 @@ export function useSaved(ids: string[]) {
         }),
       );
     } catch (e) {
-      setError(message(e));
+      if (version.current === attempt) setError(message(e));
     } finally {
       locks.current.delete(id);
       setBusy((previous) => previous.filter((value) => value !== id));
@@ -91,7 +96,10 @@ export function useSaved(ids: string[]) {
     busy,
     error: query ? error : "",
     toggle,
-    retry: () => setRetry((value) => value + 1),
+    retry: () => {
+      version.current++;
+      setRetry((value) => value + 1);
+    },
   };
 }
 export type SavedControls = ReturnType<typeof useSaved>;

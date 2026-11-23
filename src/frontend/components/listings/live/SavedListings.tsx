@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import UIShell from "@/components/ui/marketplace/UIShell";
@@ -29,28 +29,31 @@ export default function SavedListings() {
   const [loadedPage, setLoadedPage] = useState(0);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
+  const version = useRef(0);
   const saved = useSaved(items.map((item) => item.listing_id));
   useEffect(() => {
     let active = true;
+    const request = ++version.current;
     const client = createClient();
     loadSavedPage(client, page)
       .then((data) => {
-        if (active) {
+        if (active && version.current === request) {
           setItems(data.items);
           setCount(data.count);
           setError("");
         }
       })
       .catch((e) => {
-        if (active) setError(message(e));
+        if (active && version.current === request) setError(message(e));
       })
       .finally(() => {
-        if (active) {
+        if (active && version.current === request) {
           setLoadedPage(page);
           setLoading(false);
         }
       });
     function refresh() {
+      version.current++;
       setLoading(true);
       setRetry((value) => value + 1);
     }
@@ -83,6 +86,7 @@ export default function SavedListings() {
             <button
               className={styles.secondaryButton}
               onClick={() => {
+                version.current++;
                 setLoading(true);
                 setRetry((value) => value + 1);
               }}
