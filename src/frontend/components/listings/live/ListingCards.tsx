@@ -7,7 +7,7 @@ import { signedPhotos } from "@/lib/listings/service";
 import { priceLabel, type Listing } from "@/lib/listings/model";
 import styles from "@/components/ui/marketplace/UI.module.css";
 import SaveButton, { SavedError } from "./SaveButton";
-import type { SavedControls } from "./useSaved";
+import { useSaved, type SavedControls } from "./useSaved";
 function Photo({ item }: { item: Listing }) {
   const [src, setSrc] = useState("");
   const [failed, setFailed] = useState(false);
@@ -60,18 +60,22 @@ function Photo({ item }: { item: Listing }) {
 export default function ListingCards({
   items,
   manage = false,
-  saved,
 }: {
   items: Listing[];
   manage?: boolean;
-  saved?: SavedControls;
 }) {
+  const saved = useSaved(manage ? [] : items.map((item) => item.id));
   if (!items.length) return <p className={styles.empty}>No listings found.</p>;
   return (
     <>
-      {saved && <SavedError controls={saved} />}
+      {!manage && <SavedError controls={saved} />}
       {items.map((item) => (
-        <ListingCard item={item} manage={manage} saved={saved} key={item.id} />
+        <ListingCard
+          item={item}
+          manage={manage}
+          saved={manage ? undefined : saved}
+          key={item.id}
+        />
       ))}
     </>
   );

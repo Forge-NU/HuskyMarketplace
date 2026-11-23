@@ -16,7 +16,6 @@ import {
   updateSearch,
 } from "@/lib/listings/search";
 import searchStyles from "./SearchControls.module.css";
-import { useSaved } from "./useSaved";
 
 export default function ListingCollection({ own = false }: { own?: boolean }) {
   const params = useSearchParams(),
@@ -27,7 +26,6 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
     [loadedQuery, setLoadedQuery] = useState<string | null>(null),
     [categoryNames, setCategoryNames] = useState<string[]>([]),
     [retry, setRetry] = useState(0);
-  const saved = useSaved(own ? [] : items.map((item) => item.id));
   const filters = readSearch(params);
   const q = filters.q;
   useEffect(() => {
@@ -121,11 +119,7 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
             </div>
             {results.length ? (
               <div className={styles.productGrid}>
-                <ListingCards
-                  items={results}
-                  manage={own}
-                  saved={own ? undefined : saved}
-                />
+                <ListingCards items={results} manage={own} />
               </div>
             ) : (
               <div className={searchStyles.state}>
