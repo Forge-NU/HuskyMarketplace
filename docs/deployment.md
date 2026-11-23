@@ -67,6 +67,14 @@ npx vercel@65.14.0 promote "STAGED_DEPLOYMENT_URL" --scope husky-marketplace1
 
 Then check the stable site again. Record the commit, deployment URL, migration versions, test results and remaining limitations in the release notes. Do not promote a Preview build as a shortcut; different environment variables can cause a rebuild.
 
+From `src/frontend`, run the signed-out smoke check against both the staged URL and the stable site:
+
+```bash
+node tests/release-smoke.mjs https://husky-marketplace.vercel.app
+```
+
+Use the staged origin for its first pass. The 28 checks use GET requests without cookies, API keys or redirects to other destinations. They check public pages, login redirects, public links and internal-route 404s. A protected deployment returns a failure; do not disable its protection to make the check pass. Signup, recovery, device verification, photo saves and listing writes still need the private account checks above.
+
 ## Troubleshooting
 
 | Symptom                                               | Check                                                                                                          |

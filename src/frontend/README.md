@@ -46,4 +46,12 @@ npm run build
 
 Run Prettier and ESLint on changed files. Browser checks and remaining manual tests are in [frontend QA](../../docs/frontend-qa.md). Listing walkthrough setup is in [listing workflow](../../docs/contracts/listing-workflow.md).
 
+For signed-out checks against a local production build or the reviewed deployment:
+
+```bash
+node tests/release-smoke.mjs http://127.0.0.1:3008
+```
+
+Replace the origin with the exact deployment URL after release. This makes GET requests only, without cookies or keys. It checks public pages, login redirects, public links and internal-route 404s. It does not test signup, inbox delivery or signed-in workflows.
+
 For the existing Vercel project, release steps, environment settings and rollback, see [deployment handoff](../../docs/deployment.md). Do not release changes or apply shared migrations just to run local checks.

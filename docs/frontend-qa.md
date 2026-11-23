@@ -33,6 +33,17 @@ Each browser passed 23 page variants and 138 layout checks: 46 accessibility sca
 
 The current screens are in [Desktop](https://www.figma.com/design/maLPrdzL4LrQCWIlZpBbME/Husky-Marketplace?node-id=145-7) and [Mobile](https://www.figma.com/design/maLPrdzL4LrQCWIlZpBbME/Husky-Marketplace?node-id=150-2). The original pages remain in the file.
 
+## What these PRs finish
+
+| PR  | Finished in this change                                                | Issue closure                                                                                                                                                    |
+| --- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #52 | Home data, account setup/photos, signup retries and device recovery    | #2, #9, #50 and #54 still need the final hosted auth checks. #16 needs the deployed route check. Profile-photo saves also need the reviewed migration installed. |
+| #53 | Search/filter/sort requirements, pagination and draft/upload recovery  | Closes #24 on merge. Retest the released search under #25. #21 stays open for deployed writes, seller profiles, attached-photo editing and moderation/sold work. |
+| #55 | Navigation, keyboard/accessibility fixes, QA and release handoff       | Run the signed-out release check below after deployment for #16. #12, #19 and #25 retain their integration, device and launch requirements.                      |
+| #56 | Home spacing, category title widths, shared banner copy and Figma sync | Completes this design follow-up within #12; it does not close the broader integration issue.                                                                     |
+
+From `src/frontend`, run `node tests/release-smoke.mjs APP_ORIGIN` against the exact reviewed deployment, then the stable site. All 28 checks pass against the combined local production build. They use signed-out GET requests only: public pages and links, protected-route login redirects, and internal-route 404s. Next.js may first normalize a trailing slash with a same-origin redirect. This does not replace private signup, reset, device or two-account listing tests.
+
 ## Bugs fixed in this branch
 
 All fixes below belong to @httpsbina under #12/#16/#25.

@@ -8,7 +8,7 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS },
 }).outputText;
 
-function routing(signedIn) {
+function routing(signedIn, environment = "development") {
   const exports = {};
   function response(url) {
     return { url, cookies: { getAll: () => [], set() {} } };
@@ -34,9 +34,10 @@ function routing(signedIn) {
       }),
     },
   };
-  new Function("require", "exports", compiled)(
+  new Function("require", "exports", "process", compiled)(
     (name) => modules[name],
     exports,
+    { env: { NODE_ENV: environment } },
   );
   return async (path) => {
     const result = await exports.proxy({
