@@ -12,7 +12,7 @@
 --      public, so private fields belong in a separate table (like
 --      student_verifications).
 --
--- Tests: supabase/tests/database/profiles.test.sql
+-- Tests: supabase/tests/database/08_profiles.test.sql
 
 ALTER TABLE "public"."profiles"
   ADD COLUMN "display_name" text,

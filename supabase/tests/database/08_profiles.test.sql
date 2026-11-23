@@ -1,12 +1,15 @@
 -- Profile permissions and validation (#20).
 -- Run with: npx supabase@3.0.0 test db
--- Everything runs inside a transaction that is rolled back at the end.
+-- Runs with the device verification gate turned on, so signed-in checks use a
+-- verified session the way production will. Everything is rolled back at the end.
 
 BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 
-SELECT plan(17);
+SELECT plan(19);
+
+-- Setup (as the database owner) ----------------------------------------------
 
 -- Two test students. Inserting into auth.users runs handle_new_user,
 -- which creates a profile for each one.
@@ -14,6 +17,12 @@ INSERT INTO auth.users (id, email)
 VALUES
   ('a1111111-1111-4111-8111-111111111111', 'profile_test_a@northeastern.edu'),
   ('b2222222-2222-4222-8222-222222222222', 'profile_test_b@northeastern.edu');
+
+-- Turn the device verification gate on, and give student A one verified session.
+UPDATE private.device_verification_settings SET enabled = true;
+
+INSERT INTO private.verified_sessions (session_id, user_id, expires_at)
+VALUES ('a0000000-0000-4000-8000-00000000000a', 'a1111111-1111-4111-8111-111111111111', now() + interval '1 day');
 
 -- Signed-out visitors ---------------------------------------------------------
 
@@ -33,15 +42,37 @@ SELECT throws_ok(
 
 RESET ROLE;
 
--- Signed in as student A ------------------------------------------------------
+-- Signed in as student A on an unverified device ------------------------------
 
-SELECT set_config('request.jwt.claims', '{"sub": "a1111111-1111-4111-8111-111111111111", "role": "authenticated"}', true);
+SELECT set_config('request.jwt.claims', '{"sub": "a1111111-1111-4111-8111-111111111111", "role": "authenticated", "session_id": "c0000000-0000-4000-8000-00000000000c"}', true);
+SET LOCAL ROLE authenticated;
+
+SELECT is(
+  (SELECT count(*) FROM public.profiles),
+  0::bigint,
+  'unverified sessions cannot read any profiles'
+);
+
+UPDATE public.profiles SET display_name = 'Unverified Edit'
+  WHERE user_id = 'a1111111-1111-4111-8111-111111111111';
+
+RESET ROLE;
+
+SELECT is(
+  (SELECT display_name FROM public.profiles WHERE user_id = 'a1111111-1111-4111-8111-111111111111'),
+  NULL::text,
+  'unverified sessions cannot update their own profile'
+);
+
+-- Signed in as student A on a verified device ---------------------------------
+
+SELECT set_config('request.jwt.claims', '{"sub": "a1111111-1111-4111-8111-111111111111", "role": "authenticated", "session_id": "a0000000-0000-4000-8000-00000000000a"}', true);
 SET LOCAL ROLE authenticated;
 
 SELECT is(
   (SELECT count(*) FROM public.profiles WHERE user_id = 'b2222222-2222-4222-8222-222222222222'),
   1::bigint,
-  'signed-in students can read other students'' profiles'
+  'verified students can read other students'' profiles'
 );
 
 UPDATE public.profiles SET display_name = 'Test Student A'
@@ -50,7 +81,7 @@ UPDATE public.profiles SET display_name = 'Test Student A'
 SELECT is(
   (SELECT display_name FROM public.profiles WHERE user_id = 'a1111111-1111-4111-8111-111111111111'),
   'Test Student A',
-  'students can update their own profile'
+  'verified students can update their own profile'
 );
 
 UPDATE public.profiles SET display_name = 'Not Allowed'
