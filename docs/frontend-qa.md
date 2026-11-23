@@ -1,6 +1,6 @@
 # Frontend QA
 
-Related to #12, #16, #19 and #25. Local checks on November 22, 2026. The runtime checks use a temporary combined copy of #52, #53 and this branch; none of those PRs was merged or deployed for testing. Students, listing photos and browser state are synthetic and local.
+Related to #12, #16, #19 and #25. Local checks repeated on November 23, 2026 with a temporary combined copy of #52, #53, #55 and #56. None of those PRs was merged or deployed for testing. Students, listing photos and browser state are synthetic and local.
 
 ## Local checklist
 
@@ -18,6 +18,19 @@ Related to #12, #16, #19 and #25. Local checks on November 22, 2026. The runtime
 The 640 and 320 CSS-pixel checks cover reflow equivalent to 200% and 400% zoom from a 1280-pixel viewport. They do not replace a manual native-browser zoom test. WebKit checks use Option-Tab for links on macOS, matching [Safari's keyboard behavior](https://support.apple.com/guide/safari/keyboard-shortcuts-and-gestures-cpsh003/mac).
 
 Each browser passed 23 page variants and 138 layout checks: 46 accessibility scans and 276 layout checks in total. Targeted interaction checks also passed for demo links, search/filter focus, Browse failure/retry, internal-route guards in the combined build, mobile field visibility and reduced-motion scrolling.
+
+## Combined PR checks
+
+- [x] All four frontend branches combine without conflicts.
+- [x] All 100 frontend tests pass together.
+- [x] All 111 pgTAP assertions across nine database files pass against local Supabase. This rerun used `psql` in the local database container because the cached CLI could not connect with its TLS settings.
+- [x] Signup, recovery, account photos and fresh/remembered-device flows pass all 38 local browser checks.
+- [x] The two-student listing walkthrough passes all 19 checks, including uploads, retries, visibility and ownership.
+- [x] Chromium and WebKit pass the accessibility and layout checks above with the homepage spacing changes included.
+- [x] Next.js route types, TypeScript, targeted ESLint and the production build pass.
+- [x] The Figma sync includes 33 desktop/mobile screens for #52, #53 and #55. The newer homepage changes in #56 still need to be copied over.
+
+The current screens are in [Desktop](https://www.figma.com/design/maLPrdzL4LrQCWIlZpBbME/Husky-Marketplace?node-id=145-7) and [Mobile](https://www.figma.com/design/maLPrdzL4LrQCWIlZpBbME/Husky-Marketplace?node-id=150-2). The original pages remain in the file.
 
 ## Bugs fixed in this branch
 
@@ -59,7 +72,8 @@ These checks are separate from the local UI pass. Keep the related issues open u
 - [ ] Verify search results, navigation and internal-route 404s on that deployment (#16, #24).
 - [ ] Test public seller fields and saved items after their backend work lands (#20, #26, #38, #46).
 - [ ] Review real moderation, sold/report actions and their permissions with their owners (#10, #22).
-- [ ] Check a physical phone, native browser zoom and a screen reader; update the Figma screens (#12).
+- [ ] Check a physical phone, native browser zoom and a screen reader (#12).
+- [ ] Update the Figma Home screens with #56's spacing changes (#12).
 - [ ] Confirm final policy/contact text and photo permissions with the team.
 - [ ] Complete the joint launch review (#19, #25).
 
