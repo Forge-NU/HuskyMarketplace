@@ -44,7 +44,7 @@ export default function HomePage() {
       <main>
         <section className={`${styles.shell} ${styles.hero}`}>
           <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>FOR STUDENTS. AROUND CAMPUS.</p>
+            <p className={styles.eyebrow}>FOR NORTHEASTERN STUDENTS</p>
             <h1>
               Your next great find is close to home<span>.</span>
             </h1>
@@ -60,9 +60,6 @@ export default function HomePage() {
                 Sell an item
               </Link>
             </div>
-            <p className={styles.heroFoot}>
-              Secondhand finds · Campus pickup · Student community
-            </p>
           </div>
           <div className={styles.heroArt}>
             <img
@@ -79,7 +76,6 @@ export default function HomePage() {
         <section className={`${styles.shell} ${styles.section}`}>
           <div className={styles.sectionHeading}>
             <div>
-              <p className={styles.eyebrow}>FIND YOUR THING</p>
               <h2>Shop by category.</h2>
             </div>
             <Link href="/browse">Browse everything</Link>
