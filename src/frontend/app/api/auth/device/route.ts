@@ -22,8 +22,12 @@ export async function POST(request: NextRequest) {
       .select("user_id")
       .eq("user_id", data.user.id)
       .maybeSingle();
-    if (!probe.error && probe.data)
-      return NextResponse.json({ enabled: false });
+    if (probe.error)
+      return NextResponse.json(
+        { error: "Device verification is unavailable. Please retry." },
+        { status: 503 },
+      );
+    if (probe.data) return NextResponse.json({ enabled: false });
     return NextResponse.json(
       {
         error:

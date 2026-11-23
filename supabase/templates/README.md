@@ -1,10 +1,10 @@
 # Account emails
 
 `registration.html` is the Confirm signup email; subject: **Your Husky Marketplace verification code**.
-`recovery.html` is the Reset password email; subject: **Reset your Husky Marketplace password**.
+`recovery.html` is the Reset password email; subject: **Your Husky Marketplace code**. Device checks also send this email (Magic Link email is not being delivered), so its wording must stay neutral rather than password-specific. Update the hosted template and subject to match this file.
 Both were saved in hosted Supabase on November 14, 2026. Brevo delivery logs confirmed verification and recovery emails reached the test mailbox that evening.
 
-Keep `{{ .Token }}` intact. The app expects eight digits. Email confirmation must remain enabled. `verification.html` remains the Magic Link/OTP template for email sign-in and device checks.
+Keep `{{ .Token }}` intact. The app expects eight digits. Email confirmation must remain enabled. `verification.html` remains the Magic Link/OTP template for email sign-in.
 
 Custom SMTP uses Brevo. Its free sending allowance and Supabase Auth rate limits still apply. Manage SMTP credentials in Supabase; do not put them in templates or the repository.
 

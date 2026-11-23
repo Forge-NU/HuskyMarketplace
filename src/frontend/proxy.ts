@@ -60,7 +60,26 @@ export async function proxy(request: NextRequest) {
     ];
     if (!allowed.includes(pathname)) {
       const verified = await supabase.rpc("device_session_verified");
-      if (verified.error || verified.data !== true) {
+      if (verified.error) {
+        // The check itself failed (for example Supabase is briefly down), so
+        // the session may well be verified. Keep it and ask for a retry.
+        const unavailable = new NextResponse(
+          "Husky Marketplace can’t reach its database right now. Please refresh in a moment.",
+          {
+            status: 503,
+            headers: {
+              "content-type": "text/plain; charset=utf-8",
+              "retry-after": "5",
+              "cache-control": "no-store",
+            },
+          },
+        );
+        response.cookies
+          .getAll()
+          .forEach((c) => unavailable.cookies.set(c));
+        return unavailable;
+      }
+      if (verified.data !== true) {
         // A leftover session that never finished the device check (for example
         // the tab was closed on /verify-device). Sign it out and start at login,
         // which sends a fresh device code after the password step.
