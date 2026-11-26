@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import UIShell from "./UIShell";
 import { createClient } from "@/lib/supabase/client";
 import { authMessage, isNortheasternEmail, validatePassword } from "@/lib/auth";
+import { runCodeSteps } from "@/lib/auth/code-steps";
 import { loadProfile } from "@/lib/profile/service";
 import { profileComplete } from "@/lib/profile/model";
 import styles from "./UI.module.css";
@@ -41,7 +42,10 @@ export default function UIAuth({ mode }: { mode: Mode }) {
   const [error, setError] = useState("");
   const [remaining, setRemaining] = useState(0);
   const lock = useRef(false);
-  const [verifiedRecovery, setVerifiedRecovery] = useState(false);
+  // A code works only once. If it was accepted but a later step failed (the
+  // password save or the device request), retry from that step instead.
+  const [verifiedCode, setVerifiedCode] = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState(false);
   const codePage = mode === "verify" || mode === "reset" || mode === "device";
   const newPassword = mode === "signup" || mode === "reset";
   useEffect(() => {
@@ -123,24 +127,39 @@ export default function UIAuth({ mode }: { mode: Mode }) {
       if (!codePage && mode !== "forgot")
         document.cookie = `husky_keep_signed_in=${remember ? "yes" : "no"}; Path=/; SameSite=Lax${remember ? "; Max-Age=2592000" : ""}${location.protocol === "https:" ? "; Secure" : ""}`;
       const auth = createClient().auth;
-      if (newPassword) validatePassword(password, confirmation);
+      if (newPassword && !passwordSaved)
+        validatePassword(password, confirmation);
       if (codePage) {
-        if (!verifiedRecovery) {
-          if (!/^\d{8}$/.test(code))
-            throw new Error("Enter the full eight-digit code from your email.");
-          const result = await auth.verifyOtp({
-            email: address,
-            token: code,
-            type: mode === "reset" || mode === "device" ? "recovery" : "email",
-          });
-          if (result.error) throw result.error;
-          if (mode === "reset") setVerifiedRecovery(true);
-        }
-        if (mode === "reset") {
-          const result = await auth.updateUser({ password });
-          if (result.error) throw result.error;
-        }
-        await finish();
+        await runCodeSteps(
+          { verified: verifiedCode, passwordSaved },
+          {
+            verify: async () => {
+              if (!/^\d{8}$/.test(code))
+                throw new Error(
+                  "Enter the full eight-digit code from your email.",
+                );
+              const result = await auth.verifyOtp({
+                email: address,
+                token: code,
+                type:
+                  mode === "reset" || mode === "device" ? "recovery" : "email",
+              });
+              if (result.error) throw result.error;
+            },
+            savePassword:
+              mode === "reset"
+                ? async () => {
+                    const result = await auth.updateUser({ password });
+                    if (result.error) throw result.error;
+                  }
+                : undefined,
+            finish,
+          },
+          (progress) => {
+            setVerifiedCode(progress.verified);
+            setPasswordSaved(progress.passwordSaved);
+          },
+        );
         return;
       }
       sessionStorage.setItem(EMAIL, address);
@@ -212,13 +231,19 @@ export default function UIAuth({ mode }: { mode: Mode }) {
             </p>
             <h1>{titles[mode]}</h1>
             <p className={styles.hint}>
-              {codePage
-                ? `Enter the eight-digit code sent to ${email || "your Northeastern email"}.`
-                : mode === "signup"
-                  ? "Verify your Northeastern email, then tell us a little about yourself."
-                  : mode === "forgot"
-                    ? "We’ll email you a reset code. You can also use this to set your first password."
-                    : "Your campus finds are waiting. Sign in with your email and password."}
+              {verifiedCode
+                ? passwordSaved
+                  ? "Password updated. Continue to finish signing in."
+                  : mode === "reset"
+                    ? "Code accepted. Choose your new password."
+                    : "Code accepted. Continue to finish signing in."
+                : codePage
+                  ? `Enter the eight-digit code sent to ${email || "your Northeastern email"}.`
+                  : mode === "signup"
+                    ? "Verify your Northeastern email, then tell us a little about yourself."
+                    : mode === "forgot"
+                      ? "We’ll email you a reset code. You can also use this to set your first password."
+                      : "Your campus finds are waiting. Sign in with your email and password."}
             </p>
             <form onSubmit={submit}>
               <fieldset
@@ -244,7 +269,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                     />
                   </div>
                 )}
-                {codePage && !verifiedRecovery && (
+                {codePage && !verifiedCode && (
                   <div className={styles.formField}>
                     <label className={styles.inputLabel} htmlFor="code">
                       Verification code
@@ -266,7 +291,8 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                 )}
                 {mode !== "verify" &&
                   mode !== "forgot" &&
-                  mode !== "device" && (
+                  mode !== "device" &&
+                  !passwordSaved && (
                     <div className={styles.formField}>
                       <label className={styles.inputLabel} htmlFor="password">
                         {newPassword ? "Choose a password" : "Password"}
@@ -301,7 +327,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                       </button>
                     </div>
                   )}
-                {newPassword && (
+                {newPassword && !passwordSaved && (
                   <div className={styles.formField}>
                     <label className={styles.inputLabel} htmlFor="confirmation">
                       Confirm password
@@ -365,7 +391,11 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                   style={{ width: "100%" }}
                   type="submit"
                 >
-                  {busy ? "Please wait…" : actions[mode]}
+                  {busy
+                    ? "Please wait…"
+                    : verifiedCode
+                      ? "Continue"
+                      : actions[mode]}
                 </button>
               </fieldset>
             </form>
@@ -386,7 +416,7 @@ export default function UIAuth({ mode }: { mode: Mode }) {
                   Already have an account? <Link href="/login">Log in</Link>
                 </span>
               )}
-              {codePage && (
+              {codePage && !verifiedCode && (
                 <>
                   <button
                     type="button"

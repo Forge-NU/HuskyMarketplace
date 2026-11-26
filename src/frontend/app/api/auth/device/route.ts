@@ -5,7 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { recentEmailProof } from "@/lib/auth/device";
 const DEVICE_COOKIE = "husky_device";
 export async function POST(request: NextRequest) {
-  if (request.headers.get("origin") !== request.nextUrl.origin)
+  // Compare with the Host the browser used. nextUrl.origin is normalized (for
+  // example 127.0.0.1 becomes localhost in dev), which rejected real requests.
+  const host = request.headers.get("host");
+  const origin = host ? `${request.nextUrl.protocol}//${host}` : null;
+  if (!origin || request.headers.get("origin") !== origin)
     return NextResponse.json(
       { error: "Invalid request origin." },
       { status: 403 },

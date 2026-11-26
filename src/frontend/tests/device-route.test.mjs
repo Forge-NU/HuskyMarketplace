@@ -11,7 +11,7 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS },
 }).outputText;
 
-function deviceRoute({ enabled = false, probe, rpc }) {
+function deviceRoute({ enabled = false, probe, rpc }, request = {}) {
   const exports = {};
   const modules = {
     "node:crypto": { randomBytes: () => Buffer.alloc(32, 1) },
@@ -42,10 +42,18 @@ function deviceRoute({ enabled = false, probe, rpc }) {
     exports,
     { env: { DEVICE_VERIFICATION_ENABLED: enabled ? "true" : undefined } },
   );
+  const {
+    origin = "https://example.test",
+    host = "example.test",
+    protocol = "https:",
+    // Next normalizes nextUrl.origin, so it can differ from what the browser used.
+    nextOrigin = `${protocol}//${host}`,
+  } = request;
+  const headers = { origin, host };
   return () =>
     exports.POST({
-      headers: { get: () => "https://example.test" },
-      nextUrl: { origin: "https://example.test", protocol: "https:" },
+      headers: { get: (name) => headers[name] ?? null },
+      nextUrl: { origin: nextOrigin, protocol },
     });
 }
 
@@ -97,4 +105,30 @@ test("device codes use an email that does not read as a password reset", () => {
   assert.doesNotMatch(email, /reset your password/i);
   assert.doesNotMatch(email, /password reset page/i);
   assert.match(email, /new browser/);
+});
+
+test("login through 127.0.0.1 passes the origin check", async () => {
+  const result = await deviceRoute(
+    { probe: { data: { user_id: "student" }, error: null } },
+    {
+      origin: "http://127.0.0.1:3000",
+      host: "127.0.0.1:3000",
+      protocol: "http:",
+      nextOrigin: "http://localhost:3000",
+    },
+  )();
+  assert.deepEqual(result, { body: { enabled: false }, status: 200 });
+});
+
+test("cross-origin and origin-less device requests are still rejected", async () => {
+  const probe = { data: { user_id: "student" }, error: null };
+  for (const request of [
+    { origin: "https://evil.test" },
+    { origin: null },
+    { host: null, nextOrigin: "https://example.test" },
+  ]) {
+    const result = await deviceRoute({ probe }, request)();
+    assert.equal(result.status, 403);
+    assert.match(result.body.error, /Invalid request origin/);
+  }
 });
