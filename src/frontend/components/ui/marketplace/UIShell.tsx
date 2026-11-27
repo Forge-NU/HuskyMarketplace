@@ -78,12 +78,13 @@ export default function UIShell({
       <div className={styles.demoRibbon}>
         {live ? (
           <>
-            <strong>HUSKY MARKETPLACE</strong> · live campus listings
+            <strong>HUSKY MARKETPLACE</strong>
+            <span>Live campus listings</span>
           </>
         ) : (
           <>
-            <strong>PHOTO-LED MARKETPLACE PREVIEW</strong> · sample listings and
-            browser-local demo actions
+            <strong>MARKETPLACE DEMO</strong>
+            <span>Sample activity saved on this device</span>
           </>
         )}
       </div>

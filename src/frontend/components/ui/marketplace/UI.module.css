@@ -248,8 +248,8 @@
   grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
   gap: clamp(24px, 4vw, 58px);
   align-items: center;
-  padding-top: clamp(36px, 5vw, 72px);
-  padding-bottom: clamp(48px, 6vw, 84px);
+  padding-top: 28px;
+  padding-bottom: 36px;
 }
 .heroCopy,
 .heroArt {
@@ -278,6 +278,9 @@
   gap: 12px;
   margin: 25px 0 20px;
 }
+.heroCopy .actions {
+  margin: 24px 0 0;
+}
 .secondaryButton {
   display: inline-flex;
   align-items: center;
@@ -296,15 +299,12 @@
 .secondaryButton:hover {
   background: #faf6f1;
 }
-.heroCopy .heroFoot {
-  font-size: 12px !important;
-}
 .heroArt {
   position: relative;
 }
 .heroArt > img {
   width: 100%;
-  aspect-ratio: 1.05;
+  height: clamp(240px, 25vw, 340px);
   object-fit: cover;
   border-radius: 24px;
 }
@@ -640,8 +640,7 @@
     color: var(--photo-red);
   }
   .hero {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 30px;
+    gap: 24px;
   }
   .heroCopy h1 {
     max-width: 730px;
@@ -649,9 +648,6 @@
   .heroArt {
     width: 100%;
     max-width: 720px;
-  }
-  .heroArt > img {
-    aspect-ratio: 3/2;
   }
   .featuredGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -675,10 +671,6 @@
   .footerInner {
     padding-left: 16px;
     padding-right: 16px;
-  }
-  .hero {
-    padding-top: 34px;
-    padding-bottom: 55px;
   }
   .heroCopy h1 {
     font-size: clamp(37px, 8vw, 55px);
@@ -705,6 +697,7 @@
   }
   .categoryCopy strong {
     font-size: 22px;
+    max-width: calc(55% - 16px);
   }
   .categoryPhoto {
     height: 112px;
@@ -723,6 +716,11 @@
 }
 /* Shared photographic pages beyond the homepage */
 .demoRibbon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
   padding: 8px 12px;
   background: #171719;
   color: #fff;
@@ -1844,6 +1842,14 @@
 @media (max-width: 700px) {
   .siteHeader {
     height: auto;
+  }
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 24px;
+    padding-bottom: 28px;
+  }
+  .heroArt {
+    display: none;
   }
   .headerInner {
     flex-wrap: wrap;
