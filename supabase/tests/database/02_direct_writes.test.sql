@@ -2,7 +2,7 @@
 -- so nobody can approve their own listing or touch someone else's.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(11);
+select plan(12);
 
 -- Test data: students A and B, each with a draft listing that has one photo.
 insert into auth.users (id, email) values
@@ -85,6 +85,13 @@ select results_eq(
      order by title $$,
   $$ values ('A draft', 'draft'), ('B draft', 'draft') $$,
   'After all the attempts, both listings are unchanged drafts'
+);
+
+select is(
+  (select count(*) from public.listings
+   where seller_id in ('aaaaaaaa-0000-0000-0000-000000000000', 'bbbbbbbb-0000-0000-0000-000000000000')),
+  2::bigint,
+  'Direct-write attempts did not create extra listings for either test seller'
 );
 
 select ok(
