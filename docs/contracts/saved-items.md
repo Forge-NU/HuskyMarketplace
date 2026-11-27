@@ -1,6 +1,6 @@
 # Saved listings
 
-Related to #26. This frontend uses Caleb's existing `saved_items` table and ownership policies. Shared Supabase still needs the reviewed grants from #38; no migration or shared grant was applied here.
+Related to #26. This frontend uses Caleb's existing `saved_items` table and ownership policies. Shared Supabase still needs the Saved grants proposed in #58. The broader permission cleanup stays in #38; no shared grant was applied here.
 
 - Home, Browse and live item details save UUID listings to the signed-in student's account. Buttons update after the database request succeeds. Duplicate saves are confirmed by reading the existing row.
 - `/saved` loads real account records, newest first, with 24 saves per page. Unavailable or hidden listings show a generic card with a removal control. Deleted listings disappear through the existing foreign-key cascade.
@@ -9,7 +9,7 @@ Related to #26. This frontend uses Caleb's existing `saved_items` table and owne
 
 ## Local checks
 
-The walkthrough creates two synthetic students and listings in local Supabase. Use the local stack's public key, eight-digit email templates, enabled device gate and temporary `SELECT`, `INSERT`, `DELETE` grants for `authenticated` on `public.saved_items`. Keep the existing ownership/device RLS policies. These grants are a local test setup, not the #38 migration or permission to change shared Supabase.
+The walkthrough creates two synthetic students and listings in local Supabase. Use the local stack's public key, eight-digit email templates, enabled device gate and temporary `SELECT`, `INSERT`, `DELETE` grants for `authenticated` on `public.saved_items`. Keep the existing ownership/device RLS policies. Use the migration from #58 for these local grants. This local setup does not apply it to shared Supabase.
 
 Run from `src/frontend`, with a local production build on port 3012:
 
@@ -26,7 +26,7 @@ The combined #52/#53/#55/#56 build also passes all 111 frontend tests, 46 access
 
 ## Remaining release work
 
-- [ ] Review and merge the frontend and #38's grant fix.
+- [ ] Review and merge the frontend and #58's Saved grant fix.
 - [ ] Apply only the reviewed, agreed grant migration; preserve ownership and device policies.
 - [ ] Repeat save/remove, account isolation and cross-session checks on the reviewed deployment before closing #26.
 
