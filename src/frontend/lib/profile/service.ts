@@ -14,7 +14,7 @@ export async function loadProfile(
   const user = data.user;
   const { data: profile, error: profileError } = await client
     .from("profiles")
-    .select("username")
+    .select("username, display_name, bio, campus_area")
     .eq("user_id", user.id)
     .maybeSingle();
   if (profileError || !profile)
@@ -32,16 +32,9 @@ export async function loadProfile(
       typeof user.user_metadata.school_year === "string"
         ? user.user_metadata.school_year
         : "",
-    displayName:
-      typeof user.user_metadata.display_name === "string"
-        ? user.user_metadata.display_name
-        : "",
-    bio:
-      typeof user.user_metadata.bio === "string" ? user.user_metadata.bio : "",
-    area:
-      typeof user.user_metadata.campus_area === "string"
-        ? user.user_metadata.campus_area
-        : "",
+    displayName: profile.display_name ?? "",
+    bio: profile.bio ?? "",
+    area: profile.campus_area ?? "",
   };
 }
 export async function saveProfile(
@@ -56,28 +49,39 @@ export async function saveProfile(
     throw new Error("Your session changed. Sign in again before saving.");
   const { data: saved, error: saveError } = await client
     .from("profiles")
-    .update({ username: fields.username })
+    .update({
+      username: fields.username,
+      display_name: fields.displayName,
+      bio: bio || null,
+      campus_area: profile.area || null,
+    })
     .eq("user_id", data.user.id)
     .select("username")
     .single();
   if (saveError?.code === "23505")
     throw new Error("That username is taken. Try another one.");
   if (saveError || !saved)
-    throw new Error("Your username could not be saved. Please retry.");
-  // Editable presentation only. These values never authorize access or verification.
-  const { error: metadataError } = await client.auth.updateUser({
-    data: {
-      display_name: fields.displayName,
-      campus_area: profile.area,
-      bio,
-      ...(profile.campus ? { campus: profile.campus } : {}),
-      ...(profile.schoolYear ? { school_year: profile.schoolYear } : {}),
-    },
-  });
-  if (metadataError)
-    throw new Error(
-      "Username saved, but your display name or bio could not be saved. Please retry to finish.",
-    );
+    throw new Error("Your profile could not be saved. Please retry.");
+  const schoolDetails: Record<string, string> = {};
+  if (
+    profile.campus !== undefined &&
+    profile.campus !== data.user.user_metadata.campus
+  )
+    schoolDetails.campus = profile.campus;
+  if (
+    profile.schoolYear !== undefined &&
+    profile.schoolYear !== data.user.user_metadata.school_year
+  )
+    schoolDetails.school_year = profile.schoolYear;
+  if (Object.keys(schoolDetails).length) {
+    const { error: metadataError } = await client.auth.updateUser({
+      data: schoolDetails,
+    });
+    if (metadataError)
+      throw new Error(
+        "Profile saved, but your campus or school year could not be saved. Please retry to finish.",
+      );
+  }
   return {
     ...profile,
     ...fields,

@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 const app = new URL(process.env.AUTH_TEST_BASE_URL || "http://127.0.0.1:3004");
@@ -297,6 +297,38 @@ async function waitForAvatar(page) {
       "Local Test Student",
     );
     pass("Account reload preserves profile and verified email");
+    await page.locator("#display-name").fill("Local Updated Student");
+    await page.locator("#bio").fill("Books and secondhand campus finds.");
+    await page.locator("#campus-area").selectOption("West Village");
+    await page
+      .getByRole("button", { name: "Save profile", exact: true })
+      .click();
+    await page.getByText("Profile saved.", { exact: true }).waitFor();
+    await page.reload();
+    assert.equal(
+      await page.locator("#display-name").inputValue(),
+      "Local Updated Student",
+    );
+    assert.equal(
+      await page.locator("#bio").inputValue(),
+      "Books and secondhand campus finds.",
+    );
+    assert.equal(
+      await page.locator("#campus-area").inputValue(),
+      "West Village",
+    );
+    pass("Edited public profile fields persist after a full page reload");
+    await page.locator("#bio").fill("");
+    await page.locator("#campus-area").selectOption("");
+    await page
+      .getByRole("button", { name: "Save profile", exact: true })
+      .click();
+    await page.getByText("Profile saved.", { exact: true }).waitFor();
+    await page.reload();
+    assert.equal(await page.locator("#bio").inputValue(), "");
+    assert.equal(await page.locator("#campus-area").inputValue(), "");
+    pass("Cleared bio and campus area stay empty after reload");
+
     const accountPhoto = page
       .getByRole("button", { name: "Choose a profile photo", exact: true })
       .locator("img");
@@ -529,6 +561,22 @@ async function waitForAvatar(page) {
     });
     assert.equal(confirmedLegacy.error, null);
     const legacyId = confirmedLegacy.data.user.id;
+    // A legacy account after #46 copied its existing public fields.
+    const legacyDevice = await localAuth.rpc("confirm_device_session", {
+      p_token: randomBytes(32).toString("hex"),
+      p_remember: false,
+    });
+    assert.ifError(legacyDevice.error);
+    assert.equal(legacyDevice.data, true);
+    const legacyProfile = await localAuth
+      .from("profiles")
+      .update({ display_name: "Local Legacy Student" })
+      .eq("user_id", legacyId)
+      .select("display_name")
+      .single();
+    assert.ifError(legacyProfile.error);
+    assert.equal(legacyProfile.data.display_name, "Local Legacy Student");
+
     await localAuth.auth.signOut({ scope: "local" });
     const legacyContext = await localContext();
     const legacyPage = await legacyContext.newPage();
@@ -567,7 +615,14 @@ async function waitForAvatar(page) {
     assert.deepEqual(external, [], "The test must not contact hosted services");
     console.log(`${results.length} local auth checks passed.`);
   } catch (error) {
-    console.error("Auth check failed at", new URL(page.url()).pathname);
+    for (const active of browser
+      .contexts()
+      .flatMap((context) => context.pages())) {
+      console.error("Auth check failed at", new URL(active.url()).pathname);
+      console.error(
+        await active.getByRole("main").getByRole("alert").allTextContents(),
+      );
+    }
     console.error(
       await page.getByRole("main").getByRole("alert").allTextContents(),
     );
