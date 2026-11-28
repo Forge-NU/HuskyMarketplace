@@ -107,15 +107,7 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
               >
                 Try again
               </button>
-              {!own && (
-                <Link className={styles.secondaryButton} href="/">
-                  Explore the demo
-                </Link>
-              )}
             </div>
-            {!own && (
-              <p>The demo uses sample listings, separate from live results.</p>
-            )}
           </div>
         ) : (
           <>

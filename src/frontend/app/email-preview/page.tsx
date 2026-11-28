@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { notFound } from "next/navigation";
 export default async function EmailPreviewPage() {
+  if (process.env.NODE_ENV === "production") notFound();
   const template = await readFile(
     path.join(process.cwd(), "../../supabase/templates/verification.html"),
     "utf8",

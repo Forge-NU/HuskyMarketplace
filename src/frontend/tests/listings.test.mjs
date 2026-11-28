@@ -10,8 +10,8 @@ import {
   WORKFLOW_VERSION,
 } from "../lib/listings/model.ts";
 import {
-  requireWorkflow,
   loadListings,
+  loadFeaturedListings,
   loadListing,
   saveDraft,
   uploadPhotos,
@@ -55,6 +55,10 @@ function fixture() {
     },
     textSearch(...v) {
       calls.push(["textSearch", ...v]);
+      return this;
+    },
+    limit(v) {
+      calls.push(["limit", v]);
       return this;
     },
     maybeSingle() {
@@ -116,6 +120,46 @@ test("UUIDs stay strings and prices distinguish null from zero", () => {
   assert.equal(UUID.test("123"), false);
   assert.equal(priceLabel(null), "Price not provided");
   assert.equal(priceLabel(0), "FREE");
+});
+test("Home requests only four approved available listings with stable newest ordering", async () => {
+  const f = fixture();
+  f.state.rows = [{ id, title: "Live fixture" }];
+  assert.deepEqual(await loadFeaturedListings(f.client), f.state.rows);
+  assert.ok(
+    f.calls.some(
+      (c) => c[0] === "eq" && c[1] === "status" && c[2] === "approved",
+    ),
+  );
+  assert.ok(
+    f.calls.some(
+      (c) => c[0] === "eq" && c[1] === "is_available" && c[2] === true,
+    ),
+  );
+  assert.deepEqual(
+    f.calls.filter((c) => c[0] === "order"),
+    [
+      ["order", "created_at", { ascending: false }],
+      ["order", "id", { ascending: false }],
+    ],
+  );
+  assert.deepEqual(
+    f.calls.find((c) => c[0] === "limit"),
+    ["limit", 4],
+  );
+});
+test("Home distinguishes no listings from a failed live query", async () => {
+  const f = fixture();
+  assert.deepEqual(await loadFeaturedListings(f.client), []);
+  f.state.queryError = { message: "Unavailable" };
+  await assert.rejects(
+    () => loadFeaturedListings(f.client),
+    /Could not load listings/,
+  );
+  f.state.version = null;
+  await assert.rejects(
+    () => loadFeaturedListings(f.client),
+    /temporarily unavailable/,
+  );
 });
 test("required fields and money are validated without treating blank as free", () => {
   assert.equal(validateDetails(fields).price, 12.5);

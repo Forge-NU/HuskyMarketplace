@@ -30,6 +30,7 @@ export async function loadListings(
   client: SupabaseClient,
   own = false,
   search = "",
+  limit?: number,
 ): Promise<Listing[]> {
   await requireWorkflow(client);
   let query = client
@@ -44,9 +45,13 @@ export async function loadListings(
       type: "websearch",
     });
   }
+  if (limit) query = query.order("id", { ascending: false }).limit(limit);
   const { data, error } = await query;
   if (error) throw new Error("Could not load listings. Please retry.");
   return (data ?? []) as unknown as Listing[];
+}
+export function loadFeaturedListings(client: SupabaseClient) {
+  return loadListings(client, false, "", 4);
 }
 export async function loadListing(
   client: SupabaseClient,

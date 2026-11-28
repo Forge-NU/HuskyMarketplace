@@ -5,19 +5,50 @@ import { createClient } from "@/lib/supabase/server";
 import { recentEmailProof } from "@/lib/auth/device";
 const DEVICE_COOKIE = "husky_device";
 export async function POST(request: NextRequest) {
-  if (request.headers.get("origin") !== request.nextUrl.origin)
+  const host = request.headers.get("host");
+  const origin = host ? `${request.nextUrl.protocol}//${host}` : null;
+  if (!origin || request.headers.get("origin") !== origin)
     return NextResponse.json(
       { error: "Invalid request origin." },
       { status: 403 },
     );
-  if (process.env.DEVICE_VERIFICATION_ENABLED !== "true")
-    return NextResponse.json({ enabled: false });
+  const enabled = process.env.DEVICE_VERIFICATION_ENABLED;
+  if (enabled !== "true" && enabled !== "false")
+    return NextResponse.json(
+      { error: "Device verification is unavailable. Please try again later." },
+      { status: 503 },
+    );
+  if (enabled === "false") return NextResponse.json({ enabled: false });
   const client = await createClient();
   const { data, error } = await client.auth.getUser();
+  if (error && (!error.status || error.status >= 500))
+    return NextResponse.json(
+      { error: "Device verification is unavailable. Please retry." },
+      { status: 503 },
+    );
   if (error || !data.user)
-    return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Your session expired. Log in to continue." },
+      { status: 401 },
+    );
   const store = await cookies();
   const previous = store.get(DEVICE_COOKIE)?.value;
+  const remember = store.get("husky_keep_signed_in")?.value === "yes";
+  if (!remember && previous)
+    store.set(DEVICE_COOKIE, "", {
+      httpOnly: true,
+      secure: request.nextUrl.protocol === "https:",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+  const session = await client.rpc("device_session_verified");
+  if (session.error)
+    return NextResponse.json(
+      { error: "Device verification is unavailable. Please retry." },
+      { status: 503 },
+    );
+  if (session.data === true) return NextResponse.json({ verified: true });
   const verifiedClaims = await client.auth.getClaims();
   // Rotate after an email challenge, including when another student uses this browser.
   const freshProof =
@@ -28,7 +59,6 @@ export async function POST(request: NextRequest) {
     !freshProof && previous && /^[a-f0-9]{64}$/.test(previous)
       ? previous
       : randomBytes(32).toString("hex");
-  const remember = store.get("husky_keep_signed_in")?.value === "yes";
   const result = await client.rpc("confirm_device_session", {
     p_token: token,
     p_remember: remember,

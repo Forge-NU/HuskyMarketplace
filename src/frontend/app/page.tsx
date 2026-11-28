@@ -1,10 +1,7 @@
-"use client";
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import UIShell from "@/components/ui/marketplace/UIShell";
-import UICards from "@/components/ui/marketplace/UICards";
-import { getListings, type DemoListing } from "@/lib/ui/demo-data";
+import FeaturedListings from "@/components/listings/live/FeaturedListings";
 import { MOVE_IN_PHOTO } from "@/lib/ui/campus";
 import styles from "@/components/ui/marketplace/UI.module.css";
 const categories = [
@@ -42,14 +39,8 @@ const categories = [
   },
 ] as const;
 export default function HomePage() {
-  const [featured, setFeatured] = useState<DemoListing[]>(
-    getListings().slice(0, 4),
-  );
-  useEffect(() => {
-    setFeatured(getListings().slice(0, 4));
-  }, []);
   return (
-    <UIShell>
+    <UIShell live>
       <main>
         <section className={`${styles.shell} ${styles.hero}`}>
           <div className={styles.heroCopy}>
@@ -79,9 +70,9 @@ export default function HomePage() {
               src="https://images.unsplash.com/photo-1721743141584-73679ed9938c?auto=format&fit=crop&w=1100&q=85"
             />
             <div className={styles.heroSticker}>
-              <strong>$45</strong>
-              <span>White desk chair</span>
-              <small>Campus find · sample listing</small>
+              <strong>Make room.</strong>
+              <span>For your next chapter</span>
+              <small>Illustrative photo · not a listing</small>
             </div>
           </div>
         </section>
@@ -122,9 +113,7 @@ export default function HomePage() {
             </div>
             <Link href="/browse">All listings</Link>
           </div>
-          <div className={styles.featuredGrid}>
-            <UICards items={featured} />
-          </div>
+          <FeaturedListings />
         </section>
         <section className={`${styles.shell} ${styles.section}`} id="moving">
           <div className={styles.moving}>
@@ -136,7 +125,7 @@ export default function HomePage() {
                 simple with a little help from your campus community.
               </p>
               <Link className={styles.secondaryButton} href="/moving">
-                Explore moving help
+                Explore moving help demo
               </Link>
             </div>
             <figure className={styles.movingPhoto}>
@@ -155,8 +144,9 @@ export default function HomePage() {
         </section>
         <section className={`${styles.shell} ${styles.homeNote}`}>
           <p>
-            Sample items, chats, offers, and created demo listings are stored in
-            your browser. They are not shared with other students.
+            Fresh finds are live marketplace listings. Messaging, offers, and
+            moving help are demos stored in your browser, not shared with other
+            students.
           </p>
         </section>
       </main>

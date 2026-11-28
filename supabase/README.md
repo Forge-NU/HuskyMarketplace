@@ -22,9 +22,13 @@ Test migrations on a local copy of the database before opening a PR. This needs 
 ```bash
 npx supabase@3.0.0 start # Starts local Supabase
 npx supabase@3.0.0 db reset # Rebuilds the local database from migrations, then runs seed.sql
-npx supabase@3.0.0 test db # Runs the database tests in supabase/tests
+npx supabase@3.0.0 test db supabase/tests/database # Runs the database test files
 npx supabase@3.0.0 stop # Stops local Supabase
 ```
+
+Use the explicit test directory: CLI 3.0.0 does not discover the nested files with `test db` alone. With the profile-photo migration, a successful run reports 9 files and 111 tests.
+
+Local Auth requires email confirmation and uses the app's eight-digit code templates. Mailpit captures the messages at http://127.0.0.1:54324; it does not send them to real inboxes. The local email quota allows repeated signup, reset, and device checks. These settings do not change hosted Auth or SMTP configuration. Keep the checkout under a directory mounted into your Docker runtime so the template files are available to the containers.
 
 `db reset` deletes all local data. Never add `--remote` to it, since that would reset production.
 
