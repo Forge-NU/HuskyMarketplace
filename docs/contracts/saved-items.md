@@ -4,7 +4,7 @@ Related to #26. This frontend uses Caleb's existing `saved_items` table and owne
 
 - Home, Browse and live item details save UUID listings to the signed-in student's account. Buttons update after the database request succeeds. Duplicate saves are confirmed by reading the existing row.
 - `/saved` loads real account records, newest first, with 24 saves per page. Unavailable or hidden listings show a generic card with a removal control. Deleted listings disappear through the existing foreign-key cascade.
-- Account changes clear the controls. Navigation, refresh and returning to the window reload the student's saves. No live save is stored in localStorage.
+- Background refreshes keep the current cards visible. Failed refreshes show a retry notice above the cards; initial loads and page changes still show loading. Account changes clear the previous student’s records and controls. Navigation, refresh and returning to the window reload the student's saves. No live save is stored in localStorage.
 - `/demo/saved` keeps the existing browser-local demonstration. Demo IDs are rejected by the live service. Failed live queries show an error and retry; they do not substitute demo saves.
 
 ## Local checks
@@ -20,9 +20,9 @@ SAVED_TEST_ANON_KEY=LOCAL_PUBLIC_KEY node tests/saved.e2e.mjs
 
 The default API and Mailpit URLs are `http://127.0.0.1:54321` and `http://127.0.0.1:54324`. Override them with `SAVED_TEST_SUPABASE_URL`, `SAVED_TEST_MAIL_URL` and `SAVED_TEST_URL`. Hosted origins are rejected before accounts are created. Set `SAVED_TEST_SCREENSHOT_DIR` to save full-page images. Use a disposable stack; test accounts and uploaded files stay local, and the runner attempts to delete its listings on exit.
 
-All 11 service tests and 17 browser checks pass. Browser checks cover Home/Browse/details, duplicates, two-account isolation, signed-out and unverified-device denial, hidden/deleted listings, failed save/remove/read requests, pagination, a separate mobile context, demo separation, persistence after logout/password login/device verification, and switching accounts in the same browser, and a delayed background read arriving after a successful save. The read/write failure responses are injected; the successful requests and permission checks use real local Supabase.
+All 11 service tests and 20 browser checks pass. Browser checks cover Home/Browse/details, duplicates, two-account isolation, signed-out and unverified-device denial, hidden/deleted listings, failed save/remove/read requests, pagination, a separate mobile context, demo separation, persistence after logout/password login/device verification, switching accounts in the same browser, delayed reads, tab-return refreshes, refresh failures/retries and unsaving without a full-page loader. The read/write failure responses are injected; the successful requests and permission checks use real local Supabase.
 
-The combined #52/#53/#55/#56 build also passes all 111 frontend tests, 46 accessibility scans and 276 layout checks in Chromium and WebKit. The standalone Saved branch passes 107 frontend tests. TypeScript, targeted lint, formatting and production builds pass.
+The current combined build on main with #53/#55/#56/#57 passes all 117 frontend tests. The earlier Chromium and WebKit pass covered 46 accessibility scans and 276 layout checks. The standalone Saved branch passes 107 frontend tests. TypeScript, targeted lint, formatting and production builds pass.
 
 ## Remaining release work
 

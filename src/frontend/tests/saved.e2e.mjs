@@ -28,9 +28,50 @@ const mail = localURL(
 );
 const key = process.env.SAVED_TEST_ANON_KEY;
 assert.ok(key, "Set SAVED_TEST_ANON_KEY to the local public key");
+const run = randomUUID().slice(0, 8);
+const itemTitle = (number) => `Local saved item ${number} ${run}`;
 let checks = 0;
 function passed(label) {
   console.log(`PASS ${++checks}: ${label}`);
+}
+async function pauseSavedPage(page) {
+  let release,
+    finish,
+    claimed = false,
+    captured = false;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const delivered = new Promise((resolve) => {
+    finish = resolve;
+  });
+  const handler = async (route) => {
+    const select = new URL(route.request().url()).searchParams.get("select");
+    if (
+      !claimed &&
+      route.request().method() === "GET" &&
+      select?.startsWith("listing_id,created_at,")
+    ) {
+      claimed = true;
+      const response = await route.fetch();
+      captured = true;
+      await gate;
+      await route.fulfill({ response });
+      finish();
+      return;
+    }
+    return route.continue();
+  };
+  const pattern = api + "/rest/v1/saved_items**";
+  await page.route(pattern, handler);
+  return {
+    wait: () => expect.poll(() => captured).toBe(true),
+    release: async () => {
+      release();
+      await delivered;
+      await page.unroute(pattern, handler);
+    },
+  };
 }
 async function student() {
   const client = createClient(api, key, { auth: { persistSession: false } });
@@ -73,7 +114,10 @@ async function student() {
   assert.equal(device.data, true);
   const profile = await client
     .from("profiles")
-    .update({ username: `saved_${suffix}` })
+    .update({
+      username: `saved_${suffix}`,
+      display_name: "Local saved student",
+    })
     .eq("user_id", verified.data.user.id);
   assert.ifError(profile.error);
   return {
@@ -129,7 +173,7 @@ async function listing(number, submit = true) {
   const saved = await owner.client.rpc("save_listing_draft", {
     p_id: id,
     p_details: {
-      title: `Local saved item ${number}`,
+      title: itemTitle(number),
       description: "Synthetic local listing for saved-item checks.",
       price: number,
       category_id: category.data.id,
@@ -222,7 +266,7 @@ try {
 
   await page.goto(base + "/browse");
   const save = page.getByRole("button", {
-    name: "Save Local saved item 1",
+    name: `Save ${itemTitle(1)}`,
     exact: true,
   });
   await expect(save).toBeEnabled();
@@ -255,7 +299,7 @@ try {
   await save.click();
   await expect(
     page.getByRole("button", {
-      name: "Unsave Local saved item 1",
+      name: `Unsave ${itemTitle(1)}`,
       exact: true,
     }),
   ).toHaveAttribute("aria-pressed", "true");
@@ -267,7 +311,7 @@ try {
   await page.waitForLoadState("networkidle");
   await expect(
     page.getByRole("button", {
-      name: "Unsave Local saved item 1",
+      name: `Unsave ${itemTitle(1)}`,
       exact: true,
     }),
   ).toHaveAttribute("aria-pressed", "true");
@@ -327,15 +371,15 @@ try {
   await page.goto(base + `/item/${first}`);
   await expect(
     page.getByRole("button", {
-      name: "Unsave Local saved item 1",
+      name: `Unsave ${itemTitle(1)}`,
       exact: true,
     }),
   ).toBeEnabled();
   await page
-    .getByRole("button", { name: "Unsave Local saved item 1", exact: true })
+    .getByRole("button", { name: `Unsave ${itemTitle(1)}`, exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Save Local saved item 1", exact: true }),
+    page.getByRole("button", { name: `Save ${itemTitle(1)}`, exact: true }),
   ).toBeEnabled();
   await page.goto(base + "/saved");
   await expect(
@@ -345,33 +389,108 @@ try {
 
   await page.goto(base + "/");
   await page
-    .getByRole("button", { name: "Save Local saved item 1", exact: true })
+    .getByRole("button", { name: `Save ${itemTitle(1)}`, exact: true })
     .click();
   await expect(
     page.getByRole("button", {
-      name: "Unsave Local saved item 1",
+      name: `Unsave ${itemTitle(1)}`,
       exact: true,
     }),
   ).toBeEnabled();
   await setSaved(buyer.client, second, buyer.user.id, true);
   await page.goto(base + "/saved");
   await expect(
-    page.getByRole("heading", { name: "Local saved item 1", exact: true }),
+    page.getByRole("heading", { name: itemTitle(1), exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Local saved item 2", exact: true }),
+    page.getByRole("heading", { name: itemTitle(2), exact: true }),
   ).toBeVisible();
   await screenshot(page, "saved-desktop.jpg");
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Local saved item 1", exact: true }),
+    page.getByRole("heading", { name: itemTitle(1), exact: true }),
   ).toBeVisible();
   passed("Home saves persist across navigation and refresh");
+
+  const firstHeading = page.getByRole("heading", {
+    name: itemTitle(1),
+    exact: true,
+  });
+  const secondHeading = page.getByRole("heading", {
+    name: itemTitle(2),
+    exact: true,
+  });
+  const loadingText = page.getByText("Loading saved items…", { exact: true });
+  const focused = await pauseSavedPage(page);
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await focused.wait();
+  await expect(firstHeading).toBeVisible();
+  await expect(secondHeading).toBeVisible();
+  await expect(loadingText).toHaveCount(0);
+  await focused.release();
+  await expect(page.locator('main div[aria-busy="false"]')).toHaveCount(1);
+  passed(
+    "Returning to the tab keeps current cards visible during a delayed refresh",
+  );
+
+  let failRefresh = true,
+    refreshRequests = 0;
+  const refreshFailure = (route) => {
+    const select = new URL(route.request().url()).searchParams.get("select");
+    if (
+      failRefresh &&
+      route.request().method() === "GET" &&
+      select?.startsWith("listing_id,created_at,")
+    ) {
+      refreshRequests++;
+      return route.fulfill({
+        status: 503,
+        contentType: "application/json",
+        body: JSON.stringify({ message: "Injected refresh failure" }),
+      });
+    }
+    return route.continue();
+  };
+  await page.route(api + "/rest/v1/saved_items**", refreshFailure);
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect.poll(() => refreshRequests).toBeGreaterThan(0);
+  await expect(page.locator("main").getByRole("alert")).toContainText(
+    "could not load",
+    { timeout: 20000 },
+  );
+  await expect(firstHeading).toBeVisible();
+  await expect(secondHeading).toBeVisible();
+  await expect(loadingText).toHaveCount(0);
+  failRefresh = false;
+  await page.getByRole("button", { name: "Try again", exact: true }).click();
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+  await expect(firstHeading).toBeVisible();
+  await expect(page.locator('main div[aria-busy="false"]')).toHaveCount(1);
+  await page.unroute(api + "/rest/v1/saved_items**", refreshFailure);
+  passed("A failed background refresh keeps the cards and offers retry");
+
+  const removing = await pauseSavedPage(page);
+  await page
+    .getByRole("button", { name: `Unsave ${itemTitle(1)}`, exact: true })
+    .click();
+  await removing.wait();
+  await expect(firstHeading).toBeVisible();
+  await expect(secondHeading).toBeVisible();
+  await expect(loadingText).toHaveCount(0);
+  await removing.release();
+  await expect(firstHeading).toHaveCount(0);
+  await expect(secondHeading).toBeVisible();
+  passed(
+    "Unsave refreshes the list without replacing the remaining cards with a loader",
+  );
+  await setSaved(buyer.client, first, buyer.user.id, true);
+  await page.reload();
+  await expect(firstHeading).toBeVisible();
 
   const mobile = await pageFor(buyer, { width: 390, height: 844 });
   await mobile.goto(base + "/saved");
   await expect(
-    mobile.getByRole("heading", { name: "Local saved item 1", exact: true }),
+    mobile.getByRole("heading", { name: itemTitle(1), exact: true }),
   ).toBeVisible();
   assert.ok(
     await mobile.evaluate(
@@ -397,7 +516,7 @@ try {
     page.getByRole("heading", { name: "Listing unavailable", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Local saved item 3", exact: true }),
+    page.getByRole("heading", { name: itemTitle(3), exact: true }),
   ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Unsave unavailable listing", exact: true })
@@ -412,7 +531,7 @@ try {
   );
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Local saved item 2", exact: true }),
+    page.getByRole("heading", { name: itemTitle(2), exact: true }),
   ).toHaveCount(0);
   passed("deleting a listing removes its saved reference");
 
@@ -429,19 +548,19 @@ try {
     return route.continue();
   });
   await page
-    .getByRole("button", { name: "Unsave Local saved item 1", exact: true })
+    .getByRole("button", { name: `Unsave ${itemTitle(1)}`, exact: true })
     .click();
   await expect(page.locator("main").getByRole("alert")).toContainText(
     "Could not remove",
   );
   await expect(
-    page.getByRole("heading", { name: "Local saved item 1", exact: true }),
+    page.getByRole("heading", { name: itemTitle(1), exact: true }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Retry saved items", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Unsave Local saved item 1", exact: true })
+    .getByRole("button", { name: `Unsave ${itemTitle(1)}`, exact: true })
     .click();
   await expect(
     page.getByText("No saved items yet.", { exact: false }),
@@ -463,7 +582,7 @@ try {
     return route.continue();
   });
   await page
-    .getByRole("button", { name: "Save Local saved item 1", exact: true })
+    .getByRole("button", { name: `Save ${itemTitle(1)}`, exact: true })
     .click();
   await expect(page.locator("main").getByRole("alert")).toContainText(
     "Could not save",
@@ -473,19 +592,19 @@ try {
     .getByRole("button", { name: "Retry saved items", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Save Local saved item 1", exact: true })
+    .getByRole("button", { name: `Save ${itemTitle(1)}`, exact: true })
     .click();
   await expect(
     page.getByRole("button", {
-      name: "Unsave Local saved item 1",
+      name: `Unsave ${itemTitle(1)}`,
       exact: true,
     }),
   ).toBeEnabled();
   await page
-    .getByRole("button", { name: "Unsave Local saved item 1", exact: true })
+    .getByRole("button", { name: `Unsave ${itemTitle(1)}`, exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Save Local saved item 1", exact: true }),
+    page.getByRole("button", { name: `Save ${itemTitle(1)}`, exact: true }),
   ).toBeEnabled();
   await page.unroute(api + "/rest/v1/saved_items**");
   await page.goto(base + "/saved");

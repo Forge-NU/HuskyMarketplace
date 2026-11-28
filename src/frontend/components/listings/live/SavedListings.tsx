@@ -30,6 +30,7 @@ export default function SavedListings() {
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
   const version = useRef(0);
+  const owner = useRef("");
   const saved = useSaved(items.map((item) => item.listing_id));
   useEffect(() => {
     let active = true;
@@ -38,6 +39,8 @@ export default function SavedListings() {
     loadSavedPage(client, page)
       .then((data) => {
         if (active && version.current === request) {
+          owner.current = data.userId;
+          setLoadedPage(page);
           setItems(data.items);
           setCount(data.count);
           setError("");
@@ -48,7 +51,6 @@ export default function SavedListings() {
       })
       .finally(() => {
         if (active && version.current === request) {
-          setLoadedPage(page);
           setLoading(false);
         }
       });
@@ -57,8 +59,19 @@ export default function SavedListings() {
       setLoading(true);
       setRetry((value) => value + 1);
     }
-    const { data } = client.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT") refresh();
+    const { data } = client.auth.onAuthStateChange((event, session) => {
+      const userId = session?.user.id ?? "";
+      if (
+        (event === "SIGNED_IN" || event === "SIGNED_OUT") &&
+        userId !== owner.current
+      ) {
+        owner.current = userId;
+        setItems([]);
+        setCount(0);
+        setLoadedPage(0);
+        setError("");
+        refresh();
+      }
     });
     window.addEventListener(SAVED_UPDATED, refresh);
     window.addEventListener("focus", refresh);
@@ -78,15 +91,14 @@ export default function SavedListings() {
           <p>Your campus finds, saved to your account.</p>
           <Link href="/demo/saved">View demo saves</Link>
         </header>
-        {loading || loadedPage !== page ? (
-          <p role="status">Loading saved items…</p>
-        ) : error ? (
+        {error && (
           <div className={styles.notice} role="alert">
             <p>{error}</p>
             <button
               className={styles.secondaryButton}
               onClick={() => {
                 version.current++;
+                setError("");
                 setLoading(true);
                 setRetry((value) => value + 1);
               }}
@@ -94,8 +106,11 @@ export default function SavedListings() {
               Try again
             </button>
           </div>
+        )}
+        {loadedPage !== page ? (
+          !error && <p role="status">Loading saved items…</p>
         ) : (
-          <>
+          <div aria-busy={loading}>
             <p className={styles.hint}>
               {count} saved item{count === 1 ? "" : "s"}
             </p>
@@ -163,7 +178,7 @@ export default function SavedListings() {
                 )}
               </nav>
             )}
-          </>
+          </div>
         )}
       </main>
     </UIShell>
