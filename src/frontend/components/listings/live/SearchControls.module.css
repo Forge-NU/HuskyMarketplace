@@ -1,6 +1,14 @@
 .controls {
   margin-bottom: 24px;
 }
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+}
 .controls :is(input, select, button, summary):focus-visible {
   outline: 3px solid #9e1028;
   outline-offset: 3px;

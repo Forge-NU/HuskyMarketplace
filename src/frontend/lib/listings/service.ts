@@ -10,6 +10,9 @@ import {
   type Listing,
 } from "./model.ts";
 import { uploadFile, UploadError } from "../storage/uploadFile.ts";
+import type { SearchFilters } from "./search.ts";
+
+export const PAGE_SIZE = 24;
 
 // This handshake is a deployment gate, not authorization. Every operation still
 // requires backend ownership checks, grants, RLS and immutable pending content.
@@ -165,4 +168,45 @@ export async function signedPhotos(client: SupabaseClient, item: Listing) {
   if (error || data?.some((p) => p.error || !p.signedUrl))
     throw new Error("Listing photos could not load. Please retry.");
   return (data ?? []).map((p) => p.signedUrl!).filter(Boolean);
+}
+
+export async function loadListingPage(
+  client: SupabaseClient,
+  filters: SearchFilters,
+  own = false,
+) {
+  await requireWorkflow(client);
+  const select = filters.category
+    ? SELECT.replace("categories(name)", "categories!inner(name)")
+    : SELECT;
+  let query = client.from("listings").select(select, { count: "exact" });
+  if (own) query = query.eq("seller_id", (await currentUser(client)).id);
+  else query = query.eq("status", "approved").eq("is_available", true);
+  if (filters.q)
+    query = query.textSearch("search_vector", filters.q, {
+      config: "english",
+      type: "websearch",
+    });
+  if (filters.category)
+    query = query.ilike(
+      "categories.name",
+      filters.category.replace(/[\\%_]/g, "\\$&"),
+    );
+  if (filters.condition) query = query.eq("condition", filters.condition);
+  if (filters.free) query = query.eq("price", 0);
+  if (filters.min !== "") query = query.gte("price", Number(filters.min));
+  if (filters.max !== "") query = query.lte("price", Number(filters.max));
+  query =
+    filters.sort === "new"
+      ? query.order("created_at", { ascending: false })
+      : query.order("price", {
+          ascending: filters.sort === "priceAsc",
+          nullsFirst: false,
+        });
+  const start = (filters.page - 1) * PAGE_SIZE;
+  const { data, error, count } = await query
+    .order("id", { ascending: false })
+    .range(start, start + PAGE_SIZE - 1);
+  if (error) throw new Error("Could not load listings. Please retry.");
+  return { items: (data ?? []) as unknown as Listing[], count: count ?? 0 };
 }

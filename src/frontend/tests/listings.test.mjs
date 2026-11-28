@@ -18,6 +18,8 @@ import {
   submitDraft,
   signedPhotos,
   deleteListing,
+  loadListingPage,
+  PAGE_SIZE,
 } from "../lib/listings/service.ts";
 const id = "d806ce19-530a-4c15-b4f6-f209ad910453",
   seller = "6b13c715-a869-4023-8581-bcc12ccddc6c";
@@ -53,6 +55,22 @@ function fixture() {
       calls.push(["eq", ...v]);
       return this;
     },
+    ilike(...v) {
+      calls.push(["ilike", ...v]);
+      return this;
+    },
+    gte(...v) {
+      calls.push(["gte", ...v]);
+      return this;
+    },
+    lte(...v) {
+      calls.push(["lte", ...v]);
+      return this;
+    },
+    range(...v) {
+      calls.push(["range", ...v]);
+      return this;
+    },
     textSearch(...v) {
       calls.push(["textSearch", ...v]);
       return this;
@@ -71,6 +89,7 @@ function fixture() {
       return Promise.resolve({
         data: state.rows,
         error: state.queryError,
+        count: state.rows.length,
       }).then(resolve, reject);
     },
   };
@@ -393,6 +412,69 @@ test("empty searches omit textSearch and failed search requests remain errors", 
   state.queryError = { message: "permission denied" };
   await assert.rejects(
     loadListings(client, false, "desk"),
+    /Could not load listings/,
+  );
+});
+
+test("Browse applies filters and ordering before requesting a bounded page", async () => {
+  const f = fixture();
+  const filters = {
+    q: "lamp",
+    category: "Furniture",
+    condition: "Good",
+    min: "5",
+    max: "50",
+    free: false,
+    sort: "priceAsc",
+    page: 2,
+  };
+  await loadListingPage(f.client, filters);
+  assert.ok(
+    f.calls
+      .find((c) => c[0] === "select")[1]
+      .includes("categories!inner(name)"),
+  );
+  for (const expected of [
+    ["eq", "status", "approved"],
+    ["eq", "is_available", true],
+    ["ilike", "categories.name", "Furniture"],
+    ["eq", "condition", "Good"],
+    ["gte", "price", 5],
+    ["lte", "price", 50],
+    ["order", "price", { ascending: true, nullsFirst: false }],
+    ["order", "id", { ascending: false }],
+    ["range", PAGE_SIZE, PAGE_SIZE * 2 - 1],
+  ])
+    assert.ok(
+      f.calls.some((c) => JSON.stringify(c) === JSON.stringify(expected)),
+      JSON.stringify(expected),
+    );
+});
+
+test("free and owner queries retain their constraints; failed pages do not become empty results", async () => {
+  const f = fixture();
+  const filters = {
+    q: "",
+    category: "",
+    condition: "",
+    min: "",
+    max: "",
+    free: true,
+    sort: "new",
+    page: 1,
+  };
+  await loadListingPage(f.client, filters, true);
+  assert.ok(
+    f.calls.some(
+      (c) => c[0] === "eq" && c[1] === "seller_id" && c[2] === seller,
+    ),
+  );
+  assert.ok(
+    f.calls.some((c) => c[0] === "eq" && c[1] === "price" && c[2] === 0),
+  );
+  f.state.queryError = { message: "offline" };
+  await assert.rejects(
+    loadListingPage(f.client, filters),
     /Could not load listings/,
   );
 });

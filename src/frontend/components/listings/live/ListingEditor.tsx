@@ -45,6 +45,7 @@ export default function ListingEditor({ editId }: { editId?: string }) {
   const [existingCount, setExistingCount] = useState(0);
   const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
+  const [uploadCount, setUploadCount] = useState(0);
   const id = useRef(editId ?? ""),
     userId = useRef(""),
     uploads = useRef<Upload[]>([]),
@@ -110,6 +111,7 @@ export default function ListingEditor({ editId }: { editId?: string }) {
   function field(key: keyof Details, value: string) {
     setDetails((d) => ({ ...d, [key]: value }));
     setReady(false);
+    setNotice("");
   }
   async function choosePhotos(e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -122,7 +124,9 @@ export default function ListingEditor({ editId }: { editId?: string }) {
       if (files.length + photos.length + existingCount > 5)
         throw new Error("Choose at most five photos per listing.");
       files.forEach(validatePhoto);
-      const compressed = await Promise.all(files.map((f) => compressImage(f)));
+      const compressed = await Promise.all(
+        files.map((f) => compressImage(f, { useWebWorker: false })),
+      );
       if (
         compressed.some(
           (file) => file.size > 1024 * 1024 || file.type !== "image/webp",
@@ -138,6 +142,7 @@ export default function ListingEditor({ editId }: { editId?: string }) {
       });
       setPhotos((p) => [...p, ...prepared]);
       setReady(false);
+      setNotice("");
     } catch (e) {
       setError(message(e));
     } finally {
@@ -161,6 +166,8 @@ export default function ListingEditor({ editId }: { editId?: string }) {
       if (!id.current) id.current = crypto.randomUUID();
       await saveDraft(client, id.current, details);
       setSaved(true);
+      // Refresh should reopen this draft, including when a photo needs a retry.
+      window.history.replaceState(null, "", `/sell?edit=${id.current}`);
       // Keep stable paths and completed steps across retries, including lost responses.
       for (let i = uploads.current.length; i < photos.length; i++)
         uploads.current.push({
@@ -170,6 +177,7 @@ export default function ListingEditor({ editId }: { editId?: string }) {
           uploaded: false,
           attached: false,
         });
+      setUploadCount(uploads.current.length);
       await uploadPhotos(client, id.current, uploads.current);
       setReady(true);
       setNotice(
@@ -206,7 +214,9 @@ export default function ListingEditor({ editId }: { editId?: string }) {
         <header className={styles.contentHead}>
           <p className={styles.eyebrow}>SELL ON CAMPUS</p>
           <h1>
-            {editId ? "Edit your draft." : "Give your stuff a second life."}
+            {editId || saved
+              ? "Edit your draft."
+              : "Give your stuff a second life."}
           </h1>
           <p>Save a private draft, then submit it for moderation.</p>
           <Link href="/my-listings">My listings →</Link>
@@ -246,12 +256,17 @@ export default function ListingEditor({ editId }: { editId?: string }) {
                   {photos.map((p, i) => (
                     <div key={p.preview}>
                       <img src={p.preview} alt={`Selected photo ${i + 1}`} />
-                      {!saved && (
+                      {i >= uploadCount && (
                         <button
                           type="button"
                           onClick={() => {
+                            URL.revokeObjectURL(p.preview);
+                            urls.current = urls.current.filter(
+                              (url) => url !== p.preview,
+                            );
                             setPhotos((x) => x.filter((_, j) => j !== i));
                             setReady(false);
+                            setNotice("");
                           }}
                         >
                           Remove

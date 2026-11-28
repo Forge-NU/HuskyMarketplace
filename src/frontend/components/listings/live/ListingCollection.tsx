@@ -1,43 +1,40 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import UIShell from "@/components/ui/marketplace/UIShell";
 import ListingCards from "./ListingCards";
 import { createClient } from "@/lib/supabase/client";
-import { loadListings, categories } from "@/lib/listings/service";
+import { loadListingPage, categories, PAGE_SIZE } from "@/lib/listings/service";
 import { message, type Listing } from "@/lib/listings/model";
 import styles from "@/components/ui/marketplace/UI.module.css";
 import Icon from "@/components/Icon";
 import SearchControls from "./SearchControls";
-import {
-  readSearch,
-  filterListings,
-  updateSearch,
-} from "@/lib/listings/search";
+import { readSearch, updateSearch } from "@/lib/listings/search";
 import searchStyles from "./SearchControls.module.css";
 
 export default function ListingCollection({ own = false }: { own?: boolean }) {
-  const params = useSearchParams(),
-    router = useRouter();
+  const params = useSearchParams();
   const [items, setItems] = useState<Listing[]>([]),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true),
     [loadedQuery, setLoadedQuery] = useState<string | null>(null),
+    [count, setCount] = useState(0),
     [categoryNames, setCategoryNames] = useState<string[]>([]),
     [retry, setRetry] = useState(0);
   const filters = readSearch(params);
-  const q = filters.q;
+  const query = JSON.stringify(filters);
   useEffect(() => {
     let active = true;
     const client = createClient();
     Promise.all([
-      loadListings(client, own, q),
+      loadListingPage(client, JSON.parse(query), own),
       own ? Promise.resolve([]) : categories(client),
     ])
       .then(([data, categoryRows]) => {
         if (active) {
-          setItems(data);
+          setItems(data.items);
+          setCount(data.count);
           setCategoryNames(categoryRows.map((category) => category.name));
           setError("");
         }
@@ -47,22 +44,21 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
       })
       .finally(() => {
         if (active) {
-          setLoadedQuery(q);
+          setLoadedQuery(query);
           setLoading(false);
         }
       });
     return () => {
       active = false;
     };
-  }, [own, retry, q]);
+  }, [own, retry, query]);
   function change(values: Record<string, string>) {
-    const next = updateSearch(params.toString(), values);
-    router.replace(next.size ? `?${next}` : "/browse", { scroll: false });
+    const next = updateSearch(window.location.search, values);
+    const path = own ? "/my-listings" : "/browse";
+    window.history.pushState(null, "", next.size ? `${path}?${next}` : path);
   }
-  // Keywords are matched by Postgres, including stemming and websearch syntax.
-  const results = filterListings(items, { ...filters, q: "" }, own);
   function reset() {
-    router.replace("/browse", { scroll: false });
+    window.history.pushState(null, "", own ? "/my-listings" : "/browse");
   }
   return (
     <UIShell live>
@@ -86,7 +82,7 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
             onChange={change}
           />
         )}
-        {loading || loadedQuery !== q ? (
+        {loading || loadedQuery !== query ? (
           <div className={searchStyles.state} role="status">
             <Icon name="search" className={searchStyles.stateIcon} />
             <h2>Finding campus listings…</h2>
@@ -98,6 +94,14 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
             <h2>We couldn’t load listings.</h2>
             <p>{error}</p>
             <div className={searchStyles.stateActions}>
+              {filters.page > 1 && (
+                <button
+                  className={styles.secondaryButton}
+                  onClick={() => change({ page: "" })}
+                >
+                  Back to first page
+                </button>
+              )}
               <button
                 className={styles.primaryButton}
                 onClick={() => {
@@ -113,13 +117,13 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
           <>
             <div className={searchStyles.results}>
               <p role="status">
-                {results.length} {results.length === 1 ? "listing" : "listings"}
+                {count} {count === 1 ? "listing" : "listings"}
                 {filters.q ? ` for “${filters.q}”` : ""}
               </p>
             </div>
-            {results.length ? (
+            {items.length ? (
               <div className={styles.productGrid}>
-                <ListingCards items={results} manage={own} />
+                <ListingCards items={items} manage={own} />
               </div>
             ) : (
               <div className={searchStyles.state}>
@@ -144,6 +148,30 @@ export default function ListingCollection({ own = false }: { own?: boolean }) {
                   </button>
                 )}
               </div>
+            )}
+            {count > PAGE_SIZE && (
+              <nav
+                className={searchStyles.pagination}
+                aria-label="Listing pages"
+              >
+                <button
+                  className={styles.secondaryButton}
+                  disabled={filters.page === 1}
+                  onClick={() => change({ page: String(filters.page - 1) })}
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {filters.page} of {Math.ceil(count / PAGE_SIZE)}
+                </span>
+                <button
+                  className={styles.secondaryButton}
+                  disabled={filters.page * PAGE_SIZE >= count}
+                  onClick={() => change({ page: String(filters.page + 1) })}
+                >
+                  Next
+                </button>
+              </nav>
             )}
           </>
         )}

@@ -6,6 +6,7 @@ export function readSearch(params: Pick<URLSearchParams, "get">) {
   const min = params.get("min") ?? "";
   const condition = params.get("condition") ?? "";
   const sort = params.get("sort") ?? "new";
+  const page = Number(params.get("page") ?? "1");
 
   return {
     q: (params.get("q") ?? "").trim(),
@@ -20,6 +21,7 @@ export function readSearch(params: Pick<URLSearchParams, "get">) {
     max: /^\d+(\.\d{1,2})?$/.test(max) && Number(max) <= 999999.99 ? max : "",
     free: params.get("free") === "1" || category === "free",
     sort: sort === "priceAsc" || sort === "priceDesc" ? sort : "new",
+    page: Number.isSafeInteger(page) && page > 0 && page <= 100000 ? page : 1,
   };
 }
 
@@ -27,6 +29,7 @@ export type SearchFilters = ReturnType<typeof readSearch>;
 
 export function updateSearch(query: string, values: Record<string, string>) {
   const next = new URLSearchParams(query);
+  if (!Object.hasOwn(values, "page")) next.delete("page");
   if (next.get("cat") === "free") {
     next.delete("cat");
     next.set("free", "1");

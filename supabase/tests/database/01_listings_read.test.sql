@@ -17,7 +17,8 @@ from (values ('aaaaaaaa-0000-0000-0000-000000000000'::uuid, 'A'),
 cross join unnest(array['draft', 'pending', 'approved', 'blocked', 'sold']) as s(status);
 
 insert into public.listing_photos (listing_id, photo_url, sort_order)
-select id, seller_id || '/' || id || '/photo.webp', 0 from public.listings;
+select id, seller_id || '/' || id || '/photo.webp', 0 from public.listings
+where seller_id in ('aaaaaaaa-0000-0000-0000-000000000000', 'bbbbbbbb-0000-0000-0000-000000000000');
 
 insert into public.listings (seller_id, title, status, is_available)
 values ('bbbbbbbb-0000-0000-0000-000000000000', 'B approved but unavailable', 'approved', false);

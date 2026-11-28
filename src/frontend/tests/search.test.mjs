@@ -117,3 +117,16 @@ test("minimum and maximum price combine, with zero-to-zero selecting only free i
   assert.equal(readSearch(cleared).free, false);
   assert.equal(cleared.get("q"), "desk");
 });
+
+test("changing filters starts at page one; page navigation keeps the search", () => {
+  assert.equal(filters("page=2").page, 2);
+  for (const value of ["0", "-1", "1.5", "Infinity", "100001"])
+    assert.equal(filters(`page=${value}`).page, 1);
+  const changed = updateSearch("q=desk&min=5&page=3", { max: "20" });
+  assert.equal(readSearch(changed).page, 1);
+  assert.equal(changed.get("q"), "desk");
+  const next = updateSearch(changed.toString(), { page: "2" });
+  assert.equal(readSearch(next).page, 2);
+  assert.equal(next.get("min"), "5");
+  assert.equal(next.get("max"), "20");
+});

@@ -56,6 +56,7 @@ test("maps storage errors to the matching upload error kind", async () => {
     ["403", "not-allowed"],
     ["401", "not-allowed"],
     ["500", "unknown"],
+    ["400", "unknown"],
     [undefined, "unknown"],
   ]) {
     const { client } = fakeClient({ statusCode, message: "storage error" });
@@ -63,5 +64,16 @@ test("maps storage errors to the matching upload error kind", async () => {
       uploadFile(client, bucket, path, file),
       (err) => err instanceof UploadError && err.kind === kind,
     );
+  }
+});
+
+test("known duplicate responses can retry without accepting other bad requests", async () => {
+  for (const error of [
+    { statusCode: "400", code: "ResourceAlreadyExists", message: "Duplicate" },
+    { statusCode: "400", message: "The resource already exists" },
+    { statusCode: "400", message: "Asset Already Exists" },
+  ]) {
+    const { client } = fakeClient(error);
+    assert.equal(await uploadFile(client, bucket, path, file), path);
   }
 });
