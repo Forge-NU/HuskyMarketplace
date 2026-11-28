@@ -17,6 +17,8 @@ import {
   type Listing,
 } from "@/lib/listings/model";
 import styles from "@/components/ui/marketplace/UI.module.css";
+import { useSaved } from "./useSaved";
+import SaveButton, { SavedError } from "./SaveButton";
 export default function ListingDetail({ id }: { id: string }) {
   const [item, setItem] = useState<Listing | null>(null),
     [images, setImages] = useState<string[]>([]),
@@ -30,6 +32,7 @@ export default function ListingDetail({ id }: { id: string }) {
     [confirm, setConfirm] = useState(false),
     [deleted, setDeleted] = useState(false);
   const lock = useRef(false);
+  const saved = useSaved(item && isApproved(item) ? [item.id] : []);
   useEffect(() => {
     let active = true;
     async function load() {
@@ -154,6 +157,16 @@ export default function ListingDetail({ id }: { id: string }) {
                   <div className={styles.detailPrice}>
                     {priceLabel(item.price)}
                   </div>
+                  {isApproved(item) && (
+                    <>
+                      <SaveButton
+                        id={item.id}
+                        title={item.title}
+                        controls={saved}
+                      />
+                      <SavedError controls={saved} />
+                    </>
+                  )}
                   <p>
                     {item.condition || "Condition not provided"} ·{" "}
                     {item.location || "Pickup area not provided"}

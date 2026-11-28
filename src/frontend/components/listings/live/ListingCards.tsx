@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { signedPhotos } from "@/lib/listings/service";
 import { priceLabel, type Listing } from "@/lib/listings/model";
 import styles from "@/components/ui/marketplace/UI.module.css";
+import SaveButton, { SavedError } from "./SaveButton";
+import { useSaved, type SavedControls } from "./useSaved";
 function Photo({ item }: { item: Listing }) {
   const [src, setSrc] = useState("");
   const [failed, setFailed] = useState(false);
@@ -62,25 +64,49 @@ export default function ListingCards({
   items: Listing[];
   manage?: boolean;
 }) {
+  const saved = useSaved(manage ? [] : items.map((item) => item.id));
   if (!items.length) return <p className={styles.empty}>No listings found.</p>;
   return (
     <>
+      {!manage && <SavedError controls={saved} />}
       {items.map((item) => (
-        <article className={styles.productCard} key={item.id}>
-          <Photo item={item} />
-          <Link className={styles.productLink} href={`/item/${item.id}`}>
-            <div className={styles.productInfo}>
-              <p className={styles.productPrice}>{priceLabel(item.price)}</p>
-              <h3>{item.title}</h3>
-              <p className={styles.productMeta}>
-                {item.location || "Pickup area not provided"} ·{" "}
-                {item.condition || "Condition not provided"}
-              </p>
-              {manage && <p>Status: {item.status}</p>}
-            </div>
-          </Link>
-        </article>
+        <ListingCard
+          item={item}
+          manage={manage}
+          saved={manage ? undefined : saved}
+          key={item.id}
+        />
       ))}
     </>
+  );
+}
+
+export function ListingCard({
+  item,
+  manage = false,
+  saved,
+}: {
+  item: Listing;
+  manage?: boolean;
+  saved?: SavedControls;
+}) {
+  return (
+    <article className={styles.productCard}>
+      <Photo item={item} />
+      {saved && (
+        <SaveButton id={item.id} title={item.title} controls={saved} card />
+      )}
+      <Link className={styles.productLink} href={`/item/${item.id}`}>
+        <div className={styles.productInfo}>
+          <p className={styles.productPrice}>{priceLabel(item.price)}</p>
+          <h3>{item.title}</h3>
+          <p className={styles.productMeta}>
+            {item.location || "Pickup area not provided"} ·{" "}
+            {item.condition || "Condition not provided"}
+          </p>
+          {manage && <p>Status: {item.status}</p>}
+        </div>
+      </Link>
+    </article>
   );
 }
