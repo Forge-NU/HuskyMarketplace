@@ -1,64 +1,57 @@
-# Frontend
+# Husky Marketplace frontend
 
-The Husky Marketplace web app, built with Next.js 16 (React + TypeScript, App Router).
+Next.js App Router, TypeScript, Supabase and CSS modules. The UI uses Archivo and DM Sans.
 
-## Run it locally
+## Local setup
+
+Use the same Node major version as Vercel (currently 26.x).
 
 ```bash
 cd src/frontend
-npm install
-cp .env.example .env.local   # then fill in SUPABASE_URL and SUPABASE_ANON_KEY
-npm run dev        # http://localhost:3000
+npm ci
+cp .env.example .env.local
+npm run dev
 ```
 
-Other scripts: `npm run build` (production build), `npm run lint`.
+Create `.env.local` only if it does not already exist. Fill in `SUPABASE_URL`, the public `SUPABASE_ANON_KEY`, and `DEVICE_VERIFICATION_ENABLED=true` for the shared Husky database. Keep actual environment files local. Never use a service-role key in the frontend. Supabase URL and public key are included in the browser bundle through `next.config.ts`; RLS protects the data.
 
-## Authentication
+`NEXT_PUBLIC_API_URL` is a placeholder for the separate FastAPI integration. Current live listing and account pages use Supabase directly.
 
-Supabase Auth with email one-time codes (no passwords), limited to `@northeastern.edu`.
+## Account flow
 
-- `app/login/` + `components/auth/LoginForm.tsx`: enter email, then the 6-digit code.
-- `proxy.ts` runs on every request: refreshes the session cookie and sends logged-out users to `/login`. Returning students land on Home after verification; new students finish account setup first, then land on Home.
-- `lib/supabase/client.ts` (Client Components) and `lib/supabase/server.ts` (Server Components) create Supabase clients.
-- The domain check in the form is only for UX. The real gate is the `hook_require_northeastern_email` hook in `supabase/migrations/`, and Row Level Security protects the tables.
+New students register with a Northeastern email and password, confirm the eight-digit email code, complete account setup, and go Home. Existing students use their email and password. Password recovery and device verification use email codes. Remembered browsers can return without another code; temporary sign-in does not retain device trust.
 
-## Layout
+The forms provide validation, but database policies and RPCs enforce access. Presentation fields in Auth metadata never authorize a student or device. Account and photo follow-up work is in #52; public seller fields are separate in #46.
 
-```
-app/
-  layout.tsx            # header, footer, toast provider, Archivo font
-  globals.css           # design tokens (colors, radii) + shared classes (.btn, .chip, .muted)
-  page.tsx              # browse page
-  login/                # sign-in page (the only public page)
-  listings/[id]/        # listing detail (placeholder for now)
-components/
-  Header.tsx, SearchPill.tsx, Footer.tsx, Icon.tsx, Skyline.tsx
-  listings/             # BrowseView, CategoryNav, ListingGrid, ListingCard
-  ui/Toast.tsx          # useToast() hook
-  auth/LoginForm.tsx    # email -> code sign-in form
-lib/
-  supabase/             # Supabase clients for browser and server, env var check
-  auth.ts               # @northeastern.edu check and legacy redirect validation
-  types.ts              # Listing, Seller, Category
-  mock-data.ts          # sample data until the FastAPI backend exists
-  use-filters.ts        # browse filters, stored in the URL (?mode=services&cat=tutoring)
-  format.ts             # price/rating formatting
+## Routes and code
+
+- `/`: Home; `/browse`: approved listings; `/item/<uuid>`: a live listing.
+- `/sell`: private draft editor; `/my-listings`: the signed-in student's listings.
+- `/account` and `/account/setup`: profile editing and onboarding.
+- `/login`, `/signup`, `/verify`, `/forgot-password`, `/reset-password`, `/verify-device`: authentication.
+- `/saved`, `/messages`, `/moving`, `/seller/<number>` and `/demo/item/<number>` include browser-local demonstrations. Their labels distinguish them from real records.
+- `/listings/<number>` is the older sample detail route. Public navigation must not send students to the internal `/team-browse` screen.
+- `/test-compression`, `/email-preview` and `/team-browse` are development tools. #52 makes them return 404 in production, including nested paths.
+
+Routes live in `app/`; shared marketplace components are in `components/ui/marketplace/`; live listing components and queries are in `components/listings/live/` and `lib/listings/`. Use the existing session-aware clients in `lib/supabase/`. Failed live requests must not substitute demo data.
+
+## Checks and handoff
+
+```bash
+node --experimental-strip-types --test tests/*.test.mjs
+npx next typegen
+npx tsc --noEmit
+npm run build
 ```
 
-Each component keeps its styles next to it in a `*.module.css` file.
+Run Prettier and ESLint on changed files. Browser checks and remaining manual tests are in [frontend QA](../../docs/frontend-qa.md). Listing walkthrough setup is in [listing workflow](../../docs/contracts/listing-workflow.md).
 
-## Porting the rest of the prototype
+For signed-out checks against a local production build or the reviewed deployment:
 
-The original single-file design lives at `docs/prototype/index.html`. Open it in a browser to compare. Still to port: messages, saved items, profile, settings, post a listing, and the full listing detail.
+```bash
+node tests/release-smoke.mjs http://127.0.0.1:3008
+```
 
-How the old code maps onto React:
+Replace the origin with the exact deployment URL after release. This makes GET requests only, without cookies or keys. It checks public pages, login redirects, public links and internal-route 404s. It does not test signup, inbox delivery or signed-in workflows.
 
-| Prototype                         | Next.js                              |
-| --------------------------------- | ------------------------------------ |
-| `renderX()` building HTML strings | a component returning JSX            |
-| `onclick="f()"`                   | `onClick={() => f()}`                |
-| `document.getElementById(...)`    | state, props, or `useRef`            |
-| global `state` / `go(view)`       | URL search params / routes in `app/` |
-| `toast("...")`                    | `const toast = useToast()`           |
-
-**Heads up:** the prototype defines several functions twice (`go`, `render`, `openDetail`, `toggleSave`, `renderCats`, `messageSeller`, `finishSignin`, `renderAcct`, `acctClick`). The browser uses the **second** definition, so port that one.
+For the existing Vercel project, release steps, environment settings and rollback, see [deployment handoff](../../docs/deployment.md). Do not release changes or apply shared migrations just to run local checks.

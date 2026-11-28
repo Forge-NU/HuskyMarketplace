@@ -38,6 +38,9 @@
   outline: 3px solid #ffb36a;
   outline-offset: 3px;
 }
+.page :is(a, button, input, select, textarea, [tabindex]) {
+  scroll-margin-block: 120px 24px;
+}
 .skipLink {
   position: fixed;
   top: 12px;
@@ -1102,6 +1105,11 @@
   padding: 22px 18px 13px;
   border-bottom: 1px solid #ece7e0;
 }
+.inboxEmpty {
+  margin: 0;
+  padding: 18px;
+  color: var(--photo-muted);
+}
 .thread {
   display: flex;
   width: 100%;
@@ -1128,6 +1136,9 @@
   text-overflow: ellipsis;
   font-size: 12px;
   color: #727071;
+}
+.threadActive .threadCopy > span {
+  color: #6b6464;
 }
 .conversation {
   display: flex;

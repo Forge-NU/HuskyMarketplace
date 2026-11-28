@@ -61,7 +61,8 @@
   background: none;
   padding: 6px 0;
   font-weight: 600;
-  color: var(--head-muted);
+  color: var(--head-fg);
+  text-decoration: none;
   border-bottom: 2px solid transparent;
 }
 .mode.on {

@@ -54,6 +54,7 @@ export default function MovingPage() {
     [notice, setNotice] = useState("");
   useEffect(() => {
     const added = getStored<MovingPost[]>(KEYS.moving, []);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore browser-only demo posts after hydration.
     setPosts([...(Array.isArray(added) ? added : []), ...MOVING_EXAMPLES]);
   }, []);
   function publish(e: FormEvent) {
@@ -358,6 +359,7 @@ export default function MovingPage() {
             <button
               key={x.id}
               className={tab === x.id ? styles.tabActive : ""}
+              aria-pressed={tab === x.id}
               onClick={() => setTab(x.id)}
             >
               {x.label}

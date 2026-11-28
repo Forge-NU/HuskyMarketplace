@@ -19,9 +19,7 @@ export default async function ListingPage({
     <main className={styles.page}>
       <Link
         className={styles.back}
-        href={
-          l.kind === "service" ? "/team-browse?mode=services" : "/team-browse"
-        }
+        href={l.kind === "service" ? "/moving" : "/browse"}
       >
         ← Back to browse
       </Link>
@@ -30,6 +28,7 @@ export default async function ListingPage({
           <Icon name={l.icon} strokeWidth={1.4} />
         </div>
         <div className={styles.body}>
+          <p className="muted">Sample listing · Demo only</p>
           <p className={styles.crumb}>
             {catLabel(l)} / {l.sub}
           </p>
